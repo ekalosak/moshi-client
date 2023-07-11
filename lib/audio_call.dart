@@ -2,19 +2,18 @@ import 'dart:core';
 import 'package:flutter/material.dart';
 import 'package:flutter_webrtc/flutter_webrtc.dart';
 
-import '../widgets/screen_select_dialog.dart';
 import 'signaling.dart';
 
-class CallSample extends StatefulWidget {
-  static String tag = 'call_sample';
+class AudioCall extends StatefulWidget {
+  static String tag = 'audio_call';
   final String host;
-  CallSample({required this.host});
+  AudioCall({required this.host});
 
   @override
-  _CallSampleState createState() => _CallSampleState();
+  _AudioCallState createState() => _AudioCallState();
 }
 
-class _CallSampleState extends State<CallSample> {
+class _AudioCallState extends State<AudioCall> {
   Signaling? _signaling;
   List<dynamic> _peers = [];
   String? _selfId;
@@ -26,7 +25,7 @@ class _CallSampleState extends State<CallSample> {
   bool _waitAccept = false;
 
   // ignore: unused_element
-  _CallSampleState();
+  _AudioCallState();
 
   @override
   initState() {

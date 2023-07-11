@@ -6,7 +6,7 @@ class DeviceInfo {
         Platform.operatingSystem +
         '(' +
         Platform.localHostname +
-        ")";
+        ')';
   }
 
   static String get userAgent {
