@@ -4,19 +4,15 @@ import 'package:shared_preferences/shared_preferences.dart';
 
 import 'signaling.dart';
 
-class WebRTCApp extends StatefulWidget {
+class UnstructuredChatApp extends StatefulWidget {
   @override
-  _WebRTCAppState createState() => _WebRTCAppState();
+  _UnstructuredChatApp createState() => _UnstructuredChatApp();
 }
 
-class _WebRTCAppState extends State<WebRTCApp> {
-  // This is half from ChatGPT and half from the futter-webrtc-demo on GitHub
+class _UnstructuredChatApp extends State<UnstructuredChatApp> {
   bool _connected = false;
-  String _server = 'localhost:8080';
-  // String _server = 'www.chatmoshi.com';
+  String _server = 'localhost:8080';  // TODO www.chatmoshi.com
   Signaling? _signaling;
-  final _dataChannelLabel = 'datachannel';
-  RTCDataChannel? _dataChannel;
 
   @override
   void initState() {
@@ -27,7 +23,6 @@ class _WebRTCAppState extends State<WebRTCApp> {
   void _connectWebRTC() async {
     print("_connectWebRTC");
     // TODO use the signaling connect functionality
-    await _getUserMedia();
     await _createDataChannels();
     setState(() {
       _connected = true;
@@ -40,28 +35,6 @@ class _WebRTCAppState extends State<WebRTCApp> {
     setState(() {
       _connected = false;
     });
-  }
-
-  Future<void> _getUserMedia() async {
-    print("_getUserMedia");
-    final mediaConstraints = <String, dynamic>{
-      'audio': true,
-      'video': false,
-    };
-
-    final stream = await navigator.mediaDevices.getUserMedia(mediaConstraints);
-    setState(() {
-      _localStream = stream;
-    });
-
-    print("\tstream: $stream");
-    _peerConnection?.addStream(stream);
-  }
-
-  Future<void> _createDataChannels() async {
-    print("_createDataChannels");
-    final dataChannelInit = RTCDataChannelInit();
-    _dataChannel = await _peerConnection?.createDataChannel(_dataChannelLabel, dataChannelInit);
   }
 
   @override

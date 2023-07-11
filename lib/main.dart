@@ -1,11 +1,10 @@
 import 'package:flutter/material.dart';
-import 'web_rtc_app.dart';
 
 void main() {
-  runApp(MyApp());
+  runApp(MoshiApp());
 }
 
-class MyApp extends StatelessWidget {
+class MoshiApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
@@ -13,7 +12,7 @@ class MyApp extends StatelessWidget {
       theme: ThemeData(
         primarySwatch: Colors.blue,
       ),
-      home: WebRTCApp(),
+      home: UnstructuredChatApp(),
     );
   }
 }

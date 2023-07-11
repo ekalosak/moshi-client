@@ -86,33 +86,6 @@ class Signaling {
     _socket?.close();
   }
 
-  void bye(String sessionId) {
-    _send('bye', {
-      'session_id': sessionId,
-      'from': _selfId,
-    });
-    var sess = _sessions[sessionId];
-    if (sess != null) {
-      _closeSession(sess);
-    }
-  }
-
-  void accept(String sessionId, String media) {
-    var session = _sessions[sessionId];
-    if (session == null) {
-      return;
-    }
-    _createAnswer(session, media);
-  }
-
-  void reject(String sessionId) {
-    var session = _sessions[sessionId];
-    if (session == null) {
-      return;
-    }
-    bye(session.sid);
-  }
-
   void onMessage(message) async {
     print("message: $message");
     Map<String, dynamic> mapData = message;
@@ -216,32 +189,10 @@ class Signaling {
   }
 
   Future<void> connect() async {
-    var url = 'https://$_host:$_port/ws';
-    _socket = SimpleWebSocket(url);
-
-    print('connect to $url');
-
-    _socket?.onOpen = () {
-      print('onOpen');
-      onSignalingStateChange?.call(SignalingState.Open);
-      _send('new', {
-        'name': DeviceInfo.label,
-        'id': _selfId,
-        'user_agent': DeviceInfo.userAgent
-      });
-    };
-
-    _socket?.onMessage = (message) {
-      print('Received data: ' + message);
-      onMessage(_decoder.convert(message));
-    };
-
-    _socket?.onClose = (int? code, String? reason) {
-      print('Closed by server [$code => $reason]!');
-      onSignalingStateChange?.call(SignalingState.Closed);
-    };
-
-    await _socket?.connect();
+    print('connect');
+    var url = 'https://$_host:$_port/offer';
+    print('\tconnect to $url');
+    // TODO 
   }
 
   Future<MediaStream> createStream(String media, {BuildContext? context}) async {
