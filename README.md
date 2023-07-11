@@ -14,5 +14,8 @@ https://docs.flutter.dev/get-started/install/macos
 ## Init project
 `flutter create .`
 
+## Sources
+1. https://codelabs.developers.google.com/codelabs/flutter-codelab-first?continue=https%3A%2F%2Fdevelopers.google.com%2Flearn%2Fpathways%2Fintro-to-flutter%23codelab-https%3A%2F%2Fcodelabs.developers.google.com%2Fcodelabs%2Fflutter-codelab-first#2
+
 # Run
-`flutter run`
+`flutter run -d chrome`
