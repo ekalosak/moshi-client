@@ -19,3 +19,7 @@ https://docs.flutter.dev/get-started/install/macos
 
 # Run
 `flutter run -d chrome`
+
+# Dev
+In vim,
+`:FlutterRun -d chrome`
