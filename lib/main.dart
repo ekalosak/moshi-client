@@ -9,7 +9,7 @@ class MyApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-      title: 'WebRTC App',
+      title: 'Moshi',
       theme: ThemeData(
         primarySwatch: Colors.blue,
       ),
