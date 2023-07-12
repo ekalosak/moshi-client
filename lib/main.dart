@@ -4,7 +4,13 @@ import 'package:flutter/material.dart';
 
 import 'firebase_options.dart';
 import 'screens/main/main.dart';
-import 'screens/auth/main.dart';
+// import 'screens/main/chat.dart';
+// import 'screens/main/progress.dart';
+// import 'screens/main/settings.dart';
+// import 'screens/auth/main.dart';
+import 'screens/auth/login.dart';
+// import 'screens/auth/password_reset.dart';
+// import 'screens/auth/sign_up.dart';
 import 'services/auth.dart';
 
 void main() async {
@@ -36,12 +42,18 @@ class MyApp extends StatelessWidget {
                 if (user != null) {
                   return MainScreen(authService: _authService);
                 } else {
-                  return AuthScreen(authService: _authService);
+                  return LoginScreen(authService: _authService);
                 }
               },
             ),
-        '/auth': (context) => AuthScreen(authService: _authService),
-        '/main': (context) => MainScreen(authService: _authService),
+        '/a': (context) => LoginScreen(authService: _authService),
+        // '/a/login': (context) => LoginScreen(authService: _authService),
+        // '/a/reset': (context) => PasswordResetScreen(authService: _authService),
+        // '/a/signup': (context) => SignUpScreen(authService: _authService),
+        '/m': (context) => MainScreen(authService: _authService),
+        // '/m/chat': (context) => ChatScreen(authService: _authService),
+        // '/m/progress': (context) => ProgressScreen(authService: _authService),
+        // '/m/settings': (context) => SettingsScreen(authService: _authService),
       },
     );
   }

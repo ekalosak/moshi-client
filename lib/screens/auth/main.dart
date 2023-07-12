@@ -24,11 +24,6 @@ class _AuthScreenState extends State<AuthScreen> {
   void initState() {
     super.initState();
     _authService = widget.authService; // Assign authService to the local variable
-    _screens.addAll([
-      LoginScreen(authService: _authService),
-      SignUpScreen(authService: _authService),
-      PasswordResetScreen(authService: _authService),
-    ]);
   }
 
   @override
@@ -37,7 +32,7 @@ class _AuthScreenState extends State<AuthScreen> {
       appBar: AppBar(
         title: Text('Moshi Authentication'),
       ),
-      body: _screens[_currentIndex],
+      body: LoginScreen(authService: _authService),
     );
   }
 }

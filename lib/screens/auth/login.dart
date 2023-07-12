@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 
 import '../../services/auth.dart';
-// import 'sign_up.dart';
+import 'sign_up.dart';
 // import 'password_reset.dart';
 
 class LoginScreen extends StatelessWidget {
@@ -20,7 +20,7 @@ class LoginScreen extends StatelessWidget {
 
     if (authToken != null) {
       print("Login with email+password succeded!");
-      Navigator.pushReplacementNamed(context, '/main');
+      Navigator.pushReplacementNamed(context, '/');
     } else {
       // TODO Handle login error
       print("Login with email+password failed.");
@@ -29,7 +29,12 @@ class LoginScreen extends StatelessWidget {
 
   /// TODO Redirect user to signup route
   Future<void> signupWithEmailPassword(BuildContext context) async {
-    print("TODO signupWithEmailPassword");
+    print("CLICKED signupWithEmailPassword");
+    Navigator.of(context).push(
+      MaterialPageRoute(
+        builder: (context) => SignUpScreen(authService: authService),
+      ),
+    );
   }
 
   Future<void> loginWithGoogle(BuildContext context) async {
@@ -37,7 +42,7 @@ class LoginScreen extends StatelessWidget {
 
     if (authToken != null) {
       print("Login with google succeded!");
-      Navigator.pushReplacementNamed(context, '/main');
+      Navigator.pushReplacementNamed(context, '/');
     } else {
       // TODO Handle login error
       print("Login with google failed.");

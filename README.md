@@ -51,5 +51,10 @@ Don't use system Ruby, that's a no-no.
 `flutter run -d chrome`
 
 # Dev
+
+## On write in vim, hot reload flutter
 In vim,
 `:FlutterRun -d chrome`
+
+## Code organization
+https://medium.com/flutter-community/flutter-code-organization-revised-b09ad5cef7f6
