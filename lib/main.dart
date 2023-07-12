@@ -1,6 +1,8 @@
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
 
+import 'firebase_options.dart';
 import 'screens/main/chat.dart';
 import 'screens/main/main.dart';
 import 'screens/main/progress.dart';
@@ -10,7 +12,11 @@ import 'screens/auth/password_reset.dart';
 import 'screens/auth/sign_up.dart';
 import 'services/auth.dart';
 
-void main() {
+void main() async {
+  WidgetsFlutterBinding.ensureInitialized();
+  await Firebase.initializeApp(
+    options: DefaultFirebaseOptions.currentPlatform,
+  );
   runApp(MyApp());
 }
 
@@ -20,7 +26,7 @@ class MyApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-      title: 'Your App Title',
+      title: 'Moshi',
       theme: ThemeData(primarySwatch: Colors.blue),
       initialRoute: '/',
       routes: {
