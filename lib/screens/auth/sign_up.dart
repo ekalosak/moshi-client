@@ -1,28 +1,56 @@
 import 'package:flutter/material.dart';
 import '../../services/auth.dart';
 
-class SignUpScreen extends StatelessWidget {
-  final TextEditingController firstNameController = TextEditingController();
-  final TextEditingController emailController = TextEditingController();
-  final TextEditingController passwordController = TextEditingController();
+class SignUpScreen extends StatefulWidget {
   final AuthService authService;
 
   SignUpScreen({required this.authService});
 
-  Future<void> signUp(BuildContext context) async {
-    final String? authToken = await authService.signUpWithEmailAndPassword(
-      emailController.text,
-      passwordController.text,
-      firstNameController.text,
-      context,
-    );
+  @override
+  _SignUpScreenState createState() => _SignUpScreenState();
+}
 
-    if (authToken != null) {
-      // TODO Handle successful sign-up
-      print("Signup succeded!");
+class _SignUpScreenState extends State<SignUpScreen> {
+  final TextEditingController firstNameController = TextEditingController();
+  final TextEditingController emailController = TextEditingController();
+  final TextEditingController passwordController = TextEditingController();
+  bool isLoading = false;
+  late AuthService _authService;
+
+  @override
+  void initState() {
+    super.initState();
+    _authService = widget.authService;
+  }
+
+  Future<void> signUp(BuildContext context) async {
+    String email = emailController.text;
+    String password = passwordController.text;
+    String name = firstNameController.text;
+    if (name == '') {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Please provide a name Moshi can call you.')),
+      );
     } else {
-      // TODO Handle signup error
-      print("Signup failed.");
+      setState(() {
+        isLoading = true;
+      });
+      final String? authToken = await _authService.signUpWithEmailAndPassword(
+        email,
+        password,
+        name,
+        context,
+      );
+      setState(() {
+        isLoading = false;
+      });
+
+      if (authToken != null) {
+        print("Signup succeded!");
+        // TODO direct to /
+      } else {
+        print("Signup failed.");  // NOTE authService handles the popups for user
+      }
     }
   }
 
@@ -59,9 +87,18 @@ class SignUpScreen extends StatelessWidget {
             SizedBox(height: 10),
             ElevatedButton(
               child: Text('Sign Up'),
-              onPressed: () {
-                signUp(context);
-              },
+              onPressed: isLoading ? null : () => signUp(context),
+              style: ButtonStyle(
+                // Set button color to grey when disabled
+                backgroundColor: MaterialStateProperty.resolveWith<Color>(
+                  (states) {
+                    if (states.contains(MaterialState.disabled)) {
+                      return Colors.grey;
+                    }
+                    return Theme.of(context).primaryColor;
+                  },
+                ),
+              ),
             ),
           ],
         ),

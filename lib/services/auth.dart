@@ -67,6 +67,7 @@ class AuthService {
 
       return userCredential.user!.uid;
     } catch (e) {
+      print("Unknown error");
       print(e);
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text('An error occurred. Please try again later.')),
@@ -90,11 +91,21 @@ class AuthService {
       final String authToken = userCredential.user!.uid;
       return authToken;
     } on FirebaseAuthException catch (e) {
+      print("FirebaseAuthException");
+      print(e);
       String errorMessage;
       if (e.code == 'weak-password') {
         errorMessage = 'The password provided is too weak.';
-      } else if (e.code == 'email-already-in-use') {
-        errorMessage = 'The account already exists for that email.';
+      } else if (e.code == 'unknown') {
+        if (e.toString().contains('auth/invalid-email')) {
+          errorMessage = 'Email invalid.';
+        } else if (e.toString().contains('auth/email-already-in-use')) {
+          errorMessage = 'The account already exists for that email.';
+        } else if (e.toString().contains('auth/missing-password')) {
+          errorMessage = 'Please provide a password.';
+        } else {
+          errorMessage = 'An error occurred. Please try again later.';
+        }
       } else {
         errorMessage = 'An error occurred. Please try again later.';
       }
@@ -103,6 +114,8 @@ class AuthService {
       );
       return null;
     } catch (e) {
+      print("Unknown error");
+      print(e);
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text('An error occurred. Please try again later.')),
       );
