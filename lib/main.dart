@@ -1,7 +1,13 @@
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 
+import 'screens/main/chat.dart';
 import 'screens/main/main.dart';
+import 'screens/main/progress.dart';
+import 'screens/main/settings.dart';
 import 'screens/auth/login.dart';
+import 'screens/auth/password_reset.dart';
+import 'screens/auth/sign_up.dart';
 import 'services/auth.dart';
 
 void main() {
@@ -27,17 +33,14 @@ class MyApp extends StatelessWidget {
 
                 final user = snapshot.data;
                 if (user != null) {
-                  return MainScreen();
+                  return MainScreen(authService: _authService);
                 } else {
-                  return LoginScreen();
+                  return LoginScreen(authService: _authService);
                 }
               },
             ),
-        '/main': (context) => MainScreen(),
-        '/login': (context) => LoginScreen(),
-        '/signup': (context) => SignUpScreen(),
-        '/resetpassword': (context) => ResetPasswordScreen(),
-        '/settings': (context) => SettingsScreen(authService: _authService),
+        '/login': (context) => LoginScreen(authService: _authService),
+        '/main': (context) => MainScreen(authService: _authService),
       },
     );
   }

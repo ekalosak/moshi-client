@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 
+import '../../services/auth.dart';
 import 'chat.dart';
 import 'progress.dart';
 import 'settings.dart';
@@ -15,12 +16,20 @@ class MainScreen extends StatefulWidget {
 
 class _MainScreenState extends State<MainScreen> {
   int _currentIndex = 0;
+  late AuthService _authService; // Declare a local variable
 
-  final List<Widget> _screens = [
-    SettingsScreen(authService: authService),
-    ChatScreen(),
-    ProgressScreen(),
-  ];
+  final List<Widget> _screens = [];
+
+  @override
+  void initState() {
+    super.initState();
+    _authService = widget.authService; // Assign authService to the local variable
+    _screens.addAll([
+      SettingsScreen(authService: _authService),
+      ChatScreen(),
+      ProgressScreen(),
+    ]);
+  }
 
   @override
   Widget build(BuildContext context) {
