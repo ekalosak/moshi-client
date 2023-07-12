@@ -1,14 +1,8 @@
 import 'package:flutter/material.dart';
-// import 'package:firebase_auth/firebase_auth.dart';
-// import 'package:google_sign_in/google_sign_in.dart';
-// import 'package:shared_preferences/shared_preferences.dart';
 
 import '../../services/auth.dart';
 import 'sign_up.dart';
 import 'password_reset.dart';
-
-import 'package:flutter/material.dart';
-import 'auth_service.dart';
 
 class LoginScreen extends StatelessWidget {
   final TextEditingController emailController = TextEditingController();

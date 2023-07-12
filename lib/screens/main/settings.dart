@@ -1,9 +1,21 @@
 import 'package:flutter/material.dart';
-import 'package:shared_preferences/shared_preferences.dart';
-
-import '../auth/login.dart'
+import '../../services/auth.dart';
 
 class SettingsScreen extends StatelessWidget {
+  final AuthService authService;
+
+  SettingsScreen({required this.authService});
+
+  Future<void> logOut(BuildContext context) async {
+    try {
+      await authService.signOut();
+    } catch (e) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('An error occurred. Please try again later.')),
+      );
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -13,13 +25,8 @@ class SettingsScreen extends StatelessWidget {
       body: Center(
         child: ElevatedButton(
           child: Text('Log Out'),
-          onPressed: () async {
-            final prefs = await SharedPreferences.getInstance();
-            prefs.remove('authToken');
-            Navigator.pushReplacement(
-              context,
-              MaterialPageRoute(builder: (context) => LoginScreen()),
-            );
+          onPressed: () {
+            logOut(context);
           },
         ),
       ),
