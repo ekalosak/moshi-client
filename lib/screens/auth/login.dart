@@ -15,6 +15,7 @@ class LoginScreen extends StatelessWidget {
     final String? authToken = await authService.signInWithEmailAndPassword(
       emailController.text,
       passwordController.text,
+      context,
     );
 
     if (authToken != null) {
@@ -27,7 +28,7 @@ class LoginScreen extends StatelessWidget {
   }
 
   Future<void> loginWithGoogle(BuildContext context) async {
-    final String? authToken = await authService.signInWithGoogle();
+    final String? authToken = await authService.signInWithGoogle(context);
 
     if (authToken != null) {
       print("Login with google succeded!");

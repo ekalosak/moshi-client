@@ -5,6 +5,10 @@ import 'progress.dart';
 import 'settings.dart';
 
 class MainScreen extends StatefulWidget {
+  final AuthService authService;
+
+  MainScreen({required this.authService});
+
   @override
   _MainScreenState createState() => _MainScreenState();
 }
@@ -13,7 +17,7 @@ class _MainScreenState extends State<MainScreen> {
   int _currentIndex = 0;
 
   final List<Widget> _screens = [
-    SettingsScreen(),
+    SettingsScreen(authService: authService),
     ChatScreen(),
     ProgressScreen(),
   ];
