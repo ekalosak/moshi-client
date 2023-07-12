@@ -42,7 +42,7 @@ class _MainScreenState extends State<MainScreen> {
             label: 'Chat',
           ),
           BottomNavigationBarItem(
-            icon: Icon(Icons.progress),
+            icon: Icon(Icons.analytics_outlined),
             label: 'Progress',
           ),
         ],
