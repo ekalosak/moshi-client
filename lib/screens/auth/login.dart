@@ -29,19 +29,7 @@ class LoginScreen extends StatelessWidget {
 
   /// TODO Redirect user to signup route
   Future<void> signupWithEmailPassword(BuildContext context) async {
-    final String? authToken = await authService.signInWithEmailAndPassword(
-      emailController.text,
-      passwordController.text,
-      context,
-    );
-
-    if (authToken != null) {
-      print("Login with email+password succeded!");
-      Navigator.pushReplacementNamed(context, '/main');
-    } else {
-      // TODO Handle login error
-      print("Login with email+password failed.");
-    }
+    print("TODO signupWithEmailPassword");
   }
 
   Future<void> loginWithGoogle(BuildContext context) async {

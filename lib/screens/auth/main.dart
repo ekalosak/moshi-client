@@ -35,7 +35,7 @@ class _AuthScreenState extends State<AuthScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text('Main Screen'),
+        title: Text('Moshi Authentication'),
       ),
       body: _screens[_currentIndex],
     );
