@@ -85,6 +85,7 @@ class AuthService {
       );
 
       await userCredential.user!.updateDisplayName(firstName);
+      await userCredential.user?.sendEmailVerification();
 
       final String authToken = userCredential.user!.uid;
       return authToken;
@@ -109,8 +110,27 @@ class AuthService {
     }
   }
 
+  // TODO error handling around signOut
   Future<void> signOut(BuildContext context) async {
-    await _firebaseAuth.signOut();
+    try {
+      await _firebaseAuth.signOut();
+    } catch (e) {
+      print(e);
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('An error occurred. Please try again later.')),
+      );
+    }
+  }
 
+  // TODO non-brut error handling around sendPasswordResetEmail
+  Future<void> sendPasswordResetEmail(String email, BuildContext context) async {
+    try {
+      await _firebaseAuth.sendPasswordResetEmail(email: email);
+    } catch (e) {
+      print(e);
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('An error occurred. Please try again later.')),
+      );
+    }
   }
 }

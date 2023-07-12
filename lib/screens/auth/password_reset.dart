@@ -1,14 +1,17 @@
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 
+import '../../services/auth.dart';
+
 class PasswordResetScreen extends StatelessWidget {
   final TextEditingController emailController = TextEditingController();
+  final AuthService authService;
+
+  PasswordResetScreen({required this.authService});
 
   Future<void> resetPassword(BuildContext context) async {
     try {
-      await FirebaseAuth.instance.sendPasswordResetEmail(
-        email: emailController.text,
-      );
+      await authService.sendPasswordResetEmail(emailController.text, context);
 
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text('Password reset email sent!')),

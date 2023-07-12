@@ -3,13 +3,8 @@ import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
 
 import 'firebase_options.dart';
-import 'screens/main/chat.dart';
 import 'screens/main/main.dart';
-import 'screens/main/progress.dart';
-import 'screens/main/settings.dart';
-import 'screens/auth/login.dart';
-import 'screens/auth/password_reset.dart';
-import 'screens/auth/sign_up.dart';
+import 'screens/auth/main.dart';
 import 'services/auth.dart';
 
 void main() async {
@@ -41,11 +36,11 @@ class MyApp extends StatelessWidget {
                 if (user != null) {
                   return MainScreen(authService: _authService);
                 } else {
-                  return LoginScreen(authService: _authService);
+                  return AuthScreen(authService: _authService);
                 }
               },
             ),
-        '/login': (context) => LoginScreen(authService: _authService),
+        '/auth': (context) => AuthScreen(authService: _authService),
         '/main': (context) => MainScreen(authService: _authService),
       },
     );

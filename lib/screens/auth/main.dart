@@ -5,17 +5,17 @@ import 'login.dart';
 import 'password_reset.dart';
 import 'sign_up.dart';
 
-class MainScreen extends StatefulWidget {
+class AuthScreen extends StatefulWidget {
   final AuthService authService;
 
-  MainScreen({required this.authService});
+  AuthScreen({required this.authService});
 
   @override
-  _MainScreenState createState() => _MainScreenState();
+  _AuthScreenState createState() => _AuthScreenState();
 }
 
-class _MainScreenState extends State<MainScreen> {
-  int _currentIndex = 1;
+class _AuthScreenState extends State<AuthScreen> {
+  int _currentIndex = 0;
   late AuthService _authService; // Declare a local variable
 
   final List<Widget> _screens = [];
@@ -25,9 +25,9 @@ class _MainScreenState extends State<MainScreen> {
     super.initState();
     _authService = widget.authService; // Assign authService to the local variable
     _screens.addAll([
-      SettingsScreen(authService: _authService),
-      ChatScreen(),
-      ProgressScreen(),
+      LoginScreen(authService: _authService),
+      SignUpScreen(authService: _authService),
+      PasswordResetScreen(authService: _authService),
     ]);
   }
 
@@ -38,28 +38,6 @@ class _MainScreenState extends State<MainScreen> {
         title: Text('Main Screen'),
       ),
       body: _screens[_currentIndex],
-      bottomNavigationBar: BottomNavigationBar(
-        currentIndex: _currentIndex,
-        onTap: (index) {
-          setState(() {
-            _currentIndex = index;
-          });
-        },
-        items: [
-          BottomNavigationBarItem(
-            icon: Icon(Icons.settings),
-            label: 'Settings',
-          ),
-          BottomNavigationBarItem(
-            icon: Icon(Icons.chat),
-            label: 'Chat',
-          ),
-          BottomNavigationBarItem(
-            icon: Icon(Icons.analytics_outlined),
-            label: 'Progress',
-          ),
-        ],
-      ),
     );
   }
 }
