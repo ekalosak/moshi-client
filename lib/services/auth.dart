@@ -17,11 +17,23 @@ class AuthService {
       );
       return userCredential.user!.uid;
     } on FirebaseAuthException catch (e) {
+      print("FirebaseAuthException");
+      print(e);
+      print("FirebaseAuthException.code");
+      print(e.code);
       String errorMessage;
       if (e.code == 'user-not-found') {
         errorMessage = 'No user found for that email.';
       } else if (e.code == 'wrong-password') {
         errorMessage = 'Wrong password provided for that user.';
+      } else if (e.code == 'unknown') {
+        if (e.toString().contains('auth/invalid-email')) {
+          errorMessage = 'Email invalid.';
+        if (e.toString().contains('auth/wrong-password')) {
+          errorMessage = 'Wrong password.';
+        } else {
+          errorMessage = 'An error occurred. Please try again later.';
+        }
       } else {
         errorMessage = 'An error occurred. Please try again later.';
       }
@@ -30,6 +42,8 @@ class AuthService {
       );
       return null;
     } catch (e) {
+      print("Unknown error");
+      print(e);
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text('An error occurred. Please try again later.')),
       );
@@ -53,6 +67,7 @@ class AuthService {
 
       return userCredential.user!.uid;
     } catch (e) {
+      print(e);
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text('An error occurred. Please try again later.')),
       );
