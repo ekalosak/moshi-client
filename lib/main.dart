@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 
+import 'unstructured_chat_app.dart';
+
 void main() {
   runApp(MoshiApp());
 }

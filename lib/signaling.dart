@@ -3,26 +3,19 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter_webrtc/flutter_webrtc.dart';
 
-// import '../utils/screen_select_dialog.dart';
-import 'random_string.dart';
-
+import '../utils/random_string.dart';
 import '../utils/device_info.dart'
     if (dart.library.js) '../utils/device_info_web.dart';
-import '../utils/websocket.dart'
-    if (dart.library.js) '../utils/websocket_web.dart';
-// import '../utils/turn.dart' if (dart.library.js) '../utils/turn_web.dart';
 
-enum SignalingState {
-  Open,
-  Closed,
-  Err,
-}
-
-enum CallState {
+// State of the WebRTC connection
+//    source: https://developer.mozilla.org/en-US/docs/Web/API/RTCPeerConnection/connectionState
+enum ConnectionState {
   New,
   Connecting,
   Connected,
-  Bye,
+  Disconnected,
+  Failed,
+  Closed,
 }
 
 class Session {
@@ -35,30 +28,26 @@ class Session {
 }
 
 class Signaling {
-  Signaling(this._host, this._context);
+  Signaling(this._host, this._port, this._context);
 
+  String const sdpSemantics = 'unified-plan';
   JsonEncoder _encoder = JsonEncoder();
   JsonDecoder _decoder = JsonDecoder();
   String _selfId = randomNumeric(6);
   BuildContext? _context;
   var _host;
-  var _port = 8086;
+  var _port;
   Session? _session;
   MediaStream? _localStream;
   List<MediaStream> _remoteStreams = <MediaStream>[];
   List<RTCRtpSender> _senders = <RTCRtpSender>[];
 
-  Function(SignalingState state)? onSignalingStateChange;
-  Function(Session session, CallState state)? onCallStateChange;
+  Function(Session session, CallState state)? onConnectionStateChange;
   Function(MediaStream stream)? onLocalStream;
   Function(Session session, MediaStream stream)? onAddRemoteStream;
   Function(Session session, MediaStream stream)? onRemoveRemoteStream;
-  Function(dynamic event)? onPeersUpdate;
-  Function(Session session, RTCDataChannel dc, RTCDataChannelMessage data)?
-      onDataChannelMessage;
+  Function(Session session, RTCDataChannel dc, RTCDataChannelMessage data)? onDataChannelMessage;
   Function(Session session, RTCDataChannel dc)? onDataChannel;
-
-  String get sdpSemantics => 'unified-plan';
 
   Map<String, dynamic> _iceServers = {
     'iceServers': [
@@ -81,9 +70,31 @@ class Signaling {
     'optional': [],
   };
 
+  Future<void> connect() async {
+    print('connect');
+    var url = 'https://$_host:$_port/offer';
+    print('\tconnecting to $url');
+    // TODO create PC
+    // TODO create datachannel "pingpong" (POC datachannel) from PC
+    // TODO constraints <- mediaConstraints
+    // TODO stream <- getUserMedia
+    // TODO tracks <- for each track in stream.tracks if track is audio
+    // TODO negotiate
+    // TODO POST to /offer
+  }
+
   close() async {
-    await _cleanSessions();
-    _socket?.close();
+    if (_localStream != null) {
+      _localStream!.getTracks().forEach((element) async {
+        await element.stop();
+      });
+      await _localStream!.dispose();
+      _localStream = null;
+    }
+    await _session.pc?.close();
+    await _session.dc?.close();
+    _session = null;
+    _senders.clear();
   }
 
   void onMessage(message) async {
@@ -93,17 +104,6 @@ class Signaling {
 
     print("mapData: $mapData");
     switch (mapData['type']) {
-      case 'peers':
-        {
-          List<dynamic> peers = data;
-          if (onPeersUpdate != null) {
-            Map<String, dynamic> event = Map<String, dynamic>();
-            event['self'] = _selfId;
-            event['peers'] = peers;
-            onPeersUpdate?.call(event);
-          }
-        }
-        break;
       case 'offer':
         {
           var peerId = data['from'];
@@ -188,13 +188,6 @@ class Signaling {
     }
   }
 
-  Future<void> connect() async {
-    print('connect');
-    var url = 'https://$_host:$_port/offer';
-    print('\tconnect to $url');
-    // TODO 
-  }
-
   Future<MediaStream> createStream(String media, {BuildContext? context}) async {
     print("createStream");
     final Map<String, bool> mediaConstraints = {
@@ -209,8 +202,6 @@ class Signaling {
 
   Future<Session> _createSession(
     Session? session, {
-    required String peerId,
-    required String sessionId,
     required String media,
   }) async {
     var newSession = session ?? Session(sid: sessionId, pid: peerId);
@@ -220,22 +211,18 @@ class Signaling {
     print(_iceServers);
     RTCPeerConnection pc = await createPeerConnection({
       ..._iceServers,
-      ...{'sdpSemantics': sdpSemantics}
+      ...{'sdpSemantics': 'unified-plan'}
     }, _config);
     if (media != 'data') {
-      switch (sdpSemantics) {
-        case 'unified-plan':
-          pc.onTrack = (event) {
-            if (event.track.kind == 'audio') {
-              onAddRemoteStream?.call(newSession, event.streams[0]);
-            }
-          };
-          _localStream!.getTracks().forEach((track) async {
-            _senders.add(await pc.addTrack(track, _localStream!));
-          });
-          break;
-        default:
-          throw FormatException("unexpected sdpSemantics: $sdpSemantics");
+        pc.onTrack = (event) {
+          if (event.track.kind == 'audio') {
+            onAddRemoteStream?.call(newSession, event.streams[0]);
+          }
+        };
+        _localStream!.getTracks().forEach((track) async {
+          _senders.add(await pc.addTrack(track, _localStream!));
+        });
+        break;
       }
     }
     pc.onIceCandidate = (candidate) async {
@@ -312,13 +299,6 @@ class Signaling {
     }
   }
 
-  RTCSessionDescription _fixSdp(RTCSessionDescription s) {
-    var sdp = s.sdp;
-    s.sdp =
-        sdp!.replaceAll('profile-level-id=640c1f', 'profile-level-id=42e032');
-    return s;
-  }
-
   Future<void> _createAnswer(Session session, String media) async {
     try {
       RTCSessionDescription s =
@@ -335,50 +315,4 @@ class Signaling {
     }
   }
 
-  _send(event, data) {
-    var request = Map();
-    request["type"] = event;
-    request["data"] = data;
-    _socket?.send(_encoder.convert(request));
-  }
-
-  Future<void> _cleanSessions() async {
-    if (_localStream != null) {
-      _localStream!.getTracks().forEach((element) async {
-        await element.stop();
-      });
-      await _localStream!.dispose();
-      _localStream = null;
-    }
-    _sessions.forEach((key, sess) async {
-      await sess.pc?.close();
-      await sess.dc?.close();
-    });
-    _sessions.clear();
-  }
-
-  void _closeSessionByPeerId(String peerId) {
-    var session;
-    _sessions.removeWhere((String key, Session sess) {
-      var ids = key.split('-');
-      session = sess;
-      return peerId == ids[0] || peerId == ids[1];
-    });
-    if (session != null) {
-      _closeSession(session);
-      onCallStateChange?.call(session, CallState.Bye);
-    }
-  }
-
-  Future<void> _closeSession(Session session) async {
-    _localStream?.getTracks().forEach((element) async {
-      await element.stop();
-    });
-    await _localStream?.dispose();
-    _localStream = null;
-
-    await session.pc?.close();
-    await session.dc?.close();
-    _senders.clear();
-  }
 }
