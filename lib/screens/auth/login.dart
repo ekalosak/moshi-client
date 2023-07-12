@@ -18,8 +18,8 @@ class LoginScreen extends StatelessWidget {
     );
 
     if (authToken != null) {
-      // TODO Handle successful login
       print("Login with email+password succeded!");
+      Navigator.pushReplacementNamed(context, '/main');
     } else {
       // TODO Handle login error
       print("Login with email+password failed.");
@@ -30,8 +30,8 @@ class LoginScreen extends StatelessWidget {
     final String? authToken = await authService.signInWithGoogle();
 
     if (authToken != null) {
-      // TODO Handle successful login
       print("Login with google succeded!");
+      Navigator.pushReplacementNamed(context, '/main');
     } else {
       // TODO Handle login error
       print("Login with google failed.");

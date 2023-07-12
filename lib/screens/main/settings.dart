@@ -9,6 +9,7 @@ class SettingsScreen extends StatelessWidget {
   Future<void> logOut(BuildContext context) async {
     try {
       await authService.signOut();
+      Navigator.pushNamedAndRemoveUntil(context, '/', (route) => false);
     } catch (e) {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text('An error occurred. Please try again later.')),
