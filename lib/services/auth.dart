@@ -29,7 +29,7 @@ class AuthService {
       } else if (e.code == 'unknown') {
         if (e.toString().contains('auth/invalid-email')) {
           errorMessage = 'Email invalid.';
-        if (e.toString().contains('auth/wrong-password')) {
+        } else if (e.toString().contains('auth/wrong-password')) {
           errorMessage = 'Wrong password.';
         } else {
           errorMessage = 'An error occurred. Please try again later.';

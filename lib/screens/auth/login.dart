@@ -70,13 +70,14 @@ class LoginScreen extends StatelessWidget {
                 loginWithEmailPassword(context);
               },
             ),
-            SizedBox(height: 10),
-            ElevatedButton(
-              child: Text('Log in with Google'),
-              onPressed: () {
-                loginWithGoogle(context);
-              },
-            ),
+            // SizedBox(height: 10),
+            // TODO add teh clientId
+            // ElevatedButton(
+            //   child: Text('Log in with Google'),
+            //   onPressed: () {
+            //     loginWithGoogle(context);
+            //   },
+            // ),
           ],
         ),
       ),
