@@ -1,74 +1,43 @@
 import 'package:firebase_auth/firebase_auth.dart';
-import 'package:shared_preferences/shared_preferences.dart';
-
-// TODO use Firebase's flutter https://firebase.google.com/docs/auth/flutter/start
-//  for persisting sign-in auth, listening for log-out, etc.
+import 'package:flutter/material.dart';
+import 'package:google_sign_in/google_sign_in.dart';
 
 class AuthService {
   final FirebaseAuth _firebaseAuth = FirebaseAuth.instance;
 
-  Future<String?> getToken() async {
-    final prefs = await SharedPreferences.getInstance();
-    return prefs.getString('authToken');
-  }
-
-  Future<void> saveToken(String token) async {
-    final prefs = await SharedPreferences.getInstance();
-    await prefs.setString('authToken', token);
-  }
-
-  Future<void> removeToken() async {
-    final prefs = await SharedPreferences.getInstance();
-    await prefs.remove('authToken');
-  }
-
-  Future<String?> signUpWithEmailAndPassword(
-      String email, String password, String firstName) async {
-    try {
-      final UserCredential userCredential =
-          await _firebaseAuth.createUserWithEmailAndPassword(
-        email: email,
-        password: password,
-      );
-
-      await userCredential.user!.updateDisplayName(firstName);
-
-      final String authToken = userCredential.user!.uid;
-
-      await saveToken(authToken);
-
-      return authToken;
-
-    // TODO show the error to user in a material popup
-    } on FirebaseAuthException catch (e) {
-      if (e.code == 'weak-password') {
-        print('The password provided is too weak.');
-      } else if (e.code == 'email-already-in-use') {
-        print('The account already exists for that email.');
-      }
-    } catch (e) {
-      print(e);
-    }
-    return null;
-  }
+  Stream<User?> get authStateChanges => _firebaseAuth.authStateChanges();
 
   Future<String?> signInWithEmailAndPassword(
-      String email, String password) async {
+      String email, String password, BuildContext context) async {
     try {
-      final UserCredential userCredential =
+      UserCredential userCredential =
           await _firebaseAuth.signInWithEmailAndPassword(
         email: email,
         password: password,
       );
       return userCredential.user!.uid;
+    } on FirebaseAuthException catch (e) {
+      String errorMessage;
+      if (e.code == 'user-not-found') {
+        errorMessage = 'No user found for that email.';
+      } else if (e.code == 'wrong-password') {
+        errorMessage = 'Wrong password provided for that user.';
+      } else {
+        errorMessage = 'An error occurred. Please try again later.';
+      }
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text(errorMessage)),
+      );
+      return null;
     } catch (e) {
-      // TODO present error to user..?
-      print(e);
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('An error occurred. Please try again later.')),
+      );
       return null;
     }
   }
 
-  Future<String?> signInWithGoogle() async {
+  Future<String?> signInWithGoogle(BuildContext context) async {
     try {
       final GoogleSignInAccount? googleUser = await GoogleSignIn().signIn();
       final GoogleSignInAuthentication googleAuth =
@@ -84,8 +53,43 @@ class AuthService {
 
       return userCredential.user!.uid;
     } catch (e) {
-      print(e);
-      // TODO present error to user..?
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('An error occurred. Please try again later.')),
+      );
+      return null;
+    }
+  }
+
+  Future<String?> signUpWithEmailAndPassword(
+      String email, String password, String firstName, BuildContext context) async {
+    try {
+      UserCredential userCredential =
+          await _firebaseAuth.createUserWithEmailAndPassword(
+        email: email,
+        password: password,
+      );
+
+      await userCredential.user!.updateDisplayName(firstName);
+
+      final String authToken = userCredential.user!.uid;
+      return authToken;
+    } on FirebaseAuthException catch (e) {
+      String errorMessage;
+      if (e.code == 'weak-password') {
+        errorMessage = 'The password provided is too weak.';
+      } else if (e.code == 'email-already-in-use') {
+        errorMessage = 'The account already exists for that email.';
+      } else {
+        errorMessage = 'An error occurred. Please try again later.';
+      }
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text(errorMessage)),
+      );
+      return null;
+    } catch (e) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('An error occurred. Please try again later.')),
+      );
       return null;
     }
   }

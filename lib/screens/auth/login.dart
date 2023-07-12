@@ -1,19 +1,21 @@
 import 'package:flutter/material.dart';
 // import 'package:firebase_auth/firebase_auth.dart';
 // import 'package:google_sign_in/google_sign_in.dart';
-import 'package:shared_preferences/shared_preferences.dart';
+// import 'package:shared_preferences/shared_preferences.dart';
 
 import '../../services/auth.dart';
 import 'sign_up.dart';
 import 'password_reset.dart';
 
+import 'package:flutter/material.dart';
+import 'auth_service.dart';
+
 class LoginScreen extends StatelessWidget {
   final TextEditingController emailController = TextEditingController();
   final TextEditingController passwordController = TextEditingController();
   final AuthService authService;
-  final Function(String) loginCallback;
 
-  LoginScreen({required this.authService, required this.loginCallback});
+  LoginScreen({required this.authService});
 
   Future<void> loginWithEmailPassword(BuildContext context) async {
     final String? authToken = await authService.signInWithEmailAndPassword(
@@ -22,10 +24,11 @@ class LoginScreen extends StatelessWidget {
     );
 
     if (authToken != null) {
-      loginCallback(authToken);
+      // TODO Handle successful login
+      print("Login with email+password succeded!");
     } else {
-      print("Authentication failed");
-      // TODO Handle login error, see below
+      // TODO Handle login error
+      print("Login with email+password failed.");
     }
   }
 
@@ -33,22 +36,12 @@ class LoginScreen extends StatelessWidget {
     final String? authToken = await authService.signInWithGoogle();
 
     if (authToken != null) {
-      loginCallback(authToken);
+      // TODO Handle successful login
+      print("Login with google succeded!");
     } else {
-      print("Authentication failed");
-      // TODO instead of return null, throw the exception and catch here.
-      // } on FirebaseAuthException catch (e) {
-      //   if (e.code == 'user-not-found') {
-      //     // TODO show the error in a "snackbar" https://docs.flutter.dev/ui/widgets/material
-      //     print('No user found for that email.');
-      //   } else if (e.code == 'wrong-password') {
-      //     // TODO show the error in a "snackbar" https://docs.flutter.dev/ui/widgets/material
-      //     print('Wrong password provided for that user.');
-      //   }
-      // } catch (e) {
-      //   // TODO let user know something bad happened..?
-      //   print(e);
-      // }
+      // TODO Handle login error
+      print("Login with google failed.");
+    }
   }
 
   @override

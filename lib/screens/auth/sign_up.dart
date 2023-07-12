@@ -6,22 +6,23 @@ class SignUpScreen extends StatelessWidget {
   final TextEditingController emailController = TextEditingController();
   final TextEditingController passwordController = TextEditingController();
   final AuthService authService;
-  final Function(String) loginCallback;
 
-  SignUpScreen({required this.authService, required this.loginCallback});
+  SignUpScreen({required this.authService});
 
   Future<void> signUp(BuildContext context) async {
     final String? authToken = await authService.signUpWithEmailAndPassword(
       emailController.text,
       passwordController.text,
       firstNameController.text,
+      context,
     );
 
     if (authToken != null) {
-      loginCallback(authToken);
+      // TODO Handle successful sign-up
+      print("Signup succeded!");
     } else {
-      print("Signup failed");
       // TODO Handle signup error
+      print("Signup failed.");
     }
   }
 
