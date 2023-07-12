@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
 
 import '../../services/auth.dart';
-import 'chat.dart';
-import 'progress.dart';
-import 'settings.dart';
+import 'login.dart';
+import 'password_reset.dart';
+import 'sign_up.dart';
 
 class MainScreen extends StatefulWidget {
   final AuthService authService;

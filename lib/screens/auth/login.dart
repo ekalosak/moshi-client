@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 
 import '../../services/auth.dart';
-import 'sign_up.dart';
-import 'password_reset.dart';
+// import 'sign_up.dart';
+// import 'password_reset.dart';
 
 class LoginScreen extends StatelessWidget {
   final TextEditingController emailController = TextEditingController();
@@ -12,6 +12,23 @@ class LoginScreen extends StatelessWidget {
   LoginScreen({required this.authService});
 
   Future<void> loginWithEmailPassword(BuildContext context) async {
+    final String? authToken = await authService.signInWithEmailAndPassword(
+      emailController.text,
+      passwordController.text,
+      context,
+    );
+
+    if (authToken != null) {
+      print("Login with email+password succeded!");
+      Navigator.pushReplacementNamed(context, '/main');
+    } else {
+      // TODO Handle login error
+      print("Login with email+password failed.");
+    }
+  }
+
+  /// TODO Redirect user to signup route
+  Future<void> signupWithEmailPassword(BuildContext context) async {
     final String? authToken = await authService.signInWithEmailAndPassword(
       emailController.text,
       passwordController.text,
@@ -50,11 +67,12 @@ class LoginScreen extends StatelessWidget {
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            TextField(
+            TextFormField(
               controller: emailController,
               decoration: InputDecoration(
                 labelText: 'Email',
               ),
+              autofillHints: [AutofillHints.email],
             ),
             TextField(
               controller: passwordController,
@@ -62,6 +80,7 @@ class LoginScreen extends StatelessWidget {
                 labelText: 'Password',
               ),
               obscureText: true,
+              autofillHints: [AutofillHints.password],
             ),
             SizedBox(height: 10),
             ElevatedButton(
@@ -70,7 +89,15 @@ class LoginScreen extends StatelessWidget {
                 loginWithEmailPassword(context);
               },
             ),
-            // SizedBox(height: 10),
+            SizedBox(height: 10),
+            Text("- or -"),
+            SizedBox(height: 10),
+            ElevatedButton(
+              child: Text('Sign up'),
+              onPressed: () {
+                signupWithEmailPassword(context);
+              },
+            )
             // TODO add teh clientId
             // ElevatedButton(
             //   child: Text('Log in with Google'),
