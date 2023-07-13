@@ -16,6 +16,7 @@ class PasswordResetScreen extends StatelessWidget {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text('Password reset email sent!')),
       );
+      Navigator.of(context).pop();
     } catch (e) {
       print(e);
     }

@@ -48,7 +48,6 @@ class _SignUpScreenState extends State<SignUpScreen> {
 
       if (authToken != null) {
         print("Signup succeded!");
-        // context.go('/m');
         Navigator.of(context).pop();
       } else {
         print("Signup failed.");  // NOTE authService handles the popups for user

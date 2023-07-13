@@ -87,6 +87,17 @@ class LoginScreen extends StatelessWidget {
                   MaterialPageRoute(builder: (context) => SignUpScreen(authService: authService)),
                 );
               },
+            ),
+            SizedBox(height: 10),
+            Text("- or -"),
+            SizedBox(height: 10),
+            ElevatedButton(
+              child: Text('Reset password'),
+              onPressed: () {
+                Navigator.of(context).push(
+                  MaterialPageRoute(builder: (context) => PasswordResetScreen(authService: authService)),
+                );
+              },
             )
             // TODO add teh clientId
             // ElevatedButton(
