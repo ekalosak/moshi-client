@@ -21,24 +21,14 @@ class LoginScreen extends StatelessWidget {
 
     if (authToken != null) {
       print("Login with email+password succeded!");
-      Navigator.pushAndRemoveUntil(
-        context,
-        MaterialPageRoute(builder: (context) => MainScreen(authService: authService)),
-        (route) => false, // Removes all the previous routes from the stack
-      );
+      context.go('/m');
     } else {
       print("Login with email+password failed.");  // NOTE the authService handles the popups for user info
     }
   }
 
-  /// TODO Redirect user to signup route
   Future<void> signupWithEmailPassword(BuildContext context) async {
-    print("CLICKED signupWithEmailPassword");
-    Navigator.of(context).push(
-      MaterialPageRoute(
-        builder: (context) => SignUpScreen(authService: authService),
-      ),
-    );
+    context.go('/a/signup');
   }
 
   Future<void> loginWithGoogle(BuildContext context) async {
@@ -46,9 +36,8 @@ class LoginScreen extends StatelessWidget {
 
     if (authToken != null) {
       print("Login with google succeded!");
-      Navigator.pushReplacementNamed(context, '/');
+      context.go('/m');
     } else {
-      // TODO Handle login error
       print("Login with google failed.");
     }
   }

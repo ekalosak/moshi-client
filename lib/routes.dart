@@ -5,6 +5,8 @@ import '../services/auth.dart';
 import 'screens/home.dart';
 import 'screens/main/main.dart';
 import 'screens/auth/login.dart';
+import 'screens/auth/sign_up.dart';
+import 'screens/auth/password_reset.dart';
 
 final AuthService authService = AuthService();
 
@@ -26,6 +28,18 @@ final GoRouter router = GoRouter(
           path: 'a',
           builder: (BuildContext context, GoRouterState state) {
             return LoginScreen(authService: authService);
+          },
+        ),
+        GoRoute(
+          path: 'a/signup',
+          builder: (BuildContext context, GoRouterState state) {
+            return SignUpScreen(authService: authService);
+          },
+        ),
+        GoRoute(
+          path: 'a/reset',
+          builder: (BuildContext context, GoRouterState state) {
+            return PasswordResetScreen(authService: authService);
           },
         ),
       ],

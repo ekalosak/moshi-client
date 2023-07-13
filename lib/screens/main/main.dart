@@ -16,14 +16,14 @@ class MainScreen extends StatefulWidget {
 
 class _MainScreenState extends State<MainScreen> {
   int _currentIndex = 1;
-  late AuthService _authService; // Declare a local variable
+  late AuthService _authService;
 
   final List<Widget> _screens = [];
 
   @override
   void initState() {
     super.initState();
-    _authService = widget.authService; // Assign authService to the local variable
+    _authService = widget.authService;
     _screens.addAll([
       SettingsScreen(authService: _authService),
       ChatScreen(),

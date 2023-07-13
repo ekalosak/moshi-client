@@ -48,11 +48,7 @@ class _SignUpScreenState extends State<SignUpScreen> {
 
       if (authToken != null) {
         print("Signup succeded!");
-        Navigator.pushAndRemoveUntil(
-          context,
-          MaterialPageRoute(builder: (context) => MainScreen(authService: _authService)),
-          (route) => false, // Removes all the previous routes from the stack
-        );
+        context.go('/m');
       } else {
         print("Signup failed.");  // NOTE authService handles the popups for user
       }
