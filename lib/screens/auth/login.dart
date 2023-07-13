@@ -1,9 +1,10 @@
 import 'package:flutter/material.dart';
+import 'package:go_router/go_router.dart';
 
 import '../../services/auth.dart';
 import '../main/main.dart';
 import 'sign_up.dart';
-// import 'password_reset.dart';
+import 'password_reset.dart';
 
 class LoginScreen extends StatelessWidget {
   final TextEditingController emailController = TextEditingController();
@@ -27,9 +28,9 @@ class LoginScreen extends StatelessWidget {
     }
   }
 
-  Future<void> signupWithEmailPassword(BuildContext context) async {
-    context.go('/a/signup');
-  }
+  // Future<void> signupWithEmailPassword(BuildContext context) async {
+  //  context.go('/a/signup');
+  // }
 
   Future<void> loginWithGoogle(BuildContext context) async {
     final String? authToken = await authService.signInWithGoogle(context);
@@ -81,7 +82,10 @@ class LoginScreen extends StatelessWidget {
             ElevatedButton(
               child: Text('Sign up'),
               onPressed: () {
-                signupWithEmailPassword(context);
+                // context.go('/a/signup');
+                Navigator.of(context).push(
+                  MaterialPageRoute(builder: (context) => SignUpScreen(authService: authService)),
+                );
               },
             )
             // TODO add teh clientId
