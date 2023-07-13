@@ -1,4 +1,7 @@
 import 'package:flutter/material.dart';
+import 'package:go_router/go_router.dart';
+
+import '../main/main.dart';
 import '../../services/auth.dart';
 
 class SettingsScreen extends StatelessWidget {
@@ -9,7 +12,7 @@ class SettingsScreen extends StatelessWidget {
   Future<void> logOut(BuildContext context) async {
     try {
       await authService.signOut(context);
-      Navigator.pushNamedAndRemoveUntil(context, '/', (route) => false);
+      context.go('/');
     } catch (e) {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text('An error occurred. Please try again later.')),

@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 import '../../services/auth.dart';
+import '../main/main.dart';
 import 'sign_up.dart';
 // import 'password_reset.dart';
 
@@ -20,10 +21,13 @@ class LoginScreen extends StatelessWidget {
 
     if (authToken != null) {
       print("Login with email+password succeded!");
-      Navigator.pushReplacementNamed(context, '/');
+      Navigator.pushAndRemoveUntil(
+        context,
+        MaterialPageRoute(builder: (context) => MainScreen(authService: authService)),
+        (route) => false, // Removes all the previous routes from the stack
+      );
     } else {
-      // TODO Handle login error
-      print("Login with email+password failed.");
+      print("Login with email+password failed.");  // NOTE the authService handles the popups for user info
     }
   }
 

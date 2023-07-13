@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../main/main.dart';
 import '../../services/auth.dart';
 
 class SignUpScreen extends StatefulWidget {
@@ -47,7 +48,11 @@ class _SignUpScreenState extends State<SignUpScreen> {
 
       if (authToken != null) {
         print("Signup succeded!");
-        // TODO direct to /
+        Navigator.pushAndRemoveUntil(
+          context,
+          MaterialPageRoute(builder: (context) => MainScreen(authService: _authService)),
+          (route) => false, // Removes all the previous routes from the stack
+        );
       } else {
         print("Signup failed.");  // NOTE authService handles the popups for user
       }
