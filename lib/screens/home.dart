@@ -1,7 +1,8 @@
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
-import 'package:go_router/go_router.dart';
 
+import 'main/main.dart';
+import 'auth/login.dart';
 import '../services/auth.dart';
 
 class HomeScreen extends StatelessWidget {
@@ -18,16 +19,12 @@ class HomeScreen extends StatelessWidget {
           if (snapshot.connectionState == ConnectionState.waiting) {
             return CircularProgressIndicator();  // TODO this can brick the app
           }
-
           final user = snapshot.data;
           if (user != null) {
-            context.go('/m');
+            return MainScreen(authService: authService);
           } else {
-            context.go('/a');
+            return LoginScreen(authService: authService);
           }
-
-          print("ABSURD");
-          return Container();  // NOTE should never get here
         },
       ),
     );

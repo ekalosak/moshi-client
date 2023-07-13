@@ -123,10 +123,11 @@ class AuthService {
     }
   }
 
-  // TODO error handling around signOut
+  // TODO non-brut error handling around signOut
   Future<void> signOut(BuildContext context) async {
     try {
       await _firebaseAuth.signOut();
+      // TODO redirect? here? or in settings.dart?
     } catch (e) {
       print(e);
       ScaffoldMessenger.of(context).showSnackBar(
