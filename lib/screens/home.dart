@@ -10,6 +10,7 @@ class HomeScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    print("HomeScreen.build");
     final AuthService authService = Provider.of<AuthService>(context, listen: false);
     return Container(
       child: StreamBuilder<User?>(

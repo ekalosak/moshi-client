@@ -21,7 +21,7 @@ class LoginScreen extends StatelessWidget {
 
     if (authToken != null) {
       print("Login with email+password succeded!");
-      context.go('/m');
+      context.go('/');
     } else {
       print("Login with email+password failed.");  // NOTE the authService handles the popups for user info
     }
