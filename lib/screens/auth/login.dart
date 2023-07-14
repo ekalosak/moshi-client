@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
+import 'package:provider/provider.dart';
 
 import '../../services/auth.dart';
 import '../main/main.dart';
@@ -9,11 +10,9 @@ import 'password_reset.dart';
 class LoginScreen extends StatelessWidget {
   final TextEditingController emailController = TextEditingController();
   final TextEditingController passwordController = TextEditingController();
-  final AuthService authService;
-
-  LoginScreen({required this.authService});
 
   Future<void> loginWithEmailPassword(BuildContext context) async {
+    final AuthService authService = Provider.of<AuthService>(context, listen: false);
     final String? authToken = await authService.signInWithEmailAndPassword(
       emailController.text,
       passwordController.text,
@@ -33,6 +32,7 @@ class LoginScreen extends StatelessWidget {
   // }
 
   Future<void> loginWithGoogle(BuildContext context) async {
+    final AuthService authService = Provider.of<AuthService>(context, listen: false);
     final String? authToken = await authService.signInWithGoogle(context);
 
     if (authToken != null) {
@@ -84,7 +84,7 @@ class LoginScreen extends StatelessWidget {
               onPressed: () {
                 // context.go('/a/signup');
                 Navigator.of(context).push(
-                  MaterialPageRoute(builder: (context) => SignUpScreen(authService: authService)),
+                  MaterialPageRoute(builder: (context) => SignUpScreen()),
                 );
               },
             ),
@@ -95,7 +95,7 @@ class LoginScreen extends StatelessWidget {
               child: Text('Reset password'),
               onPressed: () {
                 Navigator.of(context).push(
-                  MaterialPageRoute(builder: (context) => PasswordResetScreen(authService: authService)),
+                  MaterialPageRoute(builder: (context) => PasswordResetScreen()),
                 );
               },
             )

@@ -1,12 +1,10 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
+
 import '../main/main.dart';
 import '../../services/auth.dart';
 
 class SignUpScreen extends StatefulWidget {
-  final AuthService authService;
-
-  SignUpScreen({required this.authService});
-
   @override
   _SignUpScreenState createState() => _SignUpScreenState();
 }
@@ -16,18 +14,12 @@ class _SignUpScreenState extends State<SignUpScreen> {
   final TextEditingController emailController = TextEditingController();
   final TextEditingController passwordController = TextEditingController();
   bool isLoading = false;
-  late AuthService _authService;
-
-  @override
-  void initState() {
-    super.initState();
-    _authService = widget.authService;
-  }
 
   Future<void> signUp(BuildContext context) async {
     String email = emailController.text;
     String password = passwordController.text;
     String name = firstNameController.text;
+    final AuthService authService = Provider.of<AuthService>(context, listen: false);
     if (name == '') {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text('Please provide a name Moshi can call you.')),
@@ -36,7 +28,7 @@ class _SignUpScreenState extends State<SignUpScreen> {
       setState(() {
         isLoading = true;
       });
-      final String? authToken = await _authService.signUpWithEmailAndPassword(
+      final String? authToken = await authService.signUpWithEmailAndPassword(
         email,
         password,
         name,

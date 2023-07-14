@@ -1,28 +1,21 @@
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
-import 'package:shared_preferences/shared_preferences.dart';
+import 'package:provider/provider.dart';
+
+import '../../services/auth.dart';
 
 class ProgressScreen extends StatelessWidget {
+
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        title: Text('Progress'),
-      ),
-      body: FutureBuilder(
-        future: SharedPreferences.getInstance(),
-        builder: (BuildContext context, AsyncSnapshot<SharedPreferences> snapshot) {
-          if (snapshot.connectionState == ConnectionState.waiting) {
-            return CircularProgressIndicator();
-          }
-
-          final prefs = snapshot.data!;
-          final String firstName = prefs.getString('firstName') ?? '';
-
-          return Center(
-            child: Text('Welcome, $firstName!'),
-          );
-        },
-      ),
+    final AuthService authService = Provider.of<AuthService>(context, listen: false);
+    final User? user = authService.currentUser;
+    // print("ProgressScreen user: $user");  // NOTE prints refresh token
+    final String? firstName = user?.displayName ?? 'MissingName';
+    print("ProgressScreen firstName: $firstName");
+    return Center(
+      child: Text('Welcome, $firstName!'),
     );
   }
+
 }

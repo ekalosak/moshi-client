@@ -1,17 +1,16 @@
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 
 import 'main/main.dart';
 import 'auth/login.dart';
 import '../services/auth.dart';
 
 class HomeScreen extends StatelessWidget {
-  final AuthService authService;
-
-  HomeScreen({required this.authService});
 
   @override
   Widget build(BuildContext context) {
+    final AuthService authService = Provider.of<AuthService>(context, listen: false);
     return Container(
       child: StreamBuilder<User?>(
         stream: authService.authStateChanges,
@@ -21,9 +20,9 @@ class HomeScreen extends StatelessWidget {
           }
           final user = snapshot.data;
           if (user != null) {
-            return MainScreen(authService: authService);
+            return MainScreen();
           } else {
-            return LoginScreen(authService: authService);
+            return LoginScreen();
           }
         },
       ),

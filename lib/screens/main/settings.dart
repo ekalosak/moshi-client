@@ -1,15 +1,13 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
+import 'package:provider/provider.dart';
 
 import '../main/main.dart';
 import '../../services/auth.dart';
 
 class SettingsScreen extends StatelessWidget {
-  final AuthService authService;
-
-  SettingsScreen({required this.authService});
-
   Future<void> logOut(BuildContext context) async {
+    final AuthService authService = Provider.of<AuthService>(context, listen: false);
     try {
       await authService.signOut(context);
       context.go('/');
@@ -22,16 +20,16 @@ class SettingsScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        title: Text('Settings'),
-      ),
-      body: Center(
-        child: ElevatedButton(
-          child: Text('Log Out'),
-          onPressed: () {
-            logOut(context);
-          },
+    return Center(
+      child: Container(
+        child: Align(
+          alignment: Alignment.bottomRight,
+          child: ElevatedButton(
+            child: Text('Log Out'),
+            onPressed: () {
+              logOut(context);
+            },
+          ),
         ),
       ),
     );

@@ -1,11 +1,49 @@
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:google_sign_in/google_sign_in.dart';
+import 'package:provider/provider.dart';
+
+/// The AuthServiceProvider provides an AuthService instance to all descendant widgets.
+/// It is used in lib/main.dart, see that source for example usage.
+///
+/// In effect, it's a state monad for the AuthService instance.
+/// Accessible in descendant widgets via:
+/// ```dart
+/// final authService = Provider.of<AuthService>(context, listen: false);
+/// ```
+class AuthServiceProvider extends StatelessWidget {
+  AuthService authService;
+  final Widget child;
+
+  AuthServiceProvider({
+    required this.authService,
+    required this.child,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Provider<AuthService>.value(
+      value: authService,
+      child: child,
+    );
+  }
+}
 
 class AuthService {
   final FirebaseAuth _firebaseAuth = FirebaseAuth.instance;
+  User? _currentUser;
+
+  AuthService() {
+    _firebaseAuth.authStateChanges().listen((user) {
+      final String name = user?.displayName ?? 'MissingName';
+      print("authStateChange user.displayName: $name");
+      _currentUser = user;
+    });
+  }
 
   Stream<User?> get authStateChanges => _firebaseAuth.authStateChanges();
+
+  User? get currentUser => _currentUser;
 
   Future<String?> signInWithEmailAndPassword(
       String email, String password, BuildContext context) async {
@@ -126,8 +164,8 @@ class AuthService {
   // TODO non-brut error handling around signOut
   Future<void> signOut(BuildContext context) async {
     try {
-      await _firebaseAuth.signOut();
-      // TODO redirect? here? or in settings.dart?
+      await _firebaseAuth.signOut();  // NOTE redirect to '/' route is done by caller.
+      _currentUser = null;  // do this immediately because there might be a delay in the listener.
     } catch (e) {
       print(e);
       ScaffoldMessenger.of(context).showSnackBar(
