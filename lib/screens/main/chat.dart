@@ -1,3 +1,4 @@
+import 'package:audioplayers/audioplayers.dart';
 import 'package:flutter/material.dart';
 import 'package:record/record.dart';
 
@@ -38,6 +39,7 @@ class _ChatScreenState extends State<ChatScreen> {
   bool hasPermissions = false;
   // final record = AudioRecorder();  // NOTE v5
   final record = Record();
+  final player = AudioPlayer();
   final int bitRate = 128000;
   final int sampleRate = 44100;
   final int numChannels = 1;
@@ -90,6 +92,8 @@ class _ChatScreenState extends State<ChatScreen> {
     if (audioPath != null) {
       // TODO send to the API
       print("Got audioPath: $audioPath");
+      await player.play(audioPath);
+      // await player.play(DeviceFileSource(audioPath));
     } else {
       print("ChatScreen Error: failed to get audioPath from record.stop()");
       errorMessage = "An error occurred, please try again.";
@@ -129,31 +133,34 @@ class _ChatScreenState extends State<ChatScreen> {
             ),
             onPressed: hasPermissions ? null : getPermissions,
           ),
-          GestureDetector(
+          GestureDetector(  // TODO error handling for recorder being in wrong state when button up/down
             onTapDown: (_) {
               startRecording(context);
             },
             onTapUp: (_) {
-              stopRecording(context);
+              record.isRecording().then((isRecording) {
+                if (isRecording) {
+                  stopRecording(context);
+                }
+              });
             },
             onTapCancel: () {
-              stopRecording(context);
+              record.isRecording().then((isRecording) {
+                if (isRecording) {
+                  stopRecording(context);
+                }
+              });
             },
             child: Center(
-              child: Container(
-                width: 100.0,
-                height: 50.0,
-                color: isRecording ? Colors.yellow : Colors.white,
-                child: ElevatedButton(
-                  style: ElevatedButton.styleFrom(
-                    padding: EdgeInsets.all(8.0),
-                  ),
-                  child: Text(
-                    isRecording ? 'Recording...' : 'Hold to chat',
-                    style: TextStyle(fontSize: 18.0),
-                  ),
-                  onPressed: () => buttonClicked('Start recording'),
+              child: ElevatedButton(
+                style: ElevatedButton.styleFrom(
+                  padding: EdgeInsets.all(8.0),
                 ),
+                child: Text(
+                  isRecording ? 'Recording...' : 'Hold to chat',
+                  style: TextStyle(fontSize: 18.0),
+                ),
+                onPressed: () => buttonClicked('Start recording'),
               ),
             ),
           ),

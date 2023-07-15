@@ -20,6 +20,7 @@ dependencies:
   go_router: ^9.0.3
   provider: ^6.0.5
   record: ^4.4.4
+  audioplayers: ^0.18.3
   # record:
   #   git:
   #     url: git@github.com:llfbandit/record.git
