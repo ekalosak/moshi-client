@@ -1,34 +1,22 @@
+import 'dart:io';
+
 import 'package:audioplayers/audioplayers.dart';
 import 'package:http/http.dart' as http;
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 import 'package:record/record.dart';
 
-final String server = "localhost";
-final int port = 8080;
-final String healthPath = "/healthz";
+import '../../services/auth.dart';
+
+final String healthz = "http://localhost:8080/healthz";
+final String mNewConvo = "http://localhost:8080/m/new/unstructured";
 
 Future<bool> healthCheck() async {
-  Uri uri = Uri(
-    scheme: 'https',
-    host: server,
-    path: healthPath,
-  );
-  // final response = await http.get(
-  //   // Uri.parse("https://google.com"),
-  //   Uri.parse("http://localhost:8080/healthz"),
-  //   // "http://localhost:8080/healthz",
-  //   // uri,
-  //   // headers: {
-  //   //   "Accept": "*/*",
-  //   //   "Content-Type": "application/text",
-  //   //   "Access-Control-Allow-Origin": "*",
-  //   // }
-  // );
   try {
-    // final response = await http.get(Uri.parse("https://google.com"));
-    final response = await http.get(Uri.parse("http://localhost:8080/healthz"));
-    print("Debug: response=$response");
-    return (response.statusCode == 200);
+    final response = await http.get(Uri.parse(healthz));
+    final code = response.statusCode;
+    print("healthz: $code");
+    return (code == 200);
   } catch (e) {
     print("Error: $e");
     return false;
@@ -67,10 +55,13 @@ void catchErrorAndShowSnackBar(BuildContext context, ErrorHandlingFunction<void>
   }
 }
 
+enum ConvoState { ready, started, failed, done }
+
 class _ChatScreenState extends State<ChatScreen> {
   bool isRecording = false;
   bool hasPermissions = false;
   bool isServerHealthy = false;
+  ConvoState convoState = ConvoState.ready;
   // final record = AudioRecorder();  // NOTE v5
   final record = Record();
   final player = AudioPlayer();
@@ -142,6 +133,49 @@ class _ChatScreenState extends State<ChatScreen> {
     }
   }
 
+  String getNewConversationButtonText() {
+    switch (convoState) {
+      case ConvoState.started:
+        return "Restart your conversation";
+    }
+    return "Start a new conversation";
+  }
+
+  Future<void> startNewConversation(BuildContext context) async {
+    final authService = Provider.of<AuthService>(context, listen: false);
+    final user = authService.currentUser!;
+    final token = await user.getIdToken();
+    String? cid;
+    print("token: $token");
+    try {
+      final response = await http.get(
+        Uri.parse(mNewConvo),
+        headers: {HttpHeaders.authorizationHeader: "Bearer $token"},
+      );
+      final code = response.statusCode;
+      print("m/new/unstructured: $code");
+      print("body: ${response.body}");
+      if (code == 200) {
+        // Map<String, dynamic> json = jsonDecode(response.body);
+        // return json['document_id'];
+        cid = null;
+      } else {
+        cid = null;
+      }
+    } catch (e) {
+      print("Error: $e");
+      cid = null;
+    }
+    String msg;
+    if (cid != null) {
+      msg = "Started conversation.";
+    } else {
+      msg = "An error occurred, please try again.";
+    }
+    final snackBar = SnackBar(content: Text(msg));
+    ScaffoldMessenger.of(context).showSnackBar(snackBar);
+  }
+
   @override
   Widget build(BuildContext context) {
     return Padding(
@@ -185,6 +219,16 @@ class _ChatScreenState extends State<ChatScreen> {
               style: TextStyle(fontSize: 18.0),
             ),
             onPressed: hasPermissions ? null : getPermissions,
+          ),
+          ElevatedButton(  // start new conversation
+            style: ElevatedButton.styleFrom(
+              padding: EdgeInsets.all(8.0),
+            ),
+            child: Text(
+              getNewConversationButtonText(),
+              style: TextStyle(fontSize: 18.0),
+            ),
+            onPressed: () => startNewConversation(context),
           ),
           GestureDetector(  // TODO error handling for recorder being in wrong state when button up/down
             onTapDown: (_) {
