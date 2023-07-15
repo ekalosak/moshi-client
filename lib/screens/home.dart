@@ -17,7 +17,14 @@ class HomeScreen extends StatelessWidget {
         stream: authService.authStateChanges,
         builder: (context, snapshot) {
           if (snapshot.connectionState == ConnectionState.waiting) {
-            return CircularProgressIndicator();  // TODO this can brick the app
+            print("Loading authentication service...");
+            return Center(
+              child: SizedBox(
+                width: 60,
+                height: 60,
+                child: CircularProgressIndicator(),
+              ),
+            );
           }
           final user = snapshot.data;
           if (user != null) {

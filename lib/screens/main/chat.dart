@@ -1,6 +1,39 @@
 import 'package:audioplayers/audioplayers.dart';
+import 'package:http/http.dart' as http;
 import 'package:flutter/material.dart';
 import 'package:record/record.dart';
+
+final String server = "localhost";
+final int port = 8080;
+final String healthPath = "/healthz";
+
+Future<bool> healthCheck() async {
+  Uri uri = Uri(
+    scheme: 'https',
+    host: server,
+    path: healthPath,
+  );
+  // final response = await http.get(
+  //   // Uri.parse("https://google.com"),
+  //   Uri.parse("http://localhost:8080/healthz"),
+  //   // "http://localhost:8080/healthz",
+  //   // uri,
+  //   // headers: {
+  //   //   "Accept": "*/*",
+  //   //   "Content-Type": "application/text",
+  //   //   "Access-Control-Allow-Origin": "*",
+  //   // }
+  // );
+  try {
+    // final response = await http.get(Uri.parse("https://google.com"));
+    final response = await http.get(Uri.parse("http://localhost:8080/healthz"));
+    print("Debug: response=$response");
+    return (response.statusCode == 200);
+  } catch (e) {
+    print("Error: $e");
+    return false;
+  }
+}
 
 class ChatScreen extends StatefulWidget {
   @override
@@ -37,6 +70,7 @@ void catchErrorAndShowSnackBar(BuildContext context, ErrorHandlingFunction<void>
 class _ChatScreenState extends State<ChatScreen> {
   bool isRecording = false;
   bool hasPermissions = false;
+  bool isServerHealthy = false;
   // final record = AudioRecorder();  // NOTE v5
   final record = Record();
   final player = AudioPlayer();
@@ -123,7 +157,26 @@ class _ChatScreenState extends State<ChatScreen> {
             isRecording ? "Recording" : "Not recording",
             style: TextStyle(fontSize: 16.0),
           ),
-          ElevatedButton(
+          ElevatedButton(  // healthcheck
+            style: ElevatedButton.styleFrom(
+              padding: EdgeInsets.all(8.0),
+            ),
+            child: Text(
+              isServerHealthy ? 'Server healthy' : 'Check server health',
+              style: TextStyle(fontSize: 18.0),
+            ),
+            onPressed: () async {
+              String healthMsg;
+              if (await healthCheck()) {
+                healthMsg = "Moshi API healthy.";
+              } else {
+                healthMsg = "Moshi API unhealthy, please try again.";
+              }
+              final snackBar = SnackBar(content: Text(healthMsg));
+              ScaffoldMessenger.of(context).showSnackBar(snackBar);
+            },
+          ),
+          ElevatedButton(  // get audio permissions
             style: ElevatedButton.styleFrom(
               padding: EdgeInsets.all(8.0),
             ),
