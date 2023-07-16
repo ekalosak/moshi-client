@@ -8,6 +8,7 @@ import 'package:provider/provider.dart';
 import 'package:record/record.dart';
 
 import '../../services/auth.dart';
+import '../../util.dart' as util;
 
 final String healthz = "http://localhost:8080/healthz";
 final String mNewConvo = "http://localhost:8080/m/new/unstructured";
@@ -27,33 +28,6 @@ Future<bool> healthCheck() async {
 class ChatScreen extends StatefulWidget {
   @override
   _ChatScreenState createState() => _ChatScreenState();
-}
-
-typedef ErrorHandlingFunction<T> = Future<T> Function();
-
-class AudioException implements Exception {
-  final String message;
-
-  AudioException(this.message);
-
-  @override
-  String toString() => '$message';
-}
-
-void catchErrorAndShowSnackBar(BuildContext context, ErrorHandlingFunction<void> function) async {
-  String errorMessage;
-  try {
-    await function();
-  } catch (error) {
-    print(error);
-    if (error is AudioException) {
-      errorMessage = 'An error occurred: ${error.message}. Please try again.';
-    } else {
-      errorMessage = 'An error occurred. Please try again.';
-    }
-    final snackBar = SnackBar(content: Text(errorMessage));
-    ScaffoldMessenger.of(context).showSnackBar(snackBar);
-  }
 }
 
 enum ConvoState { ready, started, failed, done }
@@ -108,9 +82,7 @@ class _ChatScreenState extends State<ChatScreen> {
       });
     }
     if (errorMessage != null) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text(errorMessage)),
-      );
+      util.showError(context, errorMessage);
     }
   }
 
