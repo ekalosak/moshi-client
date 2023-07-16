@@ -67,7 +67,6 @@ class _ChatScreenState extends State<ChatScreen> {
   ConvoState convoState = ConvoState.ready;
   String? cid;
   // Audio state
-  // final record = AudioRecorder();  // NOTE v5
   final record = Record();
   final player = AudioPlayer();
   final int bitRate = 128000;
@@ -138,17 +137,13 @@ class _ChatScreenState extends State<ChatScreen> {
     }
   }
 
-  String getNewConversationButtonText() {
-    switch (convoState) {
-      case ConvoState.started:
-        return "Restart your conversation";
-    }
-    return "Start a new conversation";
-  }
-
-  /// Create a new Conversation document in the backend and return the CID
   Future<void> startNewConversation(BuildContext context) async {
     print("startNewConversation");
+  }
+
+  /// Create a new Conversation document in the backend and set local CID
+  Future<void> getNewConversation(BuildContext context) async {
+    print("getNewConversation");
     final authService = Provider.of<AuthService>(context, listen: false);
     final user = authService.currentUser!;
     final token = await user.getIdToken();
@@ -182,99 +177,126 @@ class _ChatScreenState extends State<ChatScreen> {
 
   @override
   Widget build(BuildContext context) {
-    return Padding(
-      padding: EdgeInsets.all(16.0),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
+    return Container(
+      child: Stack(
         children: [
-          Text(
-            'Press and hold the button to start recording. Release to stop recording.',
-            style: TextStyle(fontSize: 16.0),
-          ),
-          Text(
-            isRecording ? "Recording" : "Not recording",
-            style: TextStyle(fontSize: 16.0),
-          ),
-          Text(
-            "Conversation: ${cid?.substring(0, 8) ?? 'inactive'}",
-            style: TextStyle(fontSize: 16.0),
-          ),
-          ElevatedButton(  // show cid
-            child: Text("Show cid"),
-            onPressed: () {
-              print("cid: $cid");
-            }
-          ),
-          ElevatedButton(  // healthcheck
-            style: ElevatedButton.styleFrom(
-              padding: EdgeInsets.all(8.0),
-            ),
-            child: Text(
-              isServerHealthy ? 'Server healthy' : 'Check server health',
-              style: TextStyle(fontSize: 18.0),
-            ),
-            onPressed: () async {
-              String healthMsg;
-              if (await healthCheck()) {
-                healthMsg = "Moshi API healthy.";
-              } else {
-                healthMsg = "Moshi API unhealthy, please try again.";
-              }
-              final snackBar = SnackBar(content: Text(healthMsg));
-              ScaffoldMessenger.of(context).showSnackBar(snackBar);
-            },
-          ),
-          ElevatedButton(  // get audio permissions
-            style: ElevatedButton.styleFrom(
-              padding: EdgeInsets.all(8.0),
-            ),
-            child: Text(
-              hasPermissions ? 'Audio access established' : 'Get microphone',
-              style: TextStyle(fontSize: 18.0),
-            ),
-            onPressed: hasPermissions ? null : getPermissions,
-          ),
-          ElevatedButton(  // start new conversation
-            style: ElevatedButton.styleFrom(
-              padding: EdgeInsets.all(8.0),
-            ),
-            child: Text(
-              getNewConversationButtonText(),
-              style: TextStyle(fontSize: 18.0),
-            ),
-            onPressed: () => startNewConversation(context),
-          ),
-          GestureDetector(  // TODO error handling for recorder being in wrong state when button up/down
-            onTapDown: (_) {
-              startRecording(context);
-            },
-            onTapUp: (_) {
-              record.isRecording().then((isRecording) {
-                if (isRecording) {
-                  stopRecording(context);
-                }
-              });
-            },
-            onTapCancel: () {
-              record.isRecording().then((isRecording) {
-                if (isRecording) {
-                  stopRecording(context);
-                }
-              });
-            },
-            child: Center(
-              child: ElevatedButton(
-                style: ElevatedButton.styleFrom(
-                  padding: EdgeInsets.all(8.0),
-                ),
-                child: Text(
-                  isRecording ? 'Recording...' : 'Hold to chat',
-                  style: TextStyle(fontSize: 18.0),
-                ),
-                onPressed: () => buttonClicked('Start recording'),
+          Align(
+            alignment: Alignment.topLeft,
+            child: Padding(
+              padding: EdgeInsets.all(16.0),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    "Microphone permissions: $hasPermissions",
+                    style: TextStyle(fontSize: 16.0),
+                  ),
+                  Text(
+                    "Conversation: ${cid?.substring(0, 8) ?? 'inactive'}",
+                    style: TextStyle(fontSize: 16.0),
+                  ),
+                  Text(
+                    "Recording: $isRecording",
+                    style: TextStyle(fontSize: 16.0),
+                  ),
+                ],
               ),
             ),
           ),
+          Center(
+            child: FloatingActionButton.extended(  // Start convo
+              onPressed: () async {
+                if (convoState == ConvoState.ready) {
+                  await startNewConversation(context);
+                } else {
+                  print("TODO");
+                }
+              },
+              label: Text(
+                (convoState == ConvoState.ready)
+                  ? 'Start conversation'
+                  : 'Restart conversation',
+              ),
+              icon: Icon(
+                (convoState == ConvoState.ready)
+                  ? Icons.start
+                  : Icons.restart_alt,
+              ),
+              backgroundColor: Colors.pink,
+            ),
+          ),
+          // ElevatedButton(  // healthcheck
+          //   style: ElevatedButton.styleFrom(
+          //     padding: EdgeInsets.all(8.0),
+          //   ),
+          //   child: Text(
+          //     isServerHealthy ? 'Server healthy' : 'Check server health',
+          //     style: TextStyle(fontSize: 18.0),
+          //   ),
+          //   onPressed: () async {
+          //     String healthMsg;
+          //     if (await healthCheck()) {
+          //       healthMsg = "Moshi API healthy.";
+          //     } else {
+          //       healthMsg = "Moshi API unhealthy, please try again.";
+          //     }
+          //     final snackBar = SnackBar(content: Text(healthMsg));
+          //     ScaffoldMessenger.of(context).showSnackBar(snackBar);
+          //   },
+          // ),
+          // ElevatedButton(  // get audio permissions
+          //   style: ElevatedButton.styleFrom(
+          //     padding: EdgeInsets.all(8.0),
+          //   ),
+          //   child: Text(
+          //     hasPermissions ? 'Audio access established' : 'Get microphone',
+          //     style: TextStyle(fontSize: 18.0),
+          //   ),
+          //   onPressed: hasPermissions ? null : getPermissions,
+          // ),
+          // ElevatedButton(  // start new conversation
+          //   style: ElevatedButton.styleFrom(
+          //     padding: EdgeInsets.all(8.0),
+          //   ),
+          //   child: Text(
+          //     (convoState == ConvoState.started)
+          //       ? "End conversation"
+          //       : "Start a conversation",
+          //     style: TextStyle(fontSize: 18.0),
+          //   ),
+          //   onPressed: () => startNewConversation(context),
+          // ),
+          // GestureDetector(  // TODO error handling for recorder being in wrong state when button up/down
+          //   onTapDown: (_) {
+          //     startRecording(context);
+          //   },
+          //   onTapUp: (_) {
+          //     record.isRecording().then((isRecording) {
+          //       if (isRecording) {
+          //         stopRecording(context);
+          //       }
+          //     });
+          //   },
+          //   onTapCancel: () {
+          //     record.isRecording().then((isRecording) {
+          //       if (isRecording) {
+          //         stopRecording(context);
+          //       }
+          //     });
+          //   },
+          //   // child: Center(
+          //   //   child: ElevatedButton(
+          //   //     style: ElevatedButton.styleFrom(
+          //   //       padding: EdgeInsets.all(8.0),
+          //   //     ),
+          //   //     child: Text(
+          //   //       isRecording ? 'Recording...' : 'Hold to chat',
+          //   //       style: TextStyle(fontSize: 18.0),
+          //   //     ),
+          //   //     onPressed: () => print("Recording button clicked"),
+          //   //   ),
+          //   // ),
+          // ),
         ],
       ),
     );
