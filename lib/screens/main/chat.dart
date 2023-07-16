@@ -1,4 +1,5 @@
 import 'dart:io';
+import 'dart:convert';  // jsonDecode
 
 import 'package:audioplayers/audioplayers.dart';
 import 'package:http/http.dart' as http;
@@ -58,10 +59,14 @@ void catchErrorAndShowSnackBar(BuildContext context, ErrorHandlingFunction<void>
 enum ConvoState { ready, started, failed, done }
 
 class _ChatScreenState extends State<ChatScreen> {
+  // Resource state
   bool isRecording = false;
   bool hasPermissions = false;
   bool isServerHealthy = false;
+  // Conversation state
   ConvoState convoState = ConvoState.ready;
+  String? cid;
+  // Audio state
   // final record = AudioRecorder();  // NOTE v5
   final record = Record();
   final player = AudioPlayer();
@@ -141,36 +146,35 @@ class _ChatScreenState extends State<ChatScreen> {
     return "Start a new conversation";
   }
 
+  /// Create a new Conversation document in the backend and return the CID
   Future<void> startNewConversation(BuildContext context) async {
+    print("startNewConversation");
     final authService = Provider.of<AuthService>(context, listen: false);
     final user = authService.currentUser!;
     final token = await user.getIdToken();
-    String? cid;
-    print("token: $token");
-    try {
+    String? _cid;
+    String msg = "An error occurred, please try again.";
+    try {  // network request; json decoding
       final response = await http.get(
         Uri.parse(mNewConvo),
         headers: {HttpHeaders.authorizationHeader: "Bearer $token"},
       );
       final code = response.statusCode;
-      print("m/new/unstructured: $code");
-      print("body: ${response.body}");
+      print("\tm/new/unstructured: $code");
       if (code == 200) {
-        // Map<String, dynamic> json = jsonDecode(response.body);
-        // return json['document_id'];
-        cid = null;
-      } else {
-        cid = null;
+        Map<String, dynamic> json = jsonDecode(response.body);
+        msg = json['message'];
+        _cid = json['detail']['conversation_id'];
+        print("\tmsg: $msg");
+        print("\tcid: $_cid");
+        setState(() {
+          cid = _cid;
+        });
+      } else if (code == 401) {
+        print("\tinvalid token");  // TODO refresh the user token
       }
     } catch (e) {
-      print("Error: $e");
-      cid = null;
-    }
-    String msg;
-    if (cid != null) {
-      msg = "Started conversation.";
-    } else {
-      msg = "An error occurred, please try again.";
+      print("\tError: $e");
     }
     final snackBar = SnackBar(content: Text(msg));
     ScaffoldMessenger.of(context).showSnackBar(snackBar);
@@ -190,6 +194,16 @@ class _ChatScreenState extends State<ChatScreen> {
           Text(
             isRecording ? "Recording" : "Not recording",
             style: TextStyle(fontSize: 16.0),
+          ),
+          Text(
+            "Conversation: ${cid?.substring(0, 8) ?? 'inactive'}",
+            style: TextStyle(fontSize: 16.0),
+          ),
+          ElevatedButton(  // show cid
+            child: Text("Show cid"),
+            onPressed: () {
+              print("cid: $cid");
+            }
           ),
           ElevatedButton(  // healthcheck
             style: ElevatedButton.styleFrom(
