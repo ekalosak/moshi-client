@@ -187,27 +187,23 @@ class _ChatScreenState extends State<ChatScreen> {
                     style: TextStyle(fontSize: 16.0),
                   ),
                   Text(
-                    convoState.toString(),
-                    // (convoState != ConvoState.started)
-                    //   ? "Conversation: ${cid?.substring(0, 8)}"
-                    //   : "Conversation: inactive",
+                    (convoState != ConvoState.started)
+                      ? "Conversation: inactive"
+                      : "Conversation: ${cid?.substring(0, 8)}",
                     style: TextStyle(fontSize: 16.0),
                   ),
                 ],
               ),
             ),
           ),
-          Center(
+          Positioned(
+            top: 16.0,
+            right: 16.0,
             child: FloatingActionButton.extended(  // Start convo
               onPressed: () async {
-                if (convoState != ConvoState.started) {
-                  final String? erMsg = await startNewConversation(context);
-                  if (erMsg != null) {
-                    util.showError(context, erMsg);
-                  }
-                } else {
-                  print("startButton\n\tconvoState: $convoState");
-                  print("TODO");
+                final String? erMsg = await startNewConversation(context);
+                if (erMsg != null) {
+                  util.showError(context, erMsg);
                 }
               },
               label: Text(
