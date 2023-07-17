@@ -27,7 +27,7 @@ class _MainScreenState extends State<MainScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Colors.purple[800],
+      backgroundColor: Colors.grey[400],
       appBar: AppBar(
         title: Text('Moshi'),
       ),

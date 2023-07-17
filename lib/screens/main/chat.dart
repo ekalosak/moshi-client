@@ -1,9 +1,12 @@
-import 'dart:io';
+import 'dart:async';
 import 'dart:convert';  // jsonDecode
+import 'dart:io';
+// import 'dart:ui';
 
 import 'package:audioplayers/audioplayers.dart';
 import 'package:http/http.dart' as http;
 import 'package:flutter/material.dart';
+import 'package:flutter_cache_manager/flutter_cache_manager.dart';
 import 'package:provider/provider.dart';
 import 'package:record/record.dart';
 
@@ -13,6 +16,9 @@ import '../../util.dart' as util;
 final String host = "http://localhost:8080";
 final String healthz = "http://localhost:8080/healthz";
 final String mNewConvo = "http://localhost:8080/m/new/unstructured";
+
+final Color recordButtonColor = Colors.tealAccent;
+// final Color recordButtonColor = Color(int.parse("FAEB54", radix: 16));
 
 Future<bool> healthCheck() async {
   print("healthCheck");
@@ -36,24 +42,33 @@ enum ConvoState { ready, started, failed, done }
 
 class _ChatScreenState extends State<ChatScreen> {
   // Resource state
-  bool isRecording = false;
   bool haveMicPermissions = false;
   bool isServerHealthy = false;
   // Conversation state
   ConvoState convoState = ConvoState.ready;
   String? cid;
   // Audio state
-  final record = Record();
+  final _audioRecorder = Record();
+  StreamSubscription<RecordState>? _recordSub;
+  RecordState _recordState = RecordState.stop;
   final player = AudioPlayer();
   final int bitRate = 128000;
   final int sampleRate = 44100;
   final int numChannels = 1;
 
+  @override
+  void initState() {
+    super.initState();
+    _recordSub = _audioRecorder.onStateChanged().listen((recordState) {
+      setState(() => _recordState = recordState);
+    });
+  }
+
   void getPermissions() async {
     String? errorMessage;
     print('ChatScreen GetPermissions clicked');
     print('ChatScreen getting / checking microphone permission');
-    bool gotPermission = await record.hasPermission();
+    bool gotPermission = await _audioRecorder.hasPermission();
     setState(() {
       haveMicPermissions = gotPermission;
     });
@@ -62,19 +77,18 @@ class _ChatScreenState extends State<ChatScreen> {
   /// Acquire the media resource and begin recording from it.
   /// Return error message.
   Future<String?> startRecording() async {
-    bool micPerm = await record.hasPermission();
+    bool micPerm = await _audioRecorder.hasPermission();
     if (!micPerm) {
       return "Microphone permissions required for chat. Please enable in your system settings.";
     } else {
       print("\tStarting to record...");
-      await record.start(
+      await _audioRecorder.start(
+        // encoder: AudioEncoder.pcm16bit,  // NOTE supported on ios, android, and most web: https://pub.dev/packages/record#platform-feature-parity-matrix
+        encoder: AudioEncoder.aacLc,
         bitRate: bitRate,
         samplingRate: sampleRate,
         numChannels: numChannels,
       );
-      setState(() {
-        isRecording = true;
-      });
       print("\tRecording started.");
     }
   }
@@ -82,10 +96,7 @@ class _ChatScreenState extends State<ChatScreen> {
   /// Release the media resource
   /// Return error string
   Future<String?> stopRecording() async {
-    String? audioPath = await record.stop();
-    setState(() {
-      isRecording = false;
-    });
+    String? audioPath = await _audioRecorder.stop();
     if (audioPath == null) {
       return "An error occurred while listening, please try again.";
     }
@@ -95,35 +106,51 @@ class _ChatScreenState extends State<ChatScreen> {
   /// Return error string
   Future<String?> stopRecordingAndSubmitAudio(AuthService authService) async {
     print( "stopRecordingAndSubmitAudio");
-    String? audioPath = await record.stop();
-    setState(() {
-      isRecording = false;
-    });
-    if (audioPath == null) {
+    String url = "$host/m/next/$cid";
+    String? audioBlobUrl = await _audioRecorder.stop();
+    if (audioBlobUrl == null) {
       return "An error occurred while listening, please try again.";
     }
-    String url = "$host/m/next/$cid";
-    print("TODO send audio to $url");
+    print('\n\tPLAYING AUDIO');
+    await player.play(audioBlobUrl);
+    print("\taudioBlob: $audioBlobUrl");
+    // NOTE cache manager loads the file from the blob:http:// audioPath
+    File audioFile = await DefaultCacheManager().getSingleFile(audioBlobUrl);
+    print("\taudioFile: $audioFile");
+    List<int> audioBytes = await audioFile.readAsBytes();
+    // print(audioBytes);
+    print("\tPreparing POST to Moshi endpoint $url");
     final user = authService.currentUser!;
     final token = await user.getIdToken();
-    final response = await http.post(
+    var request = http.MultipartRequest(
+      'POST',
       Uri.parse(url),
-      headers: {HttpHeaders.authorizationHeader: "Bearer $token"},
     );
-  }
-
-  Future<void> sendUtterance(String audioPath) async {
-    print("Got audioPath: $audioPath");
-    await player.play(audioPath);
-    // TODO send to the API
-    // await player.play(DeviceFileSource(audioPath));
+    request.headers['Authorization'] = "Bearer $token";
+    request.files.add(
+      http.MultipartFile.fromBytes(
+        'utterance',
+        audioBytes,
+        filename: 'utterance.m4a',
+    ));
+    print("\tAwaiting POST request: $request");
+    // TODO try catch return error
+    final response = await request.send();
+    final int code = response.statusCode;
+    final responseBody = await response.stream.bytesToString();
+    final parsedResponse = json.decode(responseBody);
+    print("\tparsedResponse: $parsedResponse");
+    print("\tresponse.statusCode: $code");
+    if (code != 200) {
+      return "An error occurred sending speech to Moshi servers, please try again.";
+    }
   }
 
   // Check API health, get mic. permissions, create conversation in Firestore
   Future<String?> startNewConversation(AuthService authService) async {
     print("startNewConversation");
     String? msg;
-    final bool micPerm = await record.hasPermission();
+    final bool micPerm = await _audioRecorder.hasPermission();
     setState(() {
       haveMicPermissions = micPerm;
     });
@@ -131,7 +158,7 @@ class _ChatScreenState extends State<ChatScreen> {
       return "Microphone permissions required for chat. Please enable in your system settings.";
     } else {
       print("\tmicrophone permissions allowed");
-      await record.dispose();
+      await _audioRecorder.dispose();
     }
     final bool healthz = await healthCheck();
     setState(() {
@@ -200,18 +227,22 @@ class _ChatScreenState extends State<ChatScreen> {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(
-                    "Microphone permissions: $haveMicPermissions",
-                    style: TextStyle(fontSize: 16.0, color: Colors.white),
+                    "Server health: $isServerHealthy",
+                    style: TextStyle(fontSize: 16.0),
                   ),
                   Text(
-                    "Recording: $isRecording",
-                    style: TextStyle(fontSize: 16.0, color: Colors.white),
+                    "Microphone permissions: $haveMicPermissions",
+                    style: TextStyle(fontSize: 16.0),
+                  ),
+                  Text(
+                    "Recording: $_recordState",
+                    style: TextStyle(fontSize: 16.0),
                   ),
                   Text(
                     (convoState != ConvoState.started)
                       ? "Conversation: inactive"
                       : "Conversation: ${cid?.substring(0, 8)}",
-                    style: TextStyle(fontSize: 16.0, color: Colors.white),
+                    style: TextStyle(fontSize: 16.0),
                   ),
                 ],
               ),
@@ -237,12 +268,13 @@ class _ChatScreenState extends State<ChatScreen> {
                   ? Icons.touch_app
                   : Icons.restart_alt,
               ),
-              backgroundColor: Colors.purple,
+              backgroundColor: Colors.purple[800],
             ),
           ),
           Positioned(
             bottom: 48.0,
             right: 128.0,
+            // TODO Container to make the gesture detector take on size
             child: GestureDetector(
               // TODO error handling for recorder being in wrong state when button up/down
               onTapDown: (_) {
@@ -253,28 +285,38 @@ class _ChatScreenState extends State<ChatScreen> {
                   }
                 });
               },
+              // TODO fix the size of the GestureDetector so onTapCancel isn't so prevalent and I can dedupe this code
               onTapUp: (_) {
                 print("\tonTapUp");
+                _audioRecorder.isRecording().then((isRecording) {
+                  if (isRecording) {
+                    stopRecordingAndSubmitAudio(authService).then((erMsg) {
+                      if (erMsg != null) {
+                        util.showError(context, erMsg);
+                      }
+                    });
+                  }
+                });
               },
               onTapCancel: () {
                 print("\tonTapCancel");
+                _audioRecorder.isRecording().then((isRecording) {
+                  if (isRecording) {
+                    stopRecordingAndSubmitAudio(authService).then((erMsg) {
+                      if (erMsg != null) {
+                        util.showError(context, erMsg);
+                      }
+                    });
+                  }
+                });
               },
               child: FloatingActionButton(
                 onPressed: () {
                   print("\tonPressed");
-                  record.isRecording().then((isRecording) {
-                    if (isRecording) {
-                      stopRecordingAndSubmitAudio(authService).then((erMsg) {
-                        if (erMsg != null) {
-                          util.showError(context, erMsg);
-                        }
-                      });
-                    }
-                  });
                 },
                 child: Icon(Icons.mic),
                 // NOTE onPressed null doesn't disable button: https://github.com/flutter/flutter/issues/107480
-                backgroundColor: (convoState != ConvoState.started) ? Colors.grey : Colors.orange[400],
+                backgroundColor: (convoState != ConvoState.started) ? Colors.grey : recordButtonColor,
               ),
             ),
           ),

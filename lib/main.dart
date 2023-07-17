@@ -28,7 +28,7 @@ class MyApp extends StatelessWidget {
       title: 'Moshi',
       theme: ThemeData(
         colorScheme: ColorScheme.fromSwatch(
-          primarySwatch: Colors.purple,
+          primarySwatch: Colors.deepPurple,
         )
       ),
       routerConfig: router,
