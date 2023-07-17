@@ -50,6 +50,7 @@ class _SignUpScreenState extends State<SignUpScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      backgroundColor: Colors.purple[800],
       appBar: AppBar(
         title: Text('Sign Up'),
       ),

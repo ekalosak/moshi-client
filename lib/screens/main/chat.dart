@@ -10,6 +10,7 @@ import 'package:record/record.dart';
 import '../../services/auth.dart';
 import '../../util.dart' as util;
 
+final String host = "http://localhost:8080";
 final String healthz = "http://localhost:8080/healthz";
 final String mNewConvo = "http://localhost:8080/m/new/unstructured";
 
@@ -60,7 +61,7 @@ class _ChatScreenState extends State<ChatScreen> {
 
   /// Acquire the media resource and begin recording from it.
   /// Return error message.
-  Future<String?> startRecording(BuildContext context) async {
+  Future<String?> startRecording() async {
     bool micPerm = await record.hasPermission();
     if (!micPerm) {
       return "Microphone permissions required for chat. Please enable in your system settings.";
@@ -82,15 +83,35 @@ class _ChatScreenState extends State<ChatScreen> {
   /// Return error string
   Future<String?> stopRecording() async {
     String? audioPath = await record.stop();
-    if (audioPath == null) {
-      return "An error occurred while listening, please try again.";
-    }
     setState(() {
       isRecording = false;
     });
+    if (audioPath == null) {
+      return "An error occurred while listening, please try again.";
+    }
   }
 
-  /// Send the recording to the API
+  /// Release the media resource and send the recording to the API
+  /// Return error string
+  Future<String?> stopRecordingAndSubmitAudio(AuthService authService) async {
+    print( "stopRecordingAndSubmitAudio");
+    String? audioPath = await record.stop();
+    setState(() {
+      isRecording = false;
+    });
+    if (audioPath == null) {
+      return "An error occurred while listening, please try again.";
+    }
+    String url = "$host/m/next/$cid";
+    print("TODO send audio to $url");
+    final user = authService.currentUser!;
+    final token = await user.getIdToken();
+    final response = await http.post(
+      Uri.parse(url),
+      headers: {HttpHeaders.authorizationHeader: "Bearer $token"},
+    );
+  }
+
   Future<void> sendUtterance(String audioPath) async {
     print("Got audioPath: $audioPath");
     await player.play(audioPath);
@@ -99,7 +120,7 @@ class _ChatScreenState extends State<ChatScreen> {
   }
 
   // Check API health, get mic. permissions, create conversation in Firestore
-  Future<String?> startNewConversation(BuildContext context) async {
+  Future<String?> startNewConversation(AuthService authService) async {
     print("startNewConversation");
     String? msg;
     final bool micPerm = await record.hasPermission();
@@ -121,7 +142,6 @@ class _ChatScreenState extends State<ChatScreen> {
     } else {
       print("\tmoshi api healthy");
     }
-    final authService = Provider.of<AuthService>(context, listen: false);
     final String? erMsg = await getNewConversation(authService);
     if (erMsg != null) {
       return erMsg;
@@ -168,6 +188,7 @@ class _ChatScreenState extends State<ChatScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final authService = Provider.of<AuthService>(context, listen: false);
     return Container(
       child: Stack(
         children: [
@@ -180,17 +201,17 @@ class _ChatScreenState extends State<ChatScreen> {
                 children: [
                   Text(
                     "Microphone permissions: $haveMicPermissions",
-                    style: TextStyle(fontSize: 16.0),
+                    style: TextStyle(fontSize: 16.0, color: Colors.white),
                   ),
                   Text(
                     "Recording: $isRecording",
-                    style: TextStyle(fontSize: 16.0),
+                    style: TextStyle(fontSize: 16.0, color: Colors.white),
                   ),
                   Text(
                     (convoState != ConvoState.started)
                       ? "Conversation: inactive"
                       : "Conversation: ${cid?.substring(0, 8)}",
-                    style: TextStyle(fontSize: 16.0),
+                    style: TextStyle(fontSize: 16.0, color: Colors.white),
                   ),
                 ],
               ),
@@ -201,7 +222,7 @@ class _ChatScreenState extends State<ChatScreen> {
             right: 16.0,
             child: FloatingActionButton.extended(  // Start convo
               onPressed: () async {
-                final String? erMsg = await startNewConversation(context);
+                final String? erMsg = await startNewConversation(authService);
                 if (erMsg != null) {
                   util.showError(context, erMsg);
                 }
@@ -216,41 +237,44 @@ class _ChatScreenState extends State<ChatScreen> {
                   ? Icons.touch_app
                   : Icons.restart_alt,
               ),
-              backgroundColor: Colors.pink,
+              backgroundColor: Colors.purple,
             ),
           ),
           Positioned(
             bottom: 48.0,
             right: 128.0,
             child: GestureDetector(
-              // child: Icon(Icons.add),
               // TODO error handling for recorder being in wrong state when button up/down
               onTapDown: (_) {
                 print("\tonTapDown");
-                // startRecording(context);
+                startRecording().then((erMsg) {
+                  if (erMsg != null) {
+                    util.showError(context, erMsg);
+                  }
+                });
               },
               onTapUp: (_) {
                 print("\tonTapUp");
-                // record.isRecording().then((isRecording) {
-                //   if (isRecording) {
-                //     stopRecording(context);
-                //   }
-                // });
               },
               onTapCancel: () {
                 print("\tonTapCancel");
-                // record.isRecording().then((isRecording) {
-                //   if (isRecording) {
-                //     stopRecording(context);
-                //   }
-                // });
               },
               child: FloatingActionButton(
-                onPressed: () => print("\tonPressed"),
-                // onPressed:  ? null : () => print("\tonPressed"),
-                child: Icon(Icons.add),
+                onPressed: () {
+                  print("\tonPressed");
+                  record.isRecording().then((isRecording) {
+                    if (isRecording) {
+                      stopRecordingAndSubmitAudio(authService).then((erMsg) {
+                        if (erMsg != null) {
+                          util.showError(context, erMsg);
+                        }
+                      });
+                    }
+                  });
+                },
+                child: Icon(Icons.mic),
                 // NOTE onPressed null doesn't disable button: https://github.com/flutter/flutter/issues/107480
-                backgroundColor: (convoState != ConvoState.started) ? Colors.grey : Colors.pink,
+                backgroundColor: (convoState != ConvoState.started) ? Colors.grey : Colors.orange[400],
               ),
             ),
           ),
