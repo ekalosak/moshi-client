@@ -1,7 +1,6 @@
 import 'dart:async';
 import 'dart:convert';  // jsonDecode
 import 'dart:io';
-// import 'dart:ui';
 
 import 'package:audioplayers/audioplayers.dart';
 import 'package:http/http.dart' as http;
@@ -60,6 +59,7 @@ class _ChatScreenState extends State<ChatScreen> {
   void initState() {
     super.initState();
     _recordSub = _audioRecorder.onStateChanged().listen((recordState) {
+      print("_audioRecorder state change: $recordState");
       setState(() => _recordState = recordState);
     });
   }
@@ -84,7 +84,8 @@ class _ChatScreenState extends State<ChatScreen> {
       print("\tStarting to record...");
       await _audioRecorder.start(
         // encoder: AudioEncoder.pcm16bit,  // NOTE supported on ios, android, and most web: https://pub.dev/packages/record#platform-feature-parity-matrix
-        encoder: AudioEncoder.aacLc,
+        // encoder: AudioEncoder.aacLc,
+        // encoder: AudioEncoder.opus,
         bitRate: bitRate,
         samplingRate: sampleRate,
         numChannels: numChannels,
@@ -111,14 +112,22 @@ class _ChatScreenState extends State<ChatScreen> {
     if (audioBlobUrl == null) {
       return "An error occurred while listening, please try again.";
     }
-    print('\n\tPLAYING AUDIO');
-    await player.play(audioBlobUrl);
+    // print('\n\tPLAYING AUDIO');
+    // await player.play(audioBlobUrl);
     print("\taudioBlob: $audioBlobUrl");
     // NOTE cache manager loads the file from the blob:http:// audioPath
     File audioFile = await DefaultCacheManager().getSingleFile(audioBlobUrl);
     print("\taudioFile: $audioFile");
-    List<int> audioBytes = await audioFile.readAsBytes();
-    // print(audioBytes);
+    var audioBytes = await audioFile.readAsBytes();
+    // print(audioBytes.sublist(0, 32));
+    // NOTE the following will let us see the header strings in the file
+    // var byteString = Latin1Codec().decode(audioBytes);
+    // print(byteString.substring(0, 256));
+    var multipartFile = http.MultipartFile.fromBytes(
+        'utterance',
+        audioBytes,
+        filename: 'utterance.m4a',
+    );
     print("\tPreparing POST to Moshi endpoint $url");
     final user = authService.currentUser!;
     final token = await user.getIdToken();
@@ -127,22 +136,27 @@ class _ChatScreenState extends State<ChatScreen> {
       Uri.parse(url),
     );
     request.headers['Authorization'] = "Bearer $token";
-    request.files.add(
-      http.MultipartFile.fromBytes(
-        'utterance',
-        audioBytes,
-        filename: 'utterance.m4a',
-    ));
+    request.files.add(multipartFile);
     print("\tAwaiting POST request: $request");
     // TODO try catch return error
-    final response = await request.send();
-    final int code = response.statusCode;
-    final responseBody = await response.stream.bytesToString();
-    final parsedResponse = json.decode(responseBody);
-    print("\tparsedResponse: $parsedResponse");
-    print("\tresponse.statusCode: $code");
-    if (code != 200) {
+    final response = await request.send(
+      // headers: {
+      //   "Access-Control-Allow-Headers": "*",
+      // },
+    );
+    print("\tresponse.statusCode: ${response.statusCode}");
+    print("\tresponse.headers:\n${response.headers}");
+    print("\tresponse.headers['user-utterance']:\n${response.headers['user-utterance']}");
+    // print("\tresponse.body: ${response.request.body}");
+    final responseBytes = await response.stream.toBytes();
+    // print("responseBytes");
+    // print(responseBytes.sublist(0, 32));
+    // final parsedResponse = json.decode(responseBody);
+    // print("\tparsedResponse: $parsedResponse");
+    if (response.statusCode != 200) {
       return "An error occurred sending speech to Moshi servers, please try again.";
+    } else {
+      return "Didn't barf";
     }
   }
 
