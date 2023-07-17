@@ -4,6 +4,7 @@ import 'dart:io';
 
 import 'package:audioplayers/audioplayers.dart';
 import 'package:http/http.dart' as http;
+import 'package:firebase_storage/firebase_storage.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_cache_manager/flutter_cache_manager.dart';
 import 'package:provider/provider.dart';
@@ -43,13 +44,14 @@ class _ChatScreenState extends State<ChatScreen> {
   // Resource state
   bool haveMicPermissions = false;
   bool isServerHealthy = false;
+  bool isRecording = false;
   // Conversation state
   ConvoState convoState = ConvoState.ready;
   String? cid;
   // Audio state
   final _audioRecorder = Record();
   StreamSubscription<RecordState>? _recordSub;
-  RecordState _recordState = RecordState.stop;
+  RecordState _recordState = RecordState.stop;  // NOTE this doesn't get updated...
   final player = AudioPlayer();
   final int bitRate = 128000;
   final int sampleRate = 44100;
@@ -288,7 +290,8 @@ class _ChatScreenState extends State<ChatScreen> {
           Positioned(
             bottom: 48.0,
             right: 128.0,
-            // TODO Container to make the gesture detector take on size
+            // TODO Make all onTap functions do nothing when convoState != ConvoState.started;
+            // TODO Container to make the gesture detector take on size;
             child: GestureDetector(
               // TODO error handling for recorder being in wrong state when button up/down
               onTapDown: (_) {
