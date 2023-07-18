@@ -30,7 +30,7 @@ This will generate `lib/firebase_options.dart`.
 ### Install cocoapods
 The `flutterfire configure` will barf unless you install xcodeproj beforehand:
 ```bash
-gem install xcodeproj
+gem install xcodeproj cocoapods
 ```
 
 ### Install your own Ruby
@@ -48,7 +48,12 @@ Don't use system Ruby, that's a no-no.
 2. https://firebase.flutter.dev/docs/overview/#initialization
 
 # Run
-`flutter run -d chrome`
+
+## ios
+```
+open -a Simulator
+flutter run
+```
 
 # Dev
 
