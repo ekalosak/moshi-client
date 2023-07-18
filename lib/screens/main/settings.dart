@@ -22,14 +22,11 @@ class SettingsScreen extends StatelessWidget {
   Widget build(BuildContext context) {
     return Center(
       child: Container(
-        child: Align(
-          alignment: Alignment.bottomRight,
-          child: ElevatedButton(
-            child: Text('Log Out'),
-            onPressed: () {
-              logOut(context);
-            },
-          ),
+        child: ElevatedButton(
+          child: Text('Log Out'),
+          onPressed: () {
+            logOut(context);
+          },
         ),
       ),
     );

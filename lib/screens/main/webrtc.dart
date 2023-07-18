@@ -30,6 +30,7 @@ class _WebRTCScreenState extends State<WebRTCScreen> {
   bool _isRecording = false;
   bool _isConnected = false;
   Stream<Uint8List>? _micStream;
+  late StreamSubscription _micListener;
 
   @override
   void initState() {
@@ -39,19 +40,20 @@ class _WebRTCScreenState extends State<WebRTCScreen> {
   /// Clean up the mic stream when the widget is disposed
   @override
   void dispose() {
-    _micStream?.dispose();
+    // _micStream?.cancel();
     super.dispose();
   }
 
   /// Get mic permissions, check server health, and perform WebRTC connection establishment
   /// Returns error string if any.
-  Future<String?> startClicked() async {
-    final String? recordingError = await startRecording();
+  Future<String?> startPressed() async {
+    print("startPressed start");
+    final String? err = await startRecording();
     setState(() {
-      _isRecording = (recordingError == null);
+      _isRecording = (err == null);
     });
-    if (recordingError != null) {
-      return recordingError;
+    if (err != null) {
+      return err;
       // return "Moshi requires microphone permissions. Please enable in your system settings.";
     }
     bool healthy = await moshi.healthCheck();
@@ -71,20 +73,22 @@ class _WebRTCScreenState extends State<WebRTCScreen> {
   /// Acquire the microphone and begin recording from it. Idempotent.
   /// Return an error if there is any.
   Future<String?> startRecording() async {
+    print("startRecording start");
     if (_micStream == null) {
+      print("startRecording _micStream is null, awaiting microphone...");
       _micStream = await MicStream.microphone(
         audioFormat: AUDIO_FORMAT,
         audioSource: AUDIO_SOURCE,
         channelConfig: CHANNEL_CONFIG,
         sampleRate: SAMPLE_RATE,
       );
-      _micStream?.listen(_onAudioBytes);
       if (_micStream == null) {
         print("Failed to start mic stream.");
         return "Failed to start recording audio from microphone.";
       } else {
         print("Started mic stream.");
       }
+      _micListener = _micStream!.listen(_onAudioBytes);
     }
   }
 
@@ -130,7 +134,9 @@ class _WebRTCScreenState extends State<WebRTCScreen> {
             right: 16.0,
             child: FloatingActionButton.extended(  // Start convo
               onPressed: () async {
-                final String? err = await startClicked();
+                final String? err = (_isRecording)
+                  ? null
+                  : await startPressed();
                 if (err != null) {
                   util.showError(context, err);
                 }
