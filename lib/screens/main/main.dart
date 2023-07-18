@@ -5,6 +5,8 @@ import 'chat.dart';
 import 'progress.dart';
 import 'settings.dart';
 import 'webrtc.dart';
+import 'micstream.dart';
+import 'soundstream.dart';
 
 class MainScreen extends StatefulWidget {
   @override
@@ -20,7 +22,9 @@ class _MainScreenState extends State<MainScreen> {
     super.initState();
     _screens.addAll([
       SettingsScreen(),
-      WebRTCScreen(),
+      // MicStreamExampleApp(),
+      // WebRTCScreen(),
+      SoundStreamScreen(),
       // ChatScreen(),
       ProgressScreen(),
     ]);

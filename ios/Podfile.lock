@@ -94,6 +94,8 @@ PODS:
   - shared_preferences_foundation (0.0.1):
     - Flutter
     - FlutterMacOS
+  - sound_stream (0.0.1):
+    - Flutter
   - sqflite (0.0.3):
     - Flutter
     - FMDB (>= 2.7.5)
@@ -112,6 +114,7 @@ DEPENDENCIES:
   - permission_handler_apple (from `.symlinks/plugins/permission_handler_apple/ios`)
   - record (from `.symlinks/plugins/record/ios`)
   - shared_preferences_foundation (from `.symlinks/plugins/shared_preferences_foundation/darwin`)
+  - sound_stream (from `.symlinks/plugins/sound_stream/ios`)
   - sqflite (from `.symlinks/plugins/sqflite/ios`)
 
 SPEC REPOS:
@@ -158,6 +161,8 @@ EXTERNAL SOURCES:
     :path: ".symlinks/plugins/record/ios"
   shared_preferences_foundation:
     :path: ".symlinks/plugins/shared_preferences_foundation/darwin"
+  sound_stream:
+    :path: ".symlinks/plugins/sound_stream/ios"
   sqflite:
     :path: ".symlinks/plugins/sqflite/ios"
 
@@ -183,15 +188,16 @@ SPEC CHECKSUMS:
   GoogleUtilities: 9aa0ad5a7bc171f8bae016300bfcfa3fb8425749
   GTMAppAuth: 0ff230db599948a9ad7470ca667337803b3fc4dd
   GTMSessionFetcher: 3a63d75eecd6aa32c2fc79f578064e1214dfdec2
-  mic_stream: 28787bfcfcfc68e17fad15050baf5929f1d10901
+  mic_stream: 9e7c9fe19d0d8bd0d273bd5428bbd13cab6f4429
   path_provider_foundation: 29f094ae23ebbca9d3d0cec13889cd9060c0e943
   permission_handler_apple: e76247795d700c14ea09e3a2d8855d41ee80a2e6
   PromisesObjC: 09985d6d70fbe7878040aa746d78236e6946d2ef
   record: cae05d8dd3cdb1dea3511b20e5a5811a1ae00d0d
   shared_preferences_foundation: 5b919d13b803cadd15ed2dc053125c68730e5126
+  sound_stream: eba0f2a5994b91d9e5009a739df6e98515a7b44f
   sqflite: 31f7eba61e3074736dff8807a9b41581e4f7f15a
   WebRTC-SDK: dd913fd31cfbf1d43b9a22d83f4c6354c960c623
 
-PODFILE CHECKSUM: 70d9d25280d0dd177a5f637cdb0f0b0b12c6a189
+PODFILE CHECKSUM: db473ea2bf8cc6f037f2629305f109e020bca9fe
 
 COCOAPODS: 1.12.1

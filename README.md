@@ -63,3 +63,14 @@ In vim,
 
 ## Code organization
 https://medium.com/flutter-community/flutter-code-organization-revised-b09ad5cef7f6
+
+## Changes to permissions
+
+### ios
+Add the tag to `ios/Runner/Info.plist`.
+Add the `PERMISSION_` declaration in `ios/Podfile`.
+
+Clear the Xcode build files so the new permissions get propagated:
+```
+flutter clean
+```

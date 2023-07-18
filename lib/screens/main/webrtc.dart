@@ -29,8 +29,9 @@ class _WebRTCScreenState extends State<WebRTCScreen> {
   bool _moshiHealthy = false;
   bool _isRecording = false;
   bool _isConnected = false;
+  bool _printedFirstAudioByte = false;
   Stream<Uint8List>? _micStream;
-  late StreamSubscription _micListener;
+  StreamSubscription? _micListener;
 
   @override
   void initState() {
@@ -40,7 +41,7 @@ class _WebRTCScreenState extends State<WebRTCScreen> {
   /// Clean up the mic stream when the widget is disposed
   @override
   void dispose() {
-    // _micStream?.cancel();
+    _micListener?.cancel();
     super.dispose();
   }
 
@@ -48,6 +49,15 @@ class _WebRTCScreenState extends State<WebRTCScreen> {
   /// Returns error string if any.
   Future<String?> startPressed() async {
     print("startPressed start");
+    // Backend server check
+    bool healthy = await moshi.healthCheck();
+    setState(() {
+      _moshiHealthy = healthy;
+    });
+    if (!healthy) {
+      return "Moshi servers unhealthy, please try again.";
+    }
+    // Microphone check
     final String? err = await startRecording();
     setState(() {
       _isRecording = (err == null);
@@ -55,13 +65,6 @@ class _WebRTCScreenState extends State<WebRTCScreen> {
     if (err != null) {
       return err;
       // return "Moshi requires microphone permissions. Please enable in your system settings.";
-    }
-    bool healthy = await moshi.healthCheck();
-    setState(() {
-      _moshiHealthy = healthy;
-    });
-    if (!healthy) {
-      return "Moshi servers unhealthy, please try again.";
     }
     // TODO connectWebRTC
     await moshi.connectWebRTC();
@@ -74,8 +77,11 @@ class _WebRTCScreenState extends State<WebRTCScreen> {
   /// Return an error if there is any.
   Future<String?> startRecording() async {
     print("startRecording start");
+    MicStream.shouldRequestPermission(true);
+    bool hasMicPerms = await MicStream.permissionStatus;
+    print("\thasMicPerms: $hasMicPerms");
     if (_micStream == null) {
-      print("startRecording _micStream is null, awaiting microphone...");
+      print("\t_micStream is null, awaiting microphone...");
       _micStream = await MicStream.microphone(
         audioFormat: AUDIO_FORMAT,
         audioSource: AUDIO_SOURCE,
@@ -83,12 +89,17 @@ class _WebRTCScreenState extends State<WebRTCScreen> {
         sampleRate: SAMPLE_RATE,
       );
       if (_micStream == null) {
-        print("Failed to start mic stream.");
+        print("\tFailed to start mic stream.");
         return "Failed to start recording audio from microphone.";
-      } else {
-        print("Started mic stream.");
       }
+      print("\tStarted mic stream: $_micStream");
+      // print("\t\tsample rate is ${await MicStream.sampleRate}\n\t\tbit depth is ${await MicStream.bitDepth}\n\t\tbufferSize: ${await MicStream.bufferSize}");
       _micListener = _micStream!.listen(_onAudioBytes);
+      print("\tStarted mic listener: $_micListener");
+      // // NOTE currently the following hangs...
+      // final sr = await MicStream.sampleRate;
+      // print(sr);
+      print("startRecording end");
     }
   }
 
@@ -97,11 +108,17 @@ class _WebRTCScreenState extends State<WebRTCScreen> {
   /// TODO updates the audiogram widget,
   /// TODO sends across the WebRTC channel to Moshi servers.
   void _onAudioBytes(Uint8List audioData) {
-      print('Received audio data: $audioData');
+      if (!_printedFirstAudioByte) {
+        print('Received audio data: $audioData');
+        setState(() {
+          _printedFirstAudioByte = true;
+        });
+      }
   }
 
   @override
   Widget build(BuildContext context) {
+    print("screens/main/webrtc build start");
     final authService = Provider.of<AuthService>(context, listen: false);
     return Container(
       child: Stack(
