@@ -4,6 +4,7 @@ import '../../services/auth.dart';
 import 'chat.dart';
 import 'progress.dart';
 import 'settings.dart';
+import 'webrtc.dart';
 
 class MainScreen extends StatefulWidget {
   @override
@@ -11,7 +12,7 @@ class MainScreen extends StatefulWidget {
 }
 
 class _MainScreenState extends State<MainScreen> {
-  int _currentIndex = 1;
+  int _currentIndex = 3;
   final List<Widget> _screens = [];
 
   @override
@@ -19,6 +20,7 @@ class _MainScreenState extends State<MainScreen> {
     super.initState();
     _screens.addAll([
       SettingsScreen(),
+      WebRTCScreen(),
       ChatScreen(),
       ProgressScreen(),
     ]);
@@ -43,6 +45,10 @@ class _MainScreenState extends State<MainScreen> {
           BottomNavigationBarItem(
             icon: Icon(Icons.settings),
             label: 'Settings',
+          ),
+          BottomNavigationBarItem(
+            icon: Icon(Icons.transcribe),
+            label: 'WebRTC',
           ),
           BottomNavigationBarItem(
             icon: Icon(Icons.chat),
