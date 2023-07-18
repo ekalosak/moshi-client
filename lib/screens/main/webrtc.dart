@@ -36,6 +36,13 @@ class _WebRTCScreenState extends State<WebRTCScreen> {
     super.initState();
   }
 
+  /// Clean up the mic stream when the widget is disposed
+  @override
+  void dispose() {
+    _micStream?.dispose();
+    super.dispose();
+  }
+
   /// Get mic permissions, check server health, and perform WebRTC connection establishment
   /// Returns error string if any.
   Future<String?> startClicked() async {

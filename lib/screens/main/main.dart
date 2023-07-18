@@ -12,7 +12,7 @@ class MainScreen extends StatefulWidget {
 }
 
 class _MainScreenState extends State<MainScreen> {
-  int _currentIndex = 3;
+  int _currentIndex = 1;
   final List<Widget> _screens = [];
 
   @override
@@ -21,7 +21,7 @@ class _MainScreenState extends State<MainScreen> {
     _screens.addAll([
       SettingsScreen(),
       WebRTCScreen(),
-      ChatScreen(),
+      // ChatScreen(),
       ProgressScreen(),
     ]);
   }
@@ -48,12 +48,12 @@ class _MainScreenState extends State<MainScreen> {
           ),
           BottomNavigationBarItem(
             icon: Icon(Icons.transcribe),
-            label: 'WebRTC',
-          ),
-          BottomNavigationBarItem(
-            icon: Icon(Icons.chat),
             label: 'Chat',
           ),
+          // BottomNavigationBarItem(
+          //   icon: Icon(Icons.chat),
+          //   label: 'Chat',
+          // ),
           BottomNavigationBarItem(
             icon: Icon(Icons.analytics_outlined),
             label: 'Progress',
