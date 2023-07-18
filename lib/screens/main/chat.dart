@@ -85,8 +85,9 @@ class _ChatScreenState extends State<ChatScreen> {
     } else {
       print("\tStarting to record...");
       await _audioRecorder.start(
+        // TODO check platform for codec availablility
         // encoder: AudioEncoder.pcm16bit,  // NOTE supported on ios, android, and most web: https://pub.dev/packages/record#platform-feature-parity-matrix
-        // encoder: AudioEncoder.aacLc,
+        encoder: AudioEncoder.aacLc,  // MP4
         // encoder: AudioEncoder.opus,
         bitRate: bitRate,
         samplingRate: sampleRate,
@@ -141,15 +142,11 @@ class _ChatScreenState extends State<ChatScreen> {
     request.files.add(multipartFile);
     print("\tAwaiting POST request: $request");
     // TODO try catch return error
-    final response = await request.send(
-      // headers: {
-      //   "Access-Control-Allow-Headers": "*",
-      // },
-    );
+    final response = await request.send();
     print("\tresponse.statusCode: ${response.statusCode}");
     print("\tresponse.headers:\n${response.headers}");
-    print("\tresponse.headers['user-utterance']:\n${response.headers['user-utterance']}");
-    // print("\tresponse.body: ${response.request.body}");
+    // print("\tresponse.headers['user-utterance']:\n${response.headers['user-utterance']}");
+    // print("\tresponse.headers['assistant-utterance']:\n${response.headers['user-utterance']}");
     final responseBytes = await response.stream.toBytes();
     // print("responseBytes");
     // print(responseBytes.sublist(0, 32));
