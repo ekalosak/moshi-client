@@ -3,10 +3,11 @@ import 'dart:convert';  // jsonDecode
 import 'dart:io';
 import 'dart:typed_data';
 
-import 'package:http/http.dart' as http;
-import 'package:flutter/material.dart';
-import 'package:provider/provider.dart';
 import 'package:audio_streamer/audio_streamer.dart';
+import 'package:flutter/material.dart';
+import 'package:flutter_webrtc/flutter_webrtc.dart';
+import 'package:http/http.dart' as http;
+import 'package:provider/provider.dart';
 
 import 'package:flutter/services.dart';
 
@@ -149,7 +150,7 @@ class _WebRTCScreenState extends State<WebRTCScreen> {
                     style: TextStyle(fontSize: 16.0),
                   ),
                   Text(
-                    "Seconds recording: $_secRec",
+                    "Seconds recording: ${_secRec.toStringAsFixed(2)}",
                     style: TextStyle(fontSize: 16.0),
                   ),
                 ],
