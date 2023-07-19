@@ -1,12 +1,15 @@
 import 'package:flutter/material.dart';
 
 import '../../services/auth.dart';
-import 'chat.dart';
 import 'progress.dart';
 import 'settings.dart';
-import 'webrtc.dart';
-import 'micstream.dart';
-import 'soundstream.dart';
+// import 'haishinkit.dart';
+// import 'chat.dart';
+// import 'webrtc.dart';
+// import 'micstream.dart';
+// import 'soundstream.dart';
+// import 'audiocapture.dart';
+import 'audiostream.dart';
 
 class MainScreen extends StatefulWidget {
   @override
@@ -22,9 +25,11 @@ class _MainScreenState extends State<MainScreen> {
     super.initState();
     _screens.addAll([
       SettingsScreen(),
+      ASScreen(),
+      // ACScreen(),
       // MicStreamExampleApp(),
       // WebRTCScreen(),
-      SoundStreamScreen(),
+      // SoundStreamScreen(),
       // ChatScreen(),
       ProgressScreen(),
     ]);

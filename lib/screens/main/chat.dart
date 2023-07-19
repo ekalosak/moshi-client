@@ -2,13 +2,13 @@ import 'dart:async';
 import 'dart:convert';  // jsonDecode
 import 'dart:io';
 
-import 'package:audioplayers/audioplayers.dart';
+// import 'package:audioplayers/audioplayers.dart';
 import 'package:http/http.dart' as http;
 import 'package:firebase_storage/firebase_storage.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_cache_manager/flutter_cache_manager.dart';  // get full path from blob:http
 import 'package:provider/provider.dart';
-import 'package:record/record.dart';
+// import 'package:record/record.dart';
 
 import '../../services/auth.dart';
 import '../../util.dart' as util;

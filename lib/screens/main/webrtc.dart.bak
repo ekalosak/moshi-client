@@ -6,8 +6,8 @@ import 'dart:typed_data';
 import 'package:audioplayers/audioplayers.dart';
 import 'package:http/http.dart' as http;
 import 'package:flutter/material.dart';
-import 'package:mic_stream/mic_stream.dart';
 import 'package:provider/provider.dart';
+import 'package:sound_stream/sound_stream.dart';
 
 import '../../services/auth.dart';
 import '../../services/moshi.dart' as moshi;
@@ -26,12 +26,19 @@ class WebRTCScreen extends StatefulWidget {
 }
 
 class _WebRTCScreenState extends State<WebRTCScreen> {
+  RecorderStream _recorder = RecorderStream();
+  PlayerStream _player = PlayerStream();
+  List<Uint8List> _micChunks = [];
   bool _moshiHealthy = false;
   bool _isRecording = false;
+  bool _isPlaying = false;
   bool _isConnected = false;
   bool _printedFirstAudioByte = false;
-  Stream<Uint8List>? _micStream;
-  StreamSubscription? _micListener;
+
+  StreamSubscription? _recorderStatus;
+  StreamSubscription? _playerStatus;
+  StreamSubscription? _audioStream;
+
 
   @override
   void initState() {
@@ -41,7 +48,9 @@ class _WebRTCScreenState extends State<WebRTCScreen> {
   /// Clean up the mic stream when the widget is disposed
   @override
   void dispose() {
-    _micListener?.cancel();
+    _recorderStatus?.cancel();
+    _playerStatus?.cancel();
+    _audioStream?.cancel();
     super.dispose();
   }
 
