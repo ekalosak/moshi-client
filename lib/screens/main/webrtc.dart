@@ -3,7 +3,6 @@ import 'dart:convert';  // jsonDecode
 import 'dart:io';
 import 'dart:typed_data';
 
-import 'package:audio_streamer/audio_streamer.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_webrtc/flutter_webrtc.dart';
 import 'package:http/http.dart' as http;
@@ -24,30 +23,18 @@ class WebRTCScreen extends StatefulWidget {
 }
 
 class _WebRTCScreenState extends State<WebRTCScreen> {
-  AudioStreamer streamer = AudioStreamer();
-  // List<double> _audio = [];
+  MediaStream? _localStream;
+  List<MediaDeviceInfo>? _mediaDevicesList;
+  RTCPeerConnection? _pc;
+  RTCDataChannel? _ping;
+  RTCDataChannel? _status;
+  RTCDataChannel? _transcript;
   bool _moshiHealthy = false;
   bool _isRecording = false;
-  bool _isPlaying = false;
   bool _isConnected = false;
-  int _sampleRate = 0;
-  double _secRec = 0.0;
 
   /// TODO updates the audiogram widget,
   /// TODO sends across the WebRTC channel to Moshi servers.
-  void onAudio(List<double> buffer) async {
-    // _audio.addAll(buffer);
-    var sampleRate = await streamer.actualSampleRate;
-    double secondsRecorded = _secRec + buffer.length.toDouble() / sampleRate;
-    setState(() {
-      _sampleRate = sampleRate;
-      _secRec = secondsRecorded;
-    });
-  }
-
-  void handleError(PlatformException error) {
-    print(error);
-  }
 
   @override
   void initState() {
@@ -56,8 +43,10 @@ class _WebRTCScreenState extends State<WebRTCScreen> {
 
   /// Clean up the mic stream when the widget is disposed
   @override
-  void dispose() {
+  void dispose() async {
     super.dispose();
+    await _localStream?.dispose();
+    await _pc?.dispose();
   }
 
   /// Get mic permissions, check server health, and perform WebRTC connection establishment
@@ -74,26 +63,20 @@ class _WebRTCScreenState extends State<WebRTCScreen> {
     }
     // Microphone check
     final String? err = await startRecording();
-    setState(() {
-      _isRecording = (err == null);
-    });
     if (err != null) {
       return err;
       // return "Moshi requires microphone permissions. Please enable in your system settings.";
     }
-    // TODO connectWebRTC
-    await moshi.connectWebRTC();
-    setState(() {
-      _isConnected = true;
-    });
+    print("startPressed end");
   }
 
   Future<String?> stopPressed() async {
     print("stopPressed start");
     await stopRecording();
     setState(() {
-      _isConnected = false;
+      _isConnected = false;  // TODO hangUp();
     });
+    print("stopPressed end");
   }
 
   /// Acquire the microphone and begin recording from it. Idempotent.
@@ -101,23 +84,54 @@ class _WebRTCScreenState extends State<WebRTCScreen> {
   Future<String?> startRecording() async {
     print("starting recording");
     try {
-      streamer.start(onAudio, handleError);  // 44.1kHz
+      final mediaConstraints = <String, dynamic>{
+        'audio': true,
+        'video': false
+      };
+      var stream = await navigator.mediaDevices.getUserMedia(mediaConstraints);
+      _mediaDevicesList = await navigator.mediaDevices.enumerateDevices();
+      print("_mediaDevicesList.length: ${_mediaDevicesList?.length}");
+      for (var md in (_mediaDevicesList ?? [])) {
+        print("media device: ${md.label}");
+      }
+      _localStream = stream;
       setState(() {
         _isRecording = true;
       });
     } catch (error) {
       print(error);
     }
+    await callMoshi();
     print("started recording");
   }
 
   Future<void> stopRecording() async {
     print("stopping");
-    bool stopped = await streamer.stop();
+    await _localStream?.dispose();
     setState(() {
-      _isRecording = stopped;
+      _isRecording = false;
     });
     print("stopped");
+  }
+
+  /// Create peer connections, create data channels, and listen for tracks
+  // TODO
+  Future<void> callMoshi() async {
+    print("callMoshi start");
+    if (_pc != null) return;
+    try {
+      final pcConfig ={
+        'sdpSemantics': 'unified-plan',
+      };
+      _pc = await createPeerConnection(pcConfig);
+      print("created pc: $_pc \n\tconnectionState : ${_pc?.connectionState}");
+    } catch (error) {
+      print("callMoshi Error: $error");
+    }
+    setState(() {
+      _isConnected = true;
+    });
+    print("callMoshi end");
   }
 
   @override
@@ -145,14 +159,14 @@ class _WebRTCScreenState extends State<WebRTCScreen> {
                     "Connected: $_isConnected",
                     style: TextStyle(fontSize: 16.0),
                   ),
-                  Text(
-                    "Sample rate: $_sampleRate",
-                    style: TextStyle(fontSize: 16.0),
-                  ),
-                  Text(
-                    "Seconds recording: ${_secRec.toStringAsFixed(2)}",
-                    style: TextStyle(fontSize: 16.0),
-                  ),
+                  // Text(
+                  //   "Sample rate: $_sampleRate",
+                  //   style: TextStyle(fontSize: 16.0),
+                  // ),
+                  // Text(
+                  //   "Seconds recording: ${_secRec.toStringAsFixed(2)}",
+                  //   style: TextStyle(fontSize: 16.0),
+                  // ),
                 ],
               ),
             ),
