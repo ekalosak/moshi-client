@@ -40,16 +40,14 @@ class _WebRTCScreenState extends State<WebRTCScreen> {
   MediaStream? _localStream;
   List<MediaDeviceInfo>? _mediaDevicesList;
   RTCPeerConnection? _pc;
-  RTCDataChannel? _pingDc;
-  RTCDataChannel? _statusDc;
-  RTCDataChannel? _transcriptDc;
+  RTCDataChannel? _dc;
   bool _moshiHealthy = false;
   bool _isRecording = false;
   bool _isConnected = false;
   String _iceGatheringState = '';
   String _iceConnectionState = '';
   String _signalingState = '';
-  String _statusChannelState = '';
+  String _dcState = '';
   String _status = '';
 
   /// TODO updates the audiogram widget,
@@ -68,7 +66,7 @@ class _WebRTCScreenState extends State<WebRTCScreen> {
     await tearDownWebRTC();
   }
 
-  /// Get mic permissions, check server health, and perform WebRTC connection establishment
+  /// Get mic permissions, check server health, and perform WebRTC connection establishment.
   /// Returns error string if any.
   Future<String?> startPressed() async {
     print("startPressed [START]");
@@ -90,6 +88,60 @@ class _WebRTCScreenState extends State<WebRTCScreen> {
     print("startPressed [END]");
   }
 
+  /// Set up the WebRTC session.
+  Future<String?> callMoshi() async {
+    print("callMoshi [START]");
+    if (_pc != null) {
+      print("peer connection already exists.");
+      return null;
+    }
+    try {
+      // Create peer connection
+      print("creating peer connection with config: $pcConfig");
+      RTCPeerConnection pc = await setupPeerConnection(pcConfig);
+      print("created pc: $pc");
+      setState(() {
+        _pc = pc;
+      });
+      // Create data channels
+      RTCDataChannelInit dataChannelDict = RTCDataChannelInit()..maxRetransmits = 30;
+      RTCDataChannel dc = await pc.createDataChannel('status', dataChannelDict);
+      dc.onDataChannelState = (dcs) {
+        print("dc: onDataChannelState: $dcs");
+        setState(() {
+          _dcState = _dcState + '\n\t-> $dcs';
+        });
+      };
+      dc.onMessage = (dcm) {
+        print("dc: onMessage: $dcm");
+        if (!dcm.isBinary) {
+          setState(() {
+            _status = _status + '\n\t- ${dcm.text}';
+          });
+        }
+      };
+      setState(() {
+        _status = _status + '\n\t- client connecting...';
+      });
+      String? err = await negotiate();
+      if (err != null) {
+        print("callMoshi: Error: $err");
+        setState(() {
+          _status = _status + '\n\t- Failed: $err';
+        });
+        return err;
+      }
+      setState(() {
+        _status = _status + '\n\t- got SDP.';
+      });
+    } catch (error) {
+      print("Error: $error");
+      return "Failed to connect to Moshi servers. Please try again.";
+    }
+    print("callMoshi [END]");
+  }
+
+  /// Terminate the WebRTC session.
   Future<String?> stopPressed() async {
     print("stopPressed [START]");
     await hangUpMoshi();
@@ -97,6 +149,7 @@ class _WebRTCScreenState extends State<WebRTCScreen> {
     print("stopPressed [END]");
   }
 
+  /// Acquire audio permissions and add audio stream to state `_localStream`.
   Future<String?> startMicrophoneStream() async {
     print("startMicrophoneStream [START]");
     try {
@@ -121,61 +174,7 @@ class _WebRTCScreenState extends State<WebRTCScreen> {
     print("startMicrophoneStream [END]");
   }
 
-  /// Create peer connections, create data channels, and add audio track.
-  // TODO
-  Future<String?> callMoshi() async {
-    print("callMoshi [START]");
-    if (_pc != null) {
-      print("peer connection already exists.");
-      return null;
-    }
-    try {
-      // Create peer connection
-      print("creating peer connection with config: $pcConfig");
-      RTCPeerConnection pc = await setupPeerConnection(pcConfig);
-      print("created pc: $pc");
-      setState(() {
-        _pc = pc;
-      });
-      // Create data channels
-      RTCDataChannelInit dataChannelDict = RTCDataChannelInit()..maxRetransmits = 30;
-      RTCDataChannel statusDc = await pc.createDataChannel('status', dataChannelDict);
-      statusDc.onDataChannelState = (dcs) {
-        print("dc<statusDc>: onDataChannelState: $dcs");
-        setState(() {
-          _statusChannelState = _statusChannelState + '\n\t-> $dcs';
-        });
-      };
-      statusDc.onMessage = (dcm) {
-        print("dc<statusDc>: onMessage: $dcm");
-        if (!dcm.isBinary) {
-          setState(() {
-            _status = _status + '\n\t- ${dcm.text}';
-          });
-        }
-      };
-      setState(() {
-        _status = _status + '\n\t- Connecting...';
-      });
-      String? err = await negotiate();
-      if (err != null) {
-        print("callMoshi: Error: $err");
-        setState(() {
-          _status = _status + '\n\t- Failed: $err';
-        });
-        return err;
-      }
-      setState(() {
-        _status = _status + '\n\t- Got SDP...';
-      });
-    } catch (error) {
-      print("Error: $error");
-      return "Failed to connect to Moshi servers. Please try again.";
-    }
-    print("callMoshi [END]");
-  }
-
-  // After setting up stream and creating pc, use those to send an offer and handle the response
+  /// After setting up stream and signaling, create an SDP offer and handle the answer.
   Future<String?> negotiate() async {
       print("negotiate [START]");
       RTCPeerConnection pc = _pc!;
@@ -228,7 +227,7 @@ class _WebRTCScreenState extends State<WebRTCScreen> {
       // print("pc: onIceCandidate: ${candidate.candidate}");
       // TODO try an ice candidate:
       // https://github.com/flutter-webrtc/flutter-webrtc-demo/blob/master/lib/src/call_sample/signaling.dart#L466
-      print("\tonIceCandidate: TODO");
+      print("pc: onIceCandidate: ${candidate.candidate}");
       setState(() {  // TODO set _isConnected when an ice candidate is good
         _isConnected = true;
       });
@@ -269,23 +268,20 @@ class _WebRTCScreenState extends State<WebRTCScreen> {
       _iceGatheringState = '';
       _iceConnectionState = '';
       _signalingState = '';
-      _statusChannelState = '';
+      _dcState = '';
       _status = '';
     });
     print("hangUpMoshi [END]");
   }
 
+  /// Destroy the peer connections
   Future<void> tearDownWebRTC() async {
     await _pc?.dispose();
-    await _transcriptDc?.close();
-    await _pingDc?.close();
-    await _statusDc?.close();
+    await _dc?.close();
     if (!mounted) return;
     setState(() {
       _pc = null;
-      _transcriptDc = null;
-      _pingDc = null;
-      _statusDc = null;
+      _dc = null;
     });
   }
 
@@ -308,8 +304,8 @@ class _WebRTCScreenState extends State<WebRTCScreen> {
                   Text("ICE gathering state: $_iceGatheringState"),
                   Text("ICE connection state: $_iceConnectionState"),
                   Text("Signaling state: $_signalingState"),
-                  Text("Status channel: $_statusChannelState"),
-                  Text("Status: $_status"),
+                  Text("Datachannel state: $_dcState"),
+                  Text("Moshi status: $_status"),
                 ],
               ),
             ),
