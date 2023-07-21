@@ -1,9 +1,12 @@
 import 'dart:async';
 import 'dart:convert';  // jsonDecode
 import 'dart:io';
+import 'dart:math';
 import 'dart:typed_data';
 
 import 'package:flutter/material.dart';
+import 'package:flutter_chat_types/flutter_chat_types.dart' as chatTypes;
+import 'package:flutter_chat_ui/flutter_chat_ui.dart';
 import 'package:flutter_webrtc/flutter_webrtc.dart';
 import 'package:provider/provider.dart';
 
@@ -31,6 +34,13 @@ const pcConfig = {
 //   List<RTCIceCandidate> remoteCandidates = [];
 // }
 
+// For the testing purposes randomString, you should probably use https://pub.dev/packages/uuid.
+String randomString() {
+  final random = Random.secure();
+  final values = List<int>.generate(16, (i) => random.nextInt(255));
+  return base64UrlEncode(values);
+}
+
 class WebRTCScreen extends StatefulWidget {
   @override
   _WebRTCScreenState createState() => _WebRTCScreenState();
@@ -48,6 +58,8 @@ class _WebRTCScreenState extends State<WebRTCScreen> {
   String _iceConnectionState = '';
   String _signalingState = '';
   String _dcState = '';
+  chatTypes.User? _user;
+  final List<chatTypes.Message> _messages = [];
 
   /// TODO updates the audiogram widget,
   /// TODO sends across the WebRTC channel to Moshi servers.
@@ -113,7 +125,7 @@ class _WebRTCScreenState extends State<WebRTCScreen> {
       };
       dc.onMessage = (dcm) {
         if (!dcm.isBinary) {
-          print("dc: message: $dcm");
+          handleDataMsg(dcm.text);
         } else {
           print("dc: got binary msg");
         }
@@ -274,9 +286,35 @@ class _WebRTCScreenState extends State<WebRTCScreen> {
     });
   }
 
+  void handleDataMsg(String msg) {
+    print("handleDataMsg: msg: $msg");
+  }
+
+  // Chat() update functions
+  void _addMessage(chatTypes.Message msg) {
+    setState(() {
+      _messages.insert(0, msg);
+    });
+  }
+
+  void _handleSendPressed(chatTypes.PartialText msg) {
+    final textMessage = chatTypes.TextMessage(
+      author: _user!,
+      createdAt: DateTime.now().millisecondsSinceEpoch,
+      id: randomString(),
+      text: msg.text,
+    );
+
+    _addMessage(textMessage);
+  }
+
   @override
   Widget build(BuildContext context) {
     final authService = Provider.of<AuthService>(context, listen: false);
+    String usn = authService.currentUser?.displayName ?? "NONAME";
+    setState(() {
+      _user = chatTypes.User(id: usn);
+    });
     return Container(
       child: Stack(
         children: [
@@ -287,6 +325,9 @@ class _WebRTCScreenState extends State<WebRTCScreen> {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
+                  // Row(Icon(dns), Icon(radio checked / unchecked))
+                  // Row(Icon(sensors), Icon(radio checked / unchecked))
+                  // Row(Icon(robot_2), Icon(radio checked / unchecked))
                   Text("Servers healthy: $_moshiHealthy"),
                   Text("Microphone acquired: $_isRecording"),
                   Text("Connection established: $_isConnected"),
@@ -298,10 +339,11 @@ class _WebRTCScreenState extends State<WebRTCScreen> {
               ),
             ),
           ),
-          Positioned(
-            top: 16.0,
-            right: 16.0,
-            child: FloatingActionButton.extended(  // Start convo
+          Align(
+            alignment: Alignment(0.0, 0.9),
+            // call or hangup
+            // child: FloatingActionButton.extended(
+            child: FloatingActionButton(
               onPressed: () async {
                 final String? err = (_isRecording)
                   ? await stopPressed()
@@ -310,17 +352,30 @@ class _WebRTCScreenState extends State<WebRTCScreen> {
                   util.showError(context, err);
                 }
               },
-              label: Text(
-                (_isConnected)
-                  ? 'Hang up'
-                  : 'Call Moshi',
-              ),
-              icon: Icon(
+              child: Icon(
                 (_isConnected)
                   ? Icons.call_end
                   : Icons.add_call,
               ),
+              // label: Text(
+              //   (_isConnected)
+              //     ? 'Hang up'
+              //     : 'Call Moshi',
+              // ),
+              // icon: Icon(
+              //   (_isConnected)
+              //     ? Icons.call_end
+              //     : Icons.add_call,
+              // ),
               backgroundColor: Colors.purple[800],
+            ),
+          ),
+          Align(
+            alignment: Alignment.center,
+            child: Chat(
+              messages: _messages,
+              user: _user!,
+              onSendPressed: _handleSendPressed
             ),
           ),
         ],
