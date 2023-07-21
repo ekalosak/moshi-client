@@ -6,13 +6,13 @@ import 'dart:typed_data';
 import 'package:flutter/material.dart';
 import 'package:flutter_webrtc/flutter_webrtc.dart';
 import 'package:provider/provider.dart';
-
 import 'package:flutter/services.dart';
 
-import '../../services/auth.dart';
-import '../../services/moshi.dart' as moshi;
-import '../../util.dart' as util;
-import '../../widgets/chat.dart';
+import 'package:moshi_client/types.dart';
+import 'package:moshi_client/services/auth.dart';
+import 'package:moshi_client/services/moshi.dart' as moshi;
+import 'package:moshi_client/util.dart' as util;
+import 'package:moshi_client/widgets/chat.dart';
 
 const connectButtonColor = Colors.tealAccent;
 const iceServers = [{'urls': ['stun:stun.l.google.com:19302']}];
@@ -35,18 +35,16 @@ class _WebRTCScreenState extends State<WebRTCScreen> {
   bool _isRecording = false;
   bool _isConnected = false;
   final List<Message> _messages = [
-    Message(Role.ast, "Not much my excellent bro, you?"),
-    Message(Role.usr, "Hey Moshi, what's up?"),
-    Message(Role.ast, "Moshi moshi."),
+    // Message(Role.ast, "Not much my excellent bro, you?"),
+    // Message(Role.usr, "Hey Moshi, what's up?"),
+    // Message(Role.ast, "Moshi moshi."),
   ];
-  // final List<Message> _messages = [];  // TODO
   String _iceGatheringState = '';
   String _iceConnectionState = '';
   String _signalingState = '';
   String _dcState = '';
 
   /// TODO updates the audiogram widget,
-  /// TODO sends across the WebRTC channel to Moshi servers.
 
   @override
   void initState() {
@@ -100,7 +98,7 @@ class _WebRTCScreenState extends State<WebRTCScreen> {
       });
       // Create data channels
       RTCDataChannelInit dataChannelDict = RTCDataChannelInit()..maxRetransmits = 30;
-      RTCDataChannel dc = await pc.createDataChannel('status', dataChannelDict);
+      RTCDataChannel dc = await pc.createDataChannel('data', dataChannelDict);
       dc.onDataChannelState = (dcs) {
         print("dc: onDataChannelState: $dcs");
         setState(() {
@@ -109,7 +107,7 @@ class _WebRTCScreenState extends State<WebRTCScreen> {
       };
       dc.onMessage = (dcm) {
         if (!dcm.isBinary) {
-          print("dc: message: $dcm");
+          _handleStringMessage(dcm);
         } else {
           print("dc: got binary msg");
         }
@@ -123,9 +121,6 @@ class _WebRTCScreenState extends State<WebRTCScreen> {
       print("Error: $error");
       return "Failed to connect to Moshi servers. Please try again.";
     }
-    setState(() {  // TODO set _isConnected when an ice candidate is good
-      _isConnected = true;
-    });
     print("callMoshi [END]");
   }
 
@@ -223,8 +218,6 @@ class _WebRTCScreenState extends State<WebRTCScreen> {
       print("pc: onTrack: $evt");
       if (evt.track.kind == 'audio') {
         print("audio track added");
-        print("\tonTrack: TODO");
-        // TODO route received audio track to user device speaker
       }
     };
     // Connect local stream to peer connection
@@ -276,6 +269,49 @@ class _WebRTCScreenState extends State<WebRTCScreen> {
     setState(() {
       _messages.insert(0, msg);
     });
+  }
+  
+  void _handleStringMessage(String dcm) {
+    final List<String> words = dcm.split(" ");
+    final String msgtp = words[0];
+    final String? body = (words.length > 1)
+      ? words.sublist(1).join(' ')
+      : null;
+    print("msgtp: $msgtp");
+    switch (msgtp) {
+      case "transcript":
+        _handleTranscript(body!)
+        break;
+      case "status":
+        _handleStatus(body!);
+        break;
+      case "ping":
+        print("TODO send pong");
+        break;
+    }
+  }
+
+  void _handleStatus(String body) {
+    final String statusType = body.split(" ")[0];
+    print("statusType: $statusType");
+    switch (statusType) {
+      case "hello":
+        setState(() {
+          _isConnected = true;
+        });
+        break;
+    }
+  }
+  
+  void _handleTranscript(String body) {
+
+              final Role role = (dcm.text.split(" ")[1] == "ast")
+                ? Role.ast
+                : Role.usr;
+              print('role: $role');
+              final String content = dcm.text.split(" ").sublist(2).join(' ');
+              print('content: $content');
+              _add_msg(Message(role, content));
   }
 
   @override

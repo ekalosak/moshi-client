@@ -1,23 +1,13 @@
 import 'package:flutter/material.dart';
+import 'package:moshi_client/types.dart';
 
 import 'painters.dart';
 
 const int boxIconRatio = 14;
-const double lipOffset = 24;
+const double lipOffset = 25;
 const double lipHeight = 20;
 const double boxOffset = 12;
 const double boxCornerRad = 12;
-
-enum Role {
-  usr,
-  ast,
-}
-
-class Message {
-  Role role;
-  String msg;
-  Message(this.role, this.msg);
-}
 
 class MsgBox extends StatelessWidget {
   final Message msg;
@@ -129,7 +119,7 @@ class _ChatState extends State<Chat> {
             itemBuilder: (BuildContext context, int index) {
               return Container(
                 height: 64,
-                color: Colors.green[100],
+                // color: Colors.green[100],
                 child: MsgBox(widget.messages[index]),
               );
             }
