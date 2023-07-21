@@ -12,6 +12,7 @@ import 'package:flutter/services.dart';
 import '../../services/auth.dart';
 import '../../services/moshi.dart' as moshi;
 import '../../util.dart' as util;
+import '../../widgets/chat.dart';
 
 const connectButtonColor = Colors.tealAccent;
 const iceServers = [{'urls': ['stun:stun.l.google.com:19302']}];
@@ -19,17 +20,6 @@ const pcConfig = {
   'sdpSemantics': 'unified-plan',
   'iceServers': iceServers,
 };
-
-// class Session {
-//   Session({required this.sid, required this.pid});
-//   String pid;
-//   String sid;
-//   RTCPeerConnection? pc;
-//   RTCDataChannel? ping;
-//   RTCDataChannel? status;
-//   RTCDataChannel? transcript;
-//   List<RTCIceCandidate> remoteCandidates = [];
-// }
 
 class WebRTCScreen extends StatefulWidget {
   @override
@@ -44,6 +34,21 @@ class _WebRTCScreenState extends State<WebRTCScreen> {
   bool _moshiHealthy = false;
   bool _isRecording = false;
   bool _isConnected = false;
+  final List<Message> _messages = [
+    Message(Role.ast, "hello"),
+    Message(Role.usr, "hello"),
+    Message(Role.ast, "hello"),
+    Message(Role.usr, "hello"),
+    Message(Role.ast, "hello"),
+    Message(Role.usr, "hello"),
+    Message(Role.ast, "hello"),
+    Message(Role.usr, "hello"),
+    Message(Role.ast, "hello"),
+    Message(Role.usr, "hello"),
+    Message(Role.ast, "hello"),
+    Message(Role.usr, "hello"),
+  ];
+  // final List<Message> _messages = [];  // TODO
   String _iceGatheringState = '';
   String _iceConnectionState = '';
   String _signalingState = '';
@@ -274,17 +279,64 @@ class _WebRTCScreenState extends State<WebRTCScreen> {
     });
   }
 
+  /// Insert a new message into the Chat widget
+  void _add_msg(Message msg) {
+    print("_add_msg: $msg");
+    setState(() {
+      _messages.insert(0, msg);
+    });
+  }
+
   @override
   Widget build(BuildContext context) {
     final authService = Provider.of<AuthService>(context, listen: false);
     return Container(
-      child: Stack(
+      child: Stack(  // TODO instead of stack put everything in the column
         children: [
+          Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              Container(  // START status widgets
+                height: 64,
+                child: Row(
+                  children: [
+                    Expanded(  // TODO connection status widget
+                      flex: 3,
+                      child: Placeholder(),
+                    ),
+                    Expanded(  // TODO audio recording status widget
+                      flex: 2,
+                      child: Placeholder(),
+                    )
+                  ]
+                )
+              ),  // END status widgets
+              Expanded(  // START chat box
+                child: Chat(messages: _messages),
+              ),  // END chat box
+              Container(  // START call controls
+                height: 128,
+                child: Row(
+                  children: [
+                    Expanded(
+                      flex: 2,
+                      child: Placeholder(),
+                    ),
+                    Expanded(
+                      flex: 3,
+                      child: Placeholder(),
+                    )
+                  ]
+                ),
+              ),  // END call controls
+            ],
+          ),
           Align(
-            alignment: Alignment.topLeft,
+            alignment: Alignment.bottomLeft,
             child: Padding(
-              padding: EdgeInsets.all(16.0),
+              padding: EdgeInsets.all(32),
               child: Column(
+                mainAxisAlignment: MainAxisAlignment.start,
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text("Servers healthy: $_moshiHealthy"),
