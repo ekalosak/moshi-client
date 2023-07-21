@@ -15,9 +15,42 @@ class MsgBox extends StatelessWidget {
   final Message msg;
   MsgBox(this.msg);
 
+  Widget _ico(Role role) {
+    return Expanded(
+      flex: 1,
+      child: (role == Role.ast)
+        ? Icon(Icons.bubble_chart)
+        : Icon(Icons.person),
+    );
+  }
+
+  // TODO paint rect and tri for msg, put in container stack
+  Widget _msg(Message msg) {
+    return Expanded(
+      flex: 4,
+      child: Align(
+        alignment: (msg.role == Role.ast)
+          ? Alignment.centerLeft
+          : Alignment.centerRight,
+        child: Text(msg.msg),
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
-    return Text('${msg.role}: ${msg.msg}');
+    return Container(
+      child: Row(
+        children: [
+          (msg.role == Role.ast)
+            ? _ico(msg.role)
+            : _msg(msg),
+          (msg.role == Role.ast)
+            ? _msg(msg)
+            : _ico(msg.role),
+        ],
+      ),
+    );
   }
 }
 
@@ -37,15 +70,18 @@ class _ChatState extends State<Chat> {
       children: <Widget>[
         Expanded(
           child: ListView.builder(
+            reverse: true,
             padding: const EdgeInsets.all(8),
             itemCount: widget.messages.length,
             itemBuilder: (BuildContext context, int index) {
               return Container(
                 height: 64,
-                color: Colors.green,
-                child: Center(
-                  child: MsgBox(widget.messages[index]),
-                )
+                color: Colors.green[100],
+                child: MsgBox(
+                  widget.messages[
+                    widget.messages.length - index - 1
+                  ]
+                ),
               );
             }
           )
