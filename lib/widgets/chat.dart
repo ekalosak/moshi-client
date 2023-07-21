@@ -1,5 +1,13 @@
 import 'package:flutter/material.dart';
 
+import 'painters.dart';
+
+const int boxIconRatio = 14;
+const double lipOffset = 24;
+const double lipHeight = 20;
+const double boxOffset = 12;
+const double boxCornerRad = 12;
+
 enum Role {
   usr,
   ast,
@@ -9,37 +17,6 @@ class Message {
   Role role;
   String msg;
   Message(this.role, this.msg);
-}
-
-class TrianglePainter extends CustomPainter {
-  final bool pointRight;
-  TrianglePainter({required this.pointRight});
-  @override
-  void paint(Canvas canvas, Size size) {
-    Paint paint = Paint()
-      ..color = Colors.white
-      ..strokeWidth = 2.0
-      ..style = PaintingStyle.fill;
-
-    Path path = Path();
-    if (pointRight) {
-      path.moveTo(size.width, size.height / 2);
-      path.lineTo(0, size.height);  // TODO arcTo for pretty chat lip
-      path.lineTo(0, 0);
-    } else {
-      path.moveTo(0, size.height / 2);
-      path.lineTo(size.width, size.height);  // TODO arcTo for pretty chat lip
-      path.lineTo(size.width, 0);
-    }
-    path.close();
-
-    canvas.drawPath(path, paint);
-  }
-
-  @override
-  bool shouldRepaint(CustomPainter oldDelegate) {
-    return false;
-  }
 }
 
 class MsgBox extends StatelessWidget {
@@ -55,30 +32,57 @@ class MsgBox extends StatelessWidget {
     );
   }
 
-  // TODO paint rect and tri for msg, put in container stack
   Widget _msg(Message msg) {
     return Expanded(
-      flex: 4,
+      flex: boxIconRatio,
       child: Stack(
         children :[
           Align(
             alignment: (msg.role == Role.ast)
-              ? Alignment.centerLeft
-              : Alignment.centerRight,
+              ? Alignment(-1, -0.2)
+              : Alignment(1, -0.2),
             child: CustomPaint(
-              size: Size(50, 50),
+              size: Size(lipOffset, lipHeight),
               painter: (msg.role == Role.ast)
                 ? TrianglePainter(pointRight: false)
                 : TrianglePainter(pointRight: true),
             )
           ),
           Align(
-            alignment: (msg.role == Role.ast)
+            alignment: (msg.role != Role.ast)
               ? Alignment.centerLeft
               : Alignment.centerRight,
-            child: Container(
-              margin: const EdgeInsets.all(16.0),
-              child: Text(msg.msg)
+            child: LayoutBuilder(
+              builder: (context, constraints) {
+                return Padding(
+                  padding: (msg.role == Role.ast)
+                    ? EdgeInsets.only(left: lipOffset, right: boxOffset)
+                    : EdgeInsets.only(right: lipOffset, left: boxOffset),
+                  child: Center(
+                    child: Stack(
+                      children: [
+                        ClipRRect(
+                          borderRadius: BorderRadius.circular(boxCornerRad),
+                          child: Container(
+                            width: constraints.maxWidth - lipOffset,
+                            height: constraints.maxHeight - boxOffset,
+                            color: Colors.white,
+                          ),
+                        ),
+                        Align(
+                          alignment: (msg.role == Role.ast)
+                            ? Alignment.centerLeft
+                            : Alignment.centerRight,
+                          child: Container(
+                            margin: const EdgeInsets.all(16.0),
+                            child: Text(msg.msg)
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                );
+              }
             ),
           ),
         ]
