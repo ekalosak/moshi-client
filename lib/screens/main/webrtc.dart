@@ -345,21 +345,40 @@ class _WebRTCScreenState extends State<WebRTCScreen> {
               Expanded(  // START chat box
                 child: Chat(messages: _messages),
               ),  // END chat box
-              Container(  // START call controls
+              Container(  // START controls
                 height: 128,
                 child: Row(
                   children: [
-                    Expanded(
+                    Expanded(  // START call button
                       flex: 2,
-                      child: Placeholder(),
-                    ),
+                      child: FractionallySizedBox(
+                        widthFactor: 0.65,
+                        heightFactor: 0.65,
+                        child: FloatingActionButton(
+                          onPressed: () async {
+                            final String? err = (_isRecording)
+                              ? await stopPressed()
+                              : await startPressed();
+                            if (err != null) {
+                              util.showError(context, err);
+                            }
+                          },
+                          child: Icon(
+                            (_isConnected)
+                              ? Icons.call_end
+                              : Icons.add_call,
+                          ),
+                          backgroundColor: Colors.purple[800],
+                        ),
+                      )
+                    ),  // END call button
                     Expanded(
                       flex: 3,
                       child: Placeholder(),
                     )
                   ]
                 ),
-              ),  // END call controls
+              ),  // END controls
             ],
           ),
           Align(
@@ -379,31 +398,6 @@ class _WebRTCScreenState extends State<WebRTCScreen> {
                   Text("Datachannel state: $_dcState"),
                 ],
               ),
-            ),
-          ),
-          Positioned(
-            top: 16.0,
-            right: 16.0,
-            child: FloatingActionButton.extended(  // Start convo
-              onPressed: () async {
-                final String? err = (_isRecording)
-                  ? await stopPressed()
-                  : await startPressed();
-                if (err != null) {
-                  util.showError(context, err);
-                }
-              },
-              label: Text(
-                (_isConnected)
-                  ? 'Hang up'
-                  : 'Call Moshi',
-              ),
-              icon: Icon(
-                (_isConnected)
-                  ? Icons.call_end
-                  : Icons.add_call,
-              ),
-              backgroundColor: Colors.purple[800],
             ),
           ),
         ],
