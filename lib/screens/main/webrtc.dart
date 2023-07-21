@@ -35,9 +35,9 @@ class _WebRTCScreenState extends State<WebRTCScreen> {
   bool _isRecording = false;
   bool _isConnected = false;
   final List<Message> _messages = [
-    Message(Role.ast, "Moshi moshi."),
-    Message(Role.usr, "Hey Moshi, what's up?"),
     Message(Role.ast, "Not much my excellent bro, you?"),
+    Message(Role.usr, "Hey Moshi, what's up?"),
+    Message(Role.ast, "Moshi moshi."),
   ];
   // final List<Message> _messages = [];  // TODO
   String _iceGatheringState = '';

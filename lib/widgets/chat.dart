@@ -77,11 +77,7 @@ class _ChatState extends State<Chat> {
               return Container(
                 height: 64,
                 color: Colors.green[100],
-                child: MsgBox(
-                  widget.messages[
-                    widget.messages.length - index - 1
-                  ]
-                ),
+                child: MsgBox(widget.messages[index]),
               );
             }
           )
