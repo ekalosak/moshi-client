@@ -11,6 +11,37 @@ class Message {
   Message(this.role, this.msg);
 }
 
+class TrianglePainter extends CustomPainter {
+  final bool pointRight;
+  TrianglePainter({required this.pointRight});
+  @override
+  void paint(Canvas canvas, Size size) {
+    Paint paint = Paint()
+      ..color = Colors.white
+      ..strokeWidth = 2.0
+      ..style = PaintingStyle.fill;
+
+    Path path = Path();
+    if (pointRight) {
+      path.moveTo(size.width, size.height / 2);
+      path.lineTo(0, size.height);  // TODO arcTo for pretty chat lip
+      path.lineTo(0, 0);
+    } else {
+      path.moveTo(0, size.height / 2);
+      path.lineTo(size.width, size.height);  // TODO arcTo for pretty chat lip
+      path.lineTo(size.width, 0);
+    }
+    path.close();
+
+    canvas.drawPath(path, paint);
+  }
+
+  @override
+  bool shouldRepaint(CustomPainter oldDelegate) {
+    return false;
+  }
+}
+
 class MsgBox extends StatelessWidget {
   final Message msg;
   MsgBox(this.msg);
@@ -28,11 +59,29 @@ class MsgBox extends StatelessWidget {
   Widget _msg(Message msg) {
     return Expanded(
       flex: 4,
-      child: Align(
-        alignment: (msg.role == Role.ast)
-          ? Alignment.centerLeft
-          : Alignment.centerRight,
-        child: Text(msg.msg),
+      child: Stack(
+        children :[
+          Align(
+            alignment: (msg.role == Role.ast)
+              ? Alignment.centerLeft
+              : Alignment.centerRight,
+            child: CustomPaint(
+              size: Size(50, 50),
+              painter: (msg.role == Role.ast)
+                ? TrianglePainter(pointRight: false)
+                : TrianglePainter(pointRight: true),
+            )
+          ),
+          Align(
+            alignment: (msg.role == Role.ast)
+              ? Alignment.centerLeft
+              : Alignment.centerRight,
+            child: Container(
+              margin: const EdgeInsets.all(16.0),
+              child: Text(msg.msg)
+            ),
+          ),
+        ]
       ),
     );
   }
