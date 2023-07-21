@@ -107,7 +107,7 @@ class _WebRTCScreenState extends State<WebRTCScreen> {
       };
       dc.onMessage = (dcm) {
         if (!dcm.isBinary) {
-          _handleStringMessage(dcm);
+          _handleStringMessage(dcm.text);
         } else {
           print("dc: got binary msg");
         }
@@ -271,6 +271,7 @@ class _WebRTCScreenState extends State<WebRTCScreen> {
     });
   }
   
+  /// Route the data channel message to the appropriate handler
   void _handleStringMessage(String dcm) {
     final List<String> words = dcm.split(" ");
     final String msgtp = words[0];
@@ -280,7 +281,7 @@ class _WebRTCScreenState extends State<WebRTCScreen> {
     print("msgtp: $msgtp");
     switch (msgtp) {
       case "transcript":
-        _handleTranscript(body!)
+        _handleTranscript(body!);
         break;
       case "status":
         _handleStatus(body!);
@@ -291,6 +292,7 @@ class _WebRTCScreenState extends State<WebRTCScreen> {
     }
   }
 
+  /// Parse the status and modify screen state accordingly.
   void _handleStatus(String body) {
     final String statusType = body.split(" ")[0];
     print("statusType: $statusType");
@@ -300,18 +302,20 @@ class _WebRTCScreenState extends State<WebRTCScreen> {
           _isConnected = true;
         });
         break;
+      default:
+        print("TODO unhandled status type: $statusType");
     }
   }
   
+  /// Parse the Message from a datachannel (non-binary) serialization and add it to the screen
   void _handleTranscript(String body) {
-
-              final Role role = (dcm.text.split(" ")[1] == "ast")
-                ? Role.ast
-                : Role.usr;
-              print('role: $role');
-              final String content = dcm.text.split(" ").sublist(2).join(' ');
-              print('content: $content');
-              _add_msg(Message(role, content));
+    final Role role = (body.split(" ")[0] == "ast")
+      ? Role.ast
+      : Role.usr;
+    print('role: $role');
+    final String content = body.split(" ").sublist(1).join(' ');
+    print('content: $content');
+    _add_msg(Message(role, content));
   }
 
   @override
