@@ -48,7 +48,6 @@ class _WebRTCScreenState extends State<WebRTCScreen> {
   String _iceConnectionState = '';
   String _signalingState = '';
   String _dcState = '';
-  String _status = '';
 
   /// TODO updates the audiogram widget,
   /// TODO sends across the WebRTC channel to Moshi servers.
@@ -113,31 +112,24 @@ class _WebRTCScreenState extends State<WebRTCScreen> {
         });
       };
       dc.onMessage = (dcm) {
-        print("dc: onMessage: $dcm");
         if (!dcm.isBinary) {
-          setState(() {
-            _status = _status + '\n\t- ${dcm.text}';
-          });
+          print("dc: message: $dcm");
+        } else {
+          print("dc: got binary msg");
         }
       };
-      setState(() {
-        _status = _status + '\n\t- client connecting...';
-      });
       String? err = await negotiate();
       if (err != null) {
         print("callMoshi: Error: $err");
-        setState(() {
-          _status = _status + '\n\t- Failed: $err';
-        });
         return err;
       }
-      setState(() {
-        _status = _status + '\n\t- got SDP.';
-      });
     } catch (error) {
       print("Error: $error");
       return "Failed to connect to Moshi servers. Please try again.";
     }
+    setState(() {  // TODO set _isConnected when an ice candidate is good
+      _isConnected = true;
+    });
     print("callMoshi [END]");
   }
 
@@ -228,9 +220,7 @@ class _WebRTCScreenState extends State<WebRTCScreen> {
       // TODO try an ice candidate:
       // https://github.com/flutter-webrtc/flutter-webrtc-demo/blob/master/lib/src/call_sample/signaling.dart#L466
       print("pc: onIceCandidate: ${candidate.candidate}");
-      setState(() {  // TODO set _isConnected when an ice candidate is good
-        _isConnected = true;
-      });
+      print("TODO");
     };
     // Handle what to do when tracks are added
     pc?.onTrack = (evt) {
@@ -269,7 +259,6 @@ class _WebRTCScreenState extends State<WebRTCScreen> {
       _iceConnectionState = '';
       _signalingState = '';
       _dcState = '';
-      _status = '';
     });
     print("hangUpMoshi [END]");
   }
@@ -305,7 +294,6 @@ class _WebRTCScreenState extends State<WebRTCScreen> {
                   Text("ICE connection state: $_iceConnectionState"),
                   Text("Signaling state: $_signalingState"),
                   Text("Datachannel state: $_dcState"),
-                  Text("Moshi status: $_status"),
                 ],
               ),
             ),
