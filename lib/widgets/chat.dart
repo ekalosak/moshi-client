@@ -13,12 +13,14 @@ const double boxCornerRad = 12;
 class MsgBox extends StatelessWidget {
   final Message msg;
   final Color boxColor;
-  MsgBox(this.msg, this.boxColor);
+  final Color iconColor;
+  MsgBox(this.msg, this.boxColor, this.iconColor);
 
   Widget _ico(Role role) {
+    Icon icon = (role == Role.ast) ? Icon(Icons.bubble_chart, color: iconColor) : Icon(Icons.person, color: iconColor);
     return Expanded(
       flex: 1,
-      child: (role == Role.ast) ? Icon(Icons.bubble_chart) : Icon(Icons.person),
+      child: icon,
     );
   }
 
@@ -27,9 +29,7 @@ class MsgBox extends StatelessWidget {
       flex: boxIconRatio,
       child: Stack(children: [
         Align(
-            alignment: (msg.role == Role.ast)
-                ? Alignment(-1, -0.2)
-                : Alignment(1, -0.2),
+            alignment: (msg.role == Role.ast) ? Alignment(-1, -0.2) : Alignment(1, -0.2),
             child: CustomPaint(
               size: Size(lipOffset, lipHeight),
               painter: (msg.role == Role.ast)
@@ -37,9 +37,7 @@ class MsgBox extends StatelessWidget {
                   : TrianglePainter(pointRight: true, color: boxColor),
             )),
         Align(
-          alignment: (msg.role != Role.ast)
-              ? Alignment.centerLeft
-              : Alignment.centerRight,
+          alignment: (msg.role != Role.ast) ? Alignment.centerLeft : Alignment.centerRight,
           child: LayoutBuilder(builder: (context, constraints) {
             return Padding(
               padding: (msg.role == Role.ast)
@@ -57,12 +55,8 @@ class MsgBox extends StatelessWidget {
                       ),
                     ),
                     Align(
-                      alignment: (msg.role == Role.ast)
-                          ? Alignment.centerLeft
-                          : Alignment.centerRight,
-                      child: Container(
-                          margin: const EdgeInsets.all(16.0),
-                          child: Text(msg.msg)),
+                      alignment: (msg.role == Role.ast) ? Alignment.centerLeft : Alignment.centerRight,
+                      child: Container(margin: const EdgeInsets.all(16.0), child: Text(msg.msg)),
                     ),
                   ],
                 ),
@@ -98,6 +92,7 @@ class _ChatState extends State<Chat> {
   @override
   Widget build(BuildContext context) {
     final Color boxColor = Theme.of(context).colorScheme.surface;
+    final Color iconColor = Theme.of(context).colorScheme.onSurface;
     return Column(
       // mainAxisAlignment: MainAxisAlignment.end,
       children: <Widget>[
@@ -109,7 +104,7 @@ class _ChatState extends State<Chat> {
                 itemBuilder: (BuildContext context, int index) {
                   return Container(
                     height: 64,
-                    child: MsgBox(widget.messages[index], boxColor),
+                    child: MsgBox(widget.messages[index], boxColor, iconColor),
                   );
                 })),
       ],

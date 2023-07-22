@@ -21,7 +21,7 @@ class ConnectionStatus extends StatelessWidget {
     return switch (status) {
       MicStatus.unknown => Icon(Icons.mic_none_outlined, color: colorScheme.background),
       MicStatus.noPermission => Icon(Icons.mic_off_outlined, color: colorScheme.error),
-      MicStatus.off => Icon(Icons.mic_off_outlined, color: colorScheme.secondary),
+      MicStatus.off => Icon(Icons.mic_off_outlined, color: colorScheme.background),
       MicStatus.muted => Icon(Icons.mic_off_outlined, color: colorScheme.tertiary),
       MicStatus.on => Icon(Icons.mic_outlined, color: colorScheme.primary)
     };
@@ -29,7 +29,7 @@ class ConnectionStatus extends StatelessWidget {
 
   Widget _serverIcon(ServerStatus status) {
     return switch (status) {
-      ServerStatus.unknown => Icon(Icons.cloud_off_outlined),
+      ServerStatus.unknown => Icon(Icons.cloud_off_outlined, color: colorScheme.background),
       ServerStatus.ready => Icon(Icons.cloud_done_outlined, color: colorScheme.primary),
       ServerStatus.error => Icon(Icons.cloud_off_outlined, color: colorScheme.error)
     };
@@ -37,7 +37,7 @@ class ConnectionStatus extends StatelessWidget {
 
   Widget _callIcon(CallStatus status) {
     return switch (status) {
-      CallStatus.idle => Icon(Icons.call_outlined),
+      CallStatus.idle => Icon(Icons.call_outlined, color: colorScheme.background),
       CallStatus.ringing => Icon(Icons.call_made_outlined, color: colorScheme.primary),
       CallStatus.inCall => Icon(Icons.call_received_outlined, color: colorScheme.primary),
     };

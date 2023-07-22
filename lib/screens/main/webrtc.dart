@@ -201,47 +201,31 @@ class _WebRTCScreenState extends State<WebRTCScreen> {
       throw 'Failed to create peer connection';
     }
     RTCPeerConnection pc = _pc!;
-    // Add listeners for ICE state change
+    // Add listeners for ICE state change.
+    // NOTE webrtc implementation handles resolving ice candidates.
     pc?.onIceGatheringState = (gs) async {
       print("pc: onIceGatheringState: $gs");
-      setState(() {
-        _iceGatheringState = _iceGatheringState + '\n\t-> $gs';
-      });
     };
-    setState(() {
-      _iceGatheringState = "${pc?.iceGatheringState}";
-    });
     pc?.onIceConnectionState = (cs) async {
       print("pc: onIceConnectionState: $cs");
-      setState(() {
-        _iceConnectionState = _iceConnectionState + '\n\t-> $cs';
-      });
     };
-    setState(() {
-      _iceConnectionState = "${pc?.iceConnectionState}";
-    });
     pc?.onSignalingState = (ss) async {
       print("pc: onIceSignalingState: $ss");
-      setState(() {
-        _signalingState = _signalingState + '\n\t-> $ss';
-      });
     };
-    setState(() {
-      _signalingState = "${pc?.signalingState}";
-    });
-    // pc?.onIceCandidate = (candidate) async {
-    //   print("pc: onIceCandidate: ${candidate.candidate}");  // NOTE webrtc implementation handles resolving ice candidates
-    // };
+    pc?.onIceCandidate = (candidate) async {
+      print("pc: onIceCandidate: ${candidate.candidate}");
+    };
     // Handle what to do when tracks are added
     pc?.onTrack = (evt) {
-      print("pc: onTrack: $evt");
       if (evt.track.kind == 'audio') {
-        print("audio track added");
+        print("pc: audio track added");
+      } else {
+        print("pc: unexpected track added: ${evt.track.kind}");
       }
     };
     // Connect local stream to peer connection
     _localStream!.getTracks().forEach((track) {
-      print("pc: getTracks: adding to pc $track");
+      print("pc: adding track $track");
       pc.addTrack(track, _localStream!);
     });
     return pc;
@@ -287,8 +271,8 @@ class _WebRTCScreenState extends State<WebRTCScreen> {
   }
 
   /// Insert a new message into the Chat widget
-  void _add_msg(Message msg) {
-    print("_add_msg: $msg");
+  void _addMsg(Message msg) {
+    print("_addMsg: $msg");
     setState(() {
       _messages.insert(0, msg);
     });
@@ -331,95 +315,64 @@ class _WebRTCScreenState extends State<WebRTCScreen> {
     print('role: $role');
     final String content = body.split(" ").sublist(1).join(' ');
     print('content: $content');
-    _add_msg(Message(role, content));
+    _addMsg(Message(role, content));
   }
 
   @override
   Widget build(BuildContext context) {
-    final authService = Provider.of<AuthService>(context, listen: false);
-    return Container(
-      child: Stack(
-        // TODO instead of stack put everything in the column
-        children: [
-          Align(
-            alignment: Alignment.bottomLeft,
-            child: Padding(
-              padding: EdgeInsets.fromLTRB(32, 96, 0, 0),
-              child: Column(
-                mainAxisAlignment: MainAxisAlignment.start,
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text("ICE gathering state: $_iceGatheringState"),
-                  Text("ICE connection state: $_iceConnectionState"),
-                  Text("Signaling state: $_signalingState"),
-                  Text("Datachannel state: $_dcState"),
-                ],
-              ),
-            ),
-          ),
-          Column(
-            crossAxisAlignment: CrossAxisAlignment.stretch,
-            children: [
-              Container(
-                  // START status widgets
-                  height: 64,
-                  child: Row(children: [
-                    Expanded(
-                      flex: 3,
-                      child: ConnectionStatus(
-                        micStatus: micStatus,
-                        serverStatus: serverStatus,
-                        callStatus: callStatus,
-                        colorScheme: Theme.of(context).colorScheme,
-                      ),
-                    ),
-                    Expanded(
-                      flex: 2,
-                      child: Placeholder(),
-                    )
-                  ])),
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        SizedBox(
+            height: 64,
+            child: Row(children: [
               Expanded(
-                // START chat box
-                child: Chat(messages: _messages),
-              ), // END chat box
-              Container(
-                // START controls
-                height: 128,
-                child: Row(children: [
-                  Expanded(
-                      // START call button
-                      flex: 2,
-                      child: FractionallySizedBox(
-                        widthFactor: 0.65,
-                        heightFactor: 0.65,
-                        child: FloatingActionButton(
-                          // Call button
-                          onPressed: () async {
-                            final String? err =
-                                (callStatus == CallStatus.idle) ? await startPressed() : await stopPressed();
-                            if (err != null) {
-                              util.showError(context, err);
-                            }
-                          },
-                          backgroundColor: (callStatus == CallStatus.idle)
-                              ? Theme.of(context).colorScheme.primary
-                              : Theme.of(context).colorScheme.secondary,
-                          child: Icon(
-                            (callStatus == CallStatus.idle) ? Icons.add_call : Icons.call_end,
-                          ),
-                        ),
-                      )), // END call button
-                  Expanded(
-                    // START hold to talk button
-                    flex: 3,
-                    child: Placeholder(),
-                  ) // END hold to talk button
-                ]),
-              ), // END controls
-            ],
-          ),
-        ],
-      ),
+                flex: 3,
+                child: ConnectionStatus(
+                  micStatus: micStatus,
+                  serverStatus: serverStatus,
+                  callStatus: callStatus,
+                  colorScheme: Theme.of(context).colorScheme,
+                ),
+              ),
+              Expanded(
+                flex: 2,
+                child: Container(),
+              )
+            ])),
+        Expanded(
+          child: Chat(messages: _messages),
+        ),
+        SizedBox(
+          height: 128,
+          child: Row(children: [
+            Expanded(
+                flex: 2,
+                child: FractionallySizedBox(
+                  widthFactor: 0.65,
+                  heightFactor: 0.65,
+                  child: FloatingActionButton(
+                    onPressed: () async {
+                      final String? err = (callStatus == CallStatus.idle) ? await startPressed() : await stopPressed();
+                      if (err != null) {
+                        util.showError(context, err);
+                      }
+                    },
+                    backgroundColor: (callStatus == CallStatus.idle)
+                        ? Theme.of(context).colorScheme.primary
+                        : Theme.of(context).colorScheme.secondary,
+                    child: Icon(
+                      (callStatus == CallStatus.idle) ? Icons.add_call : Icons.call_end,
+                    ),
+                  ),
+                )),
+            Expanded(
+              flex: 3,
+              child: Placeholder(),
+            )
+          ]),
+        ),
+      ],
     );
   }
 }
