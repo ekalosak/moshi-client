@@ -19,7 +19,8 @@ class _SignUpScreenState extends State<SignUpScreen> {
     String email = emailController.text;
     String password = passwordController.text;
     String name = firstNameController.text;
-    final AuthService authService = Provider.of<AuthService>(context, listen: false);
+    final AuthService authService =
+        Provider.of<AuthService>(context, listen: false);
     if (name == '') {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text('Please provide a name Moshi can call you.')),
@@ -40,9 +41,9 @@ class _SignUpScreenState extends State<SignUpScreen> {
 
       if (authToken != null) {
         print("Signup succeded!");
-        Navigator.of(context).pop();
+        Navigator.of(context).pop(); // TODO move this to synchronous code
       } else {
-        print("Signup failed.");  // NOTE authService handles the popups for user
+        print("Signup failed."); // NOTE authService handles the popups for user
       }
     }
   }
@@ -50,7 +51,6 @@ class _SignUpScreenState extends State<SignUpScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Colors.grey[400],
       appBar: AppBar(
         title: Text('Sign Up'),
       ),
@@ -80,19 +80,8 @@ class _SignUpScreenState extends State<SignUpScreen> {
             ),
             SizedBox(height: 10),
             ElevatedButton(
-              child: Text('Sign Up'),
               onPressed: isLoading ? null : () => signUp(context),
-              style: ButtonStyle(
-                // Set button color to grey when disabled
-                backgroundColor: MaterialStateProperty.resolveWith<Color>(
-                  (states) {
-                    if (states.contains(MaterialState.disabled)) {
-                      return Colors.grey;
-                    }
-                    return Theme.of(context).primaryColor;
-                  },
-                ),
-              ),
+              child: Text('Sign Up'),
             ),
           ],
         ),

@@ -1,5 +1,5 @@
 import 'dart:async';
-import 'dart:convert';  // jsonDecode
+import 'dart:convert'; // jsonDecode
 import 'dart:io';
 import 'dart:typed_data';
 
@@ -14,8 +14,11 @@ import 'package:moshi_client/services/moshi.dart' as moshi;
 import 'package:moshi_client/util.dart' as util;
 import 'package:moshi_client/widgets/chat.dart';
 
-const connectButtonColor = Colors.tealAccent;
-const iceServers = [{'urls': ['stun:stun.l.google.com:19302']}];
+const iceServers = [
+  {
+    'urls': ['stun:stun.l.google.com:19302']
+  }
+];
 const pcConfig = {
   'sdpSemantics': 'unified-plan',
   'iceServers': iceServers,
@@ -35,9 +38,9 @@ class _WebRTCScreenState extends State<WebRTCScreen> {
   bool _isRecording = false;
   bool _isConnected = false;
   final List<Message> _messages = [
-    // Message(Role.ast, "Not much my excellent bro, you?"),
-    // Message(Role.usr, "Hey Moshi, what's up?"),
-    // Message(Role.ast, "Moshi moshi."),
+    Message(Role.ast, "Not much my excellent bro, you?"),
+    Message(Role.usr, "Hey Moshi, what's up?"),
+    Message(Role.ast, "Moshi moshi."),
   ];
   String _iceGatheringState = '';
   String _iceConnectionState = '';
@@ -97,7 +100,8 @@ class _WebRTCScreenState extends State<WebRTCScreen> {
         _pc = pc;
       });
       // Create data channels
-      RTCDataChannelInit dataChannelDict = RTCDataChannelInit()..maxRetransmits = 30;
+      RTCDataChannelInit dataChannelDict = RTCDataChannelInit()
+        ..maxRetransmits = 30;
       RTCDataChannel dc = await pc.createDataChannel('data', dataChannelDict);
       dc.onDataChannelState = (dcs) {
         print("dc: onDataChannelState: $dcs");
@@ -136,10 +140,7 @@ class _WebRTCScreenState extends State<WebRTCScreen> {
   Future<String?> startMicrophoneStream() async {
     print("startMicrophoneStream [START]");
     try {
-      final mediaConstraints = <String, dynamic>{
-        'audio': true,
-        'video': false
-      };
+      final mediaConstraints = <String, dynamic>{'audio': true, 'video': false};
       var stream = await navigator.mediaDevices.getUserMedia(mediaConstraints);
       _mediaDevicesList = await navigator.mediaDevices.enumerateDevices();
       print("_mediaDevicesList.length: ${_mediaDevicesList?.length}");
@@ -159,26 +160,27 @@ class _WebRTCScreenState extends State<WebRTCScreen> {
 
   /// After setting up stream and signaling, create an SDP offer and handle the answer.
   Future<String?> negotiate() async {
-      print("negotiate [START]");
-      RTCPeerConnection pc = _pc!;
-      // NOTE createOffer collects the available codecs from the audio tracks added to the stream
-      RTCSessionDescription offer = await pc.createOffer();
-      print("offer:\n\ttype: ${offer.type}\n\tsdp:\n${offer.sdp}");
-      await pc.setLocalDescription(offer);
-      RTCSessionDescription? _answer = await moshi.sendOfferGetAnswer(offer);
-      if (_answer == null) {
-        print("negotiate: Error: failed to get sdp answer");
-        return "Failed to get SDP from Moshi server.";
-      }
-      RTCSessionDescription answer = _answer!;
-      print("answer:\n\ttype: ${answer.type}\n\tsdp:\n${answer.sdp}");
-      await pc.setRemoteDescription(answer);
-      print("negotiate [END]");
-      return null;
+    print("negotiate [START]");
+    RTCPeerConnection pc = _pc!;
+    // NOTE createOffer collects the available codecs from the audio tracks added to the stream
+    RTCSessionDescription offer = await pc.createOffer();
+    print("offer:\n\ttype: ${offer.type}\n\tsdp:\n${offer.sdp}");
+    await pc.setLocalDescription(offer);
+    RTCSessionDescription? _answer = await moshi.sendOfferGetAnswer(offer);
+    if (_answer == null) {
+      print("negotiate: Error: failed to get sdp answer");
+      return "Failed to get SDP from Moshi server.";
+    }
+    RTCSessionDescription answer = _answer!;
+    print("answer:\n\ttype: ${answer.type}\n\tsdp:\n${answer.sdp}");
+    await pc.setRemoteDescription(answer);
+    print("negotiate [END]");
+    return null;
   }
 
   /// Create the peer connection and set up event handlers.
-  Future<RTCPeerConnection> setupPeerConnection(Map<String, dynamic> config) async {
+  Future<RTCPeerConnection> setupPeerConnection(
+      Map<String, dynamic> config) async {
     _pc = await createPeerConnection(config);
     if (_pc == null) {
       throw 'Failed to create peer connection';
@@ -191,21 +193,27 @@ class _WebRTCScreenState extends State<WebRTCScreen> {
         _iceGatheringState = _iceGatheringState + '\n\t-> $gs';
       });
     };
-    setState(() {_iceGatheringState = "${pc?.iceGatheringState}";});
+    setState(() {
+      _iceGatheringState = "${pc?.iceGatheringState}";
+    });
     pc?.onIceConnectionState = (cs) async {
       print("pc: onIceConnectionState: $cs");
       setState(() {
         _iceConnectionState = _iceConnectionState + '\n\t-> $cs';
       });
     };
-    setState(() {_iceConnectionState = "${pc?.iceConnectionState}";});
+    setState(() {
+      _iceConnectionState = "${pc?.iceConnectionState}";
+    });
     pc?.onSignalingState = (ss) async {
       print("pc: onIceSignalingState: $ss");
       setState(() {
         _signalingState = _signalingState + '\n\t-> $ss';
       });
     };
-    setState(() {_signalingState = "${pc?.signalingState}";});
+    setState(() {
+      _signalingState = "${pc?.signalingState}";
+    });
     pc?.onIceCandidate = (candidate) async {
       // print("pc: onIceCandidate: ${candidate.candidate}");
       // TODO try an ice candidate:
@@ -270,14 +278,12 @@ class _WebRTCScreenState extends State<WebRTCScreen> {
       _messages.insert(0, msg);
     });
   }
-  
+
   /// Route the data channel message to the appropriate handler
   void _handleStringMessage(String dcm) {
     final List<String> words = dcm.split(" ");
     final String msgtp = words[0];
-    final String? body = (words.length > 1)
-      ? words.sublist(1).join(' ')
-      : null;
+    final String? body = (words.length > 1) ? words.sublist(1).join(' ') : null;
     print("msgtp: $msgtp");
     switch (msgtp) {
       case "transcript":
@@ -306,12 +312,10 @@ class _WebRTCScreenState extends State<WebRTCScreen> {
         print("TODO unhandled status type: $statusType");
     }
   }
-  
+
   /// Parse the Message from a datachannel (non-binary) serialization and add it to the screen
   void _handleTranscript(String body) {
-    final Role role = (body.split(" ")[0] == "ast")
-      ? Role.ast
-      : Role.usr;
+    final Role role = (body.split(" ")[0] == "ast") ? Role.ast : Role.usr;
     print('role: $role');
     final String content = body.split(" ").sublist(1).join(' ');
     print('content: $content');
@@ -322,34 +326,37 @@ class _WebRTCScreenState extends State<WebRTCScreen> {
   Widget build(BuildContext context) {
     final authService = Provider.of<AuthService>(context, listen: false);
     return Container(
-      child: Stack(  // TODO instead of stack put everything in the column
+      child: Stack(
+        // TODO instead of stack put everything in the column
         children: [
           Column(
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
-              Container(  // START status widgets
-                height: 64,
-                child: Row(
-                  children: [
-                    Expanded(  // TODO connection status widget
+              Container(
+                  // START status widgets
+                  height: 64,
+                  child: Row(children: [
+                    Expanded(
+                      // TODO connection status widget
                       flex: 3,
                       child: Placeholder(),
                     ),
-                    Expanded(  // TODO audio recording status widget
+                    Expanded(
+                      // TODO audio recording status widget
                       flex: 2,
                       child: Placeholder(),
                     )
-                  ]
-                )
-              ),  // END status widgets
-              Expanded(  // START chat box
+                  ])), // END status widgets
+              Expanded(
+                // START chat box
                 child: Chat(messages: _messages),
-              ),  // END chat box
-              Container(  // START controls
+              ), // END chat box
+              Container(
+                // START controls
                 height: 128,
-                child: Row(
-                  children: [
-                    Expanded(  // START call button
+                child: Row(children: [
+                  Expanded(
+                      // START call button
                       flex: 2,
                       child: FractionallySizedBox(
                         widthFactor: 0.65,
@@ -357,28 +364,27 @@ class _WebRTCScreenState extends State<WebRTCScreen> {
                         child: FloatingActionButton(
                           onPressed: () async {
                             final String? err = (_isRecording)
-                              ? await stopPressed()
-                              : await startPressed();
+                                ? await stopPressed()
+                                : await startPressed();
                             if (err != null) {
                               util.showError(context, err);
                             }
                           },
+                          backgroundColor: (_isConnected)
+                              ? Theme.of(context).colorScheme.secondary
+                              : Theme.of(context).colorScheme.primary,
                           child: Icon(
-                            (_isConnected)
-                              ? Icons.call_end
-                              : Icons.add_call,
+                            (_isConnected) ? Icons.call_end : Icons.add_call,
                           ),
-                          backgroundColor: Colors.purple[800],
                         ),
-                      )
-                    ),  // END call button
-                    Expanded(  // START hold to talk button
-                      flex: 3,
-                      child: Placeholder(),
-                    )  // END hold to talk button
-                  ]
-                ),
-              ),  // END controls
+                      )), // END call button
+                  Expanded(
+                    // START hold to talk button
+                    flex: 3,
+                    child: Placeholder(),
+                  ) // END hold to talk button
+                ]),
+              ), // END controls
             ],
           ),
           Align(

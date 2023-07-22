@@ -12,7 +12,8 @@ class LoginScreen extends StatelessWidget {
   final TextEditingController passwordController = TextEditingController();
 
   Future<void> loginWithEmailPassword(BuildContext context) async {
-    final AuthService authService = Provider.of<AuthService>(context, listen: false);
+    final AuthService authService =
+        Provider.of<AuthService>(context, listen: false);
     final String? authToken = await authService.signInWithEmailAndPassword(
       emailController.text,
       passwordController.text,
@@ -23,7 +24,8 @@ class LoginScreen extends StatelessWidget {
       print("Login with email+password succeded!");
       context.go('/');
     } else {
-      print("Login with email+password failed.");  // NOTE the authService handles the popups for user info
+      print(
+          "Login with email+password failed."); // NOTE the authService handles the popups for user info
     }
   }
 
@@ -32,7 +34,8 @@ class LoginScreen extends StatelessWidget {
   // }
 
   Future<void> loginWithGoogle(BuildContext context) async {
-    final AuthService authService = Provider.of<AuthService>(context, listen: false);
+    final AuthService authService =
+        Provider.of<AuthService>(context, listen: false);
     final String? authToken = await authService.signInWithGoogle(context);
 
     if (authToken != null) {
@@ -46,7 +49,6 @@ class LoginScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Colors.grey[400],
       appBar: AppBar(
         title: Text('Login'),
       ),
@@ -96,7 +98,8 @@ class LoginScreen extends StatelessWidget {
               child: Text('Reset password'),
               onPressed: () {
                 Navigator.of(context).push(
-                  MaterialPageRoute(builder: (context) => PasswordResetScreen()),
+                  MaterialPageRoute(
+                      builder: (context) => PasswordResetScreen()),
                 );
               },
             )

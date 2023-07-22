@@ -30,8 +30,8 @@ class MyApp extends StatelessWidget {
           fontFamily: 'Raleway',
           colorScheme: ColorScheme(
             brightness: Brightness.dark,
-            primary: Color(0xFF69420d), // dark brown
-            onPrimary: Color(0xFFf5f4df), // eggshell
+            primary: Color.fromARGB(255, 68, 6, 123), // dark brown
+            onPrimary: Color.fromARGB(255, 234, 216, 139), // eggshell
             secondary: Color(0xFFec96c3), // light pink
             onSecondary: Color(0xFF69420d), // dark brown
             error: Color(0xFFdf3215), // strawberry red
@@ -40,12 +40,38 @@ class MyApp extends StatelessWidget {
             onBackground: Color(0xFFf5f4df), // eggshell
             surface: Color(0xFF69420d),
             onSurface: Color(0xFFf5f4df),
-            // tertiary: Color(0x95c0ed),
+            tertiary: Color(0x95c0ed),
+            onTertiary: Color(0xFF69420d),
           ),
           textTheme: TextTheme(
-            headline1: TextStyle(
+            displayLarge: TextStyle(
               fontSize: 30,
               fontWeight: FontWeight.bold,
+              fontFamily: 'Raleway',
+            ),
+            displayMedium: TextStyle(
+              fontSize: 20,
+              fontWeight: FontWeight.bold,
+              fontFamily: 'Raleway',
+            ),
+            displaySmall: TextStyle(
+              fontSize: 15,
+              fontWeight: FontWeight.bold,
+              fontFamily: 'Raleway',
+            ),
+            bodyLarge: TextStyle(
+              fontSize: 20,
+              fontWeight: FontWeight.normal,
+              fontFamily: 'Raleway',
+            ),
+            bodyMedium: TextStyle(
+              fontSize: 15,
+              fontWeight: FontWeight.normal,
+              fontFamily: 'Raleway',
+            ),
+            bodySmall: TextStyle(
+              fontSize: 10,
+              fontWeight: FontWeight.normal,
               fontFamily: 'Raleway',
             ),
           )

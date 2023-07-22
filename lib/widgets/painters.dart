@@ -2,22 +2,23 @@ import 'package:flutter/material.dart';
 
 class TrianglePainter extends CustomPainter {
   final bool pointRight;
-  TrianglePainter({required this.pointRight});
+  final Color color;
+  TrianglePainter({required this.pointRight, required this.color});
   @override
   void paint(Canvas canvas, Size size) {
     Paint paint = Paint()
-      ..color = Colors.white
+      ..color = color
       ..strokeWidth = 2.0
       ..style = PaintingStyle.fill;
 
     Path path = Path();
     if (pointRight) {
       path.moveTo(size.width, size.height / 2);
-      path.lineTo(0, size.height);  // TODO arcTo for pretty chat lip
+      path.lineTo(0, size.height); // TODO arcTo for pretty chat lip
       path.lineTo(0, 0);
     } else {
       path.moveTo(0, size.height / 2);
-      path.lineTo(size.width, size.height);  // TODO arcTo for pretty chat lip
+      path.lineTo(size.width, size.height); // TODO arcTo for pretty chat lip
       path.lineTo(size.width, 0);
     }
     path.close();
@@ -32,10 +33,12 @@ class TrianglePainter extends CustomPainter {
 }
 
 class RectanglePainter extends CustomPainter {
+  final Color color;
+  RectanglePainter({required this.color});
   @override
   void paint(Canvas canvas, Size size) {
     Paint paint = Paint()
-      ..color = Colors.white
+      ..color = color
       ..strokeWidth = 2.0
       ..style = PaintingStyle.fill;
 

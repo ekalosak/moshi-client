@@ -8,7 +8,8 @@ class PasswordResetScreen extends StatelessWidget {
   final TextEditingController emailController = TextEditingController();
 
   Future<void> resetPassword(BuildContext context) async {
-    final AuthService authService = Provider.of<AuthService>(context, listen: false);
+    final AuthService authService =
+        Provider.of<AuthService>(context, listen: false);
     try {
       await authService.sendPasswordResetEmail(emailController.text, context);
 
@@ -24,7 +25,6 @@ class PasswordResetScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Colors.grey[400],
       appBar: AppBar(
         title: Text('Reset Password'),
       ),
