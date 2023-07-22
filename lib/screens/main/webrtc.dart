@@ -1,18 +1,15 @@
 import 'dart:async';
-import 'dart:convert'; // jsonDecode
-import 'dart:io';
-import 'dart:typed_data';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_webrtc/flutter_webrtc.dart';
 import 'package:provider/provider.dart';
-import 'package:flutter/services.dart';
 
 import 'package:moshi_client/types.dart';
 import 'package:moshi_client/services/auth.dart';
 import 'package:moshi_client/services/moshi.dart' as moshi;
 import 'package:moshi_client/util.dart' as util;
 import 'package:moshi_client/widgets/chat.dart';
+import 'package:moshi_client/widgets/status.dart';
 
 const iceServers = [
   {
@@ -34,9 +31,9 @@ class _WebRTCScreenState extends State<WebRTCScreen> {
   List<MediaDeviceInfo>? _mediaDevicesList;
   RTCPeerConnection? _pc;
   RTCDataChannel? _dc;
-  bool _moshiHealthy = false;
-  bool _isRecording = false;
-  bool _isConnected = false;
+  MicStatus micStatus = MicStatus.unknown;
+  ServerStatus serverStatus = ServerStatus.unknown;
+  CallStatus callStatus = CallStatus.idle;
   final List<Message> _messages = [
     Message(Role.ast, "Not much my excellent bro, you?"),
     Message(Role.usr, "Hey Moshi, what's up?"),
@@ -46,8 +43,6 @@ class _WebRTCScreenState extends State<WebRTCScreen> {
   String _iceConnectionState = '';
   String _signalingState = '';
   String _dcState = '';
-
-  /// TODO updates the audiogram widget,
 
   @override
   void initState() {
@@ -65,23 +60,41 @@ class _WebRTCScreenState extends State<WebRTCScreen> {
   /// Get mic permissions, check server health, and perform WebRTC connection establishment.
   /// Returns error string if any.
   Future<String?> startPressed() async {
+    String? err;
     print("startPressed [START]");
+    setState(() {
+      _messages.clear();
+    });
     // Backend server check
     bool healthy = await moshi.healthCheck();
     setState(() {
-      _moshiHealthy = healthy;
+      serverStatus = (healthy) ? ServerStatus.ready : ServerStatus.error;
     });
     if (!healthy) {
       return "Moshi servers unhealthy, please try again.";
     }
     // Microphone check
-    final String? err = await startMicrophoneStream();
+    err = await startMicrophoneStream();
+    setState(() {
+      micStatus = (err == null) ? MicStatus.off : MicStatus.noPermission;
+    });
     if (err != null) {
       return err;
       // return "Moshi requires microphone permissions. Please enable in your system settings.";
     }
-    await callMoshi();
+    setState(() {
+      callStatus = CallStatus.ringing;
+    });
+    err = await callMoshi();
+    if (err != null) {
+      return err;
+    }
+    setState(() {
+      micStatus = MicStatus.on;
+      callStatus = CallStatus.inCall;
+    });
     print("startPressed [END]");
+    return null;
   }
 
   /// Set up the WebRTC session.
@@ -100,8 +113,7 @@ class _WebRTCScreenState extends State<WebRTCScreen> {
         _pc = pc;
       });
       // Create data channels
-      RTCDataChannelInit dataChannelDict = RTCDataChannelInit()
-        ..maxRetransmits = 30;
+      RTCDataChannelInit dataChannelDict = RTCDataChannelInit()..maxRetransmits = 30;
       RTCDataChannel dc = await pc.createDataChannel('data', dataChannelDict);
       dc.onDataChannelState = (dcs) {
         print("dc: onDataChannelState: $dcs");
@@ -126,14 +138,17 @@ class _WebRTCScreenState extends State<WebRTCScreen> {
       return "Failed to connect to Moshi servers. Please try again.";
     }
     print("callMoshi [END]");
+    return null;
   }
 
   /// Terminate the WebRTC session.
   Future<String?> stopPressed() async {
     print("stopPressed [START]");
+    // TODO return erros returned by hangUpMoshi or by stopMicrophoneStream
     await hangUpMoshi();
     await stopMicrophoneStream();
     print("stopPressed [END]");
+    return null;
   }
 
   /// Acquire audio permissions and add audio stream to state `_localStream`.
@@ -148,7 +163,7 @@ class _WebRTCScreenState extends State<WebRTCScreen> {
         print("media device: ${md.label}");
       }
       setState(() {
-        _isRecording = true;
+        micStatus = MicStatus.on;
         _localStream = stream;
       });
     } catch (error) {
@@ -156,6 +171,7 @@ class _WebRTCScreenState extends State<WebRTCScreen> {
       return "We couldn't get a hold of your microphone, try enabling it in your system settings.";
     }
     print("startMicrophoneStream [END]");
+    return null;
   }
 
   /// After setting up stream and signaling, create an SDP offer and handle the answer.
@@ -179,8 +195,7 @@ class _WebRTCScreenState extends State<WebRTCScreen> {
   }
 
   /// Create the peer connection and set up event handlers.
-  Future<RTCPeerConnection> setupPeerConnection(
-      Map<String, dynamic> config) async {
+  Future<RTCPeerConnection> setupPeerConnection(Map<String, dynamic> config) async {
     _pc = await createPeerConnection(config);
     if (_pc == null) {
       throw 'Failed to create peer connection';
@@ -214,13 +229,9 @@ class _WebRTCScreenState extends State<WebRTCScreen> {
     setState(() {
       _signalingState = "${pc?.signalingState}";
     });
-    pc?.onIceCandidate = (candidate) async {
-      // print("pc: onIceCandidate: ${candidate.candidate}");
-      // TODO try an ice candidate:
-      // https://github.com/flutter-webrtc/flutter-webrtc-demo/blob/master/lib/src/call_sample/signaling.dart#L466
-      print("pc: onIceCandidate: ${candidate.candidate}");
-      print("TODO");
-    };
+    // pc?.onIceCandidate = (candidate) async {
+    //   print("pc: onIceCandidate: ${candidate.candidate}");  // NOTE webrtc implementation handles resolving ice candidates
+    // };
     // Handle what to do when tracks are added
     pc?.onTrack = (evt) {
       print("pc: onTrack: $evt");
@@ -241,7 +252,7 @@ class _WebRTCScreenState extends State<WebRTCScreen> {
     print("stopMicrophoneStream [START]");
     await _localStream?.dispose();
     setState(() {
-      _isRecording = false;
+      micStatus = MicStatus.off;
     });
     print("stopMicrophoneStream [END]");
   }
@@ -251,11 +262,15 @@ class _WebRTCScreenState extends State<WebRTCScreen> {
     print("hangUpMoshi [START]");
     await tearDownWebRTC();
     setState(() {
-      _isConnected = false;
       _iceGatheringState = '';
       _iceConnectionState = '';
       _signalingState = '';
       _dcState = '';
+      if (micStatus == MicStatus.muted || micStatus == MicStatus.on) {
+        micStatus = MicStatus.off;
+      }
+      serverStatus = ServerStatus.unknown;
+      callStatus = CallStatus.idle;
     });
     print("hangUpMoshi [END]");
   }
@@ -304,9 +319,6 @@ class _WebRTCScreenState extends State<WebRTCScreen> {
     print("statusType: $statusType");
     switch (statusType) {
       case "hello":
-        setState(() {
-          _isConnected = true;
-        });
         break;
       default:
         print("TODO unhandled status type: $statusType");
@@ -329,6 +341,22 @@ class _WebRTCScreenState extends State<WebRTCScreen> {
       child: Stack(
         // TODO instead of stack put everything in the column
         children: [
+          Align(
+            alignment: Alignment.bottomLeft,
+            child: Padding(
+              padding: EdgeInsets.fromLTRB(32, 96, 0, 0),
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.start,
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text("ICE gathering state: $_iceGatheringState"),
+                  Text("ICE connection state: $_iceConnectionState"),
+                  Text("Signaling state: $_signalingState"),
+                  Text("Datachannel state: $_dcState"),
+                ],
+              ),
+            ),
+          ),
           Column(
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
@@ -337,16 +365,19 @@ class _WebRTCScreenState extends State<WebRTCScreen> {
                   height: 64,
                   child: Row(children: [
                     Expanded(
-                      // TODO connection status widget
                       flex: 3,
-                      child: Placeholder(),
+                      child: ConnectionStatus(
+                        micStatus: micStatus,
+                        serverStatus: serverStatus,
+                        callStatus: callStatus,
+                        colorScheme: Theme.of(context).colorScheme,
+                      ),
                     ),
                     Expanded(
-                      // TODO audio recording status widget
                       flex: 2,
                       child: Placeholder(),
                     )
-                  ])), // END status widgets
+                  ])),
               Expanded(
                 // START chat box
                 child: Chat(messages: _messages),
@@ -362,19 +393,19 @@ class _WebRTCScreenState extends State<WebRTCScreen> {
                         widthFactor: 0.65,
                         heightFactor: 0.65,
                         child: FloatingActionButton(
+                          // Call button
                           onPressed: () async {
-                            final String? err = (_isRecording)
-                                ? await stopPressed()
-                                : await startPressed();
+                            final String? err =
+                                (callStatus == CallStatus.idle) ? await startPressed() : await stopPressed();
                             if (err != null) {
                               util.showError(context, err);
                             }
                           },
-                          backgroundColor: (_isConnected)
-                              ? Theme.of(context).colorScheme.secondary
-                              : Theme.of(context).colorScheme.primary,
+                          backgroundColor: (callStatus == CallStatus.idle)
+                              ? Theme.of(context).colorScheme.primary
+                              : Theme.of(context).colorScheme.secondary,
                           child: Icon(
-                            (_isConnected) ? Icons.call_end : Icons.add_call,
+                            (callStatus == CallStatus.idle) ? Icons.add_call : Icons.call_end,
                           ),
                         ),
                       )), // END call button
@@ -386,25 +417,6 @@ class _WebRTCScreenState extends State<WebRTCScreen> {
                 ]),
               ), // END controls
             ],
-          ),
-          Align(
-            alignment: Alignment.bottomLeft,
-            child: Padding(
-              padding: EdgeInsets.all(32),
-              child: Column(
-                mainAxisAlignment: MainAxisAlignment.start,
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text("Servers healthy: $_moshiHealthy"),
-                  Text("Microphone acquired: $_isRecording"),
-                  Text("Connection established: $_isConnected"),
-                  Text("ICE gathering state: $_iceGatheringState"),
-                  Text("ICE connection state: $_iceConnectionState"),
-                  Text("Signaling state: $_signalingState"),
-                  Text("Datachannel state: $_dcState"),
-                ],
-              ),
-            ),
           ),
         ],
       ),

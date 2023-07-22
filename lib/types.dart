@@ -11,8 +11,4 @@ class Message {
   Message(this.role, this.msg);
 }
 
-enum DCMsg {
-  transcript,
-  status,
-  ping
-}
+enum DCMsg { transcript, status, ping }
