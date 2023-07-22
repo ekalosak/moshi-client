@@ -1,3 +1,4 @@
+/// Chat box with messages, looks like an SMS messenger app.
 import 'package:flutter/material.dart';
 import 'package:moshi_client/types.dart';
 
@@ -119,7 +120,6 @@ class _ChatState extends State<Chat> {
             itemBuilder: (BuildContext context, int index) {
               return Container(
                 height: 64,
-                // color: Colors.green[100],
                 child: MsgBox(widget.messages[index]),
               );
             }

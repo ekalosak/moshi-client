@@ -372,10 +372,10 @@ class _WebRTCScreenState extends State<WebRTCScreen> {
                         ),
                       )
                     ),  // END call button
-                    Expanded(
+                    Expanded(  // START hold to talk button
                       flex: 3,
                       child: Placeholder(),
-                    )
+                    )  // END hold to talk button
                   ]
                 ),
               ),  // END controls
