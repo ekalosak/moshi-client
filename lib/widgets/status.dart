@@ -38,8 +38,9 @@ class ConnectionStatus extends StatelessWidget {
   Widget _callIcon(CallStatus status) {
     return switch (status) {
       CallStatus.idle => Icon(Icons.call_outlined, color: colorScheme.background),
-      CallStatus.ringing => Icon(Icons.call_made_outlined, color: colorScheme.primary),
-      CallStatus.inCall => Icon(Icons.call_received_outlined, color: colorScheme.primary),
+      CallStatus.ringing => Icon(Icons.call_outlined, color: colorScheme.tertiary),
+      CallStatus.inCall => Icon(Icons.call_outlined, color: colorScheme.primary),
+      CallStatus.error => Icon(Icons.call_missed_outgoing_outlined, color: colorScheme.error),
     };
   }
 
@@ -73,4 +74,5 @@ enum CallStatus {
   idle,
   ringing,
   inCall,
+  error,
 }
