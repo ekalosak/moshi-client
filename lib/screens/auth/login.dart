@@ -93,25 +93,22 @@ class _LoginScreenState extends State<LoginScreen> {
                       obscureText: true,
                       autofillHints: [AutofillHints.password],
                     ),
+                    Padding(
+                      padding: EdgeInsets.all(24),
+                      child: FloatingActionButton.extended(
+                        heroTag: "login",
+                        label: Text('Log in'),
+                        icon: Icon(Icons.login),
+                        backgroundColor: Theme.of(context).colorScheme.primary,
+                        onPressed: () async {
+                          err = await loginWithEmailPassword(authService);
+                          setState(() {
+                            err = err;
+                          });
+                        },
+                      ),
+                    ),
                   ],
-                ),
-              ),
-              Expanded(
-                flex: 1,
-                child: Padding(
-                  padding: EdgeInsets.all(24),
-                  child: FloatingActionButton.extended(
-                    heroTag: "login",
-                    label: Text('Log in'),
-                    icon: Icon(Icons.login),
-                    backgroundColor: Theme.of(context).colorScheme.primary,
-                    onPressed: () async {
-                      err = await loginWithEmailPassword(authService);
-                      setState(() {
-                        err = err;
-                      });
-                    },
-                  ),
                 ),
               ),
               Expanded(

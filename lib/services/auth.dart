@@ -1,3 +1,4 @@
+import 'dart:core';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:google_sign_in/google_sign_in.dart';
@@ -45,11 +46,9 @@ class AuthService {
 
   User? get currentUser => _currentUser;
 
-  Future<String?> signInWithEmailAndPassword(
-      String email, String password, BuildContext context) async {
+  Future<String?> signInWithEmailAndPassword(String email, String password, BuildContext context) async {
     try {
-      UserCredential userCredential =
-          await _firebaseAuth.signInWithEmailAndPassword(
+      UserCredential userCredential = await _firebaseAuth.signInWithEmailAndPassword(
         email: email,
         password: password,
       );
@@ -92,16 +91,14 @@ class AuthService {
   Future<String?> signInWithGoogle(BuildContext context) async {
     try {
       final GoogleSignInAccount? googleUser = await GoogleSignIn().signIn();
-      final GoogleSignInAuthentication googleAuth =
-          await googleUser!.authentication;
+      final GoogleSignInAuthentication googleAuth = await googleUser!.authentication;
 
       final credential = GoogleAuthProvider.credential(
         accessToken: googleAuth.accessToken,
         idToken: googleAuth.idToken,
       );
 
-      final UserCredential userCredential =
-          await _firebaseAuth.signInWithCredential(credential);
+      final UserCredential userCredential = await _firebaseAuth.signInWithCredential(credential);
 
       return userCredential.user!.uid;
     } catch (e) {
@@ -117,8 +114,7 @@ class AuthService {
   Future<String?> signUpWithEmailAndPassword(
       String email, String password, String firstName, BuildContext context) async {
     try {
-      UserCredential userCredential =
-          await _firebaseAuth.createUserWithEmailAndPassword(
+      UserCredential userCredential = await _firebaseAuth.createUserWithEmailAndPassword(
         email: email,
         password: password,
       );
@@ -164,8 +160,8 @@ class AuthService {
   // TODO non-brut error handling around signOut
   Future<void> signOut(BuildContext context) async {
     try {
-      await _firebaseAuth.signOut();  // NOTE redirect to '/' route is done by caller.
-      _currentUser = null;  // do this immediately because there might be a delay in the listener.
+      await _firebaseAuth.signOut(); // NOTE redirect to '/' route is done by caller.
+      _currentUser = null; // do this immediately because there might be a delay in the listener.
     } catch (e) {
       print(e);
       ScaffoldMessenger.of(context).showSnackBar(
@@ -175,14 +171,16 @@ class AuthService {
   }
 
   // TODO non-brut error handling around sendPasswordResetEmail
-  Future<void> sendPasswordResetEmail(String email, BuildContext context) async {
+  Future<String?> sendPasswordResetEmail(String email) async {
+    final String? err;
     try {
       await _firebaseAuth.sendPasswordResetEmail(email: email);
+      return null;
     } catch (e) {
       print(e);
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('An error occurred. Please try again later.')),
-      );
+      RegExp regExp = RegExp(r"\[.*?\]");
+      err = "$e".replaceAll(regExp, "");
+      return err;
     }
   }
 }

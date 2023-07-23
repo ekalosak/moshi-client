@@ -13,6 +13,7 @@ class _SignUpScreenState extends State<SignUpScreen> {
   final TextEditingController emailController = TextEditingController();
   final TextEditingController passwordController = TextEditingController();
   bool isLoading = false;
+  String? err;
 
   Future<void> signUp(BuildContext context) async {
     String email = emailController.text;
@@ -48,6 +49,17 @@ class _SignUpScreenState extends State<SignUpScreen> {
 
   @override
   Widget build(BuildContext context) {
+    if (err != null) {
+      // If err isn't null, show a snackbar with the error
+      WidgetsBinding.instance!.addPostFrameCallback((_) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text(err!)),
+        );
+        setState(() {
+          err = null;
+        });
+      });
+    }
     return Scaffold(
       appBar: AppBar(
         title: Text('Sign Up'),
@@ -78,10 +90,15 @@ class _SignUpScreenState extends State<SignUpScreen> {
                 ),
                 obscureText: true,
               ),
-              SizedBox(height: 10),
-              ElevatedButton(
-                onPressed: isLoading ? null : () => signUp(context),
-                child: Text('Sign Up'),
+              SizedBox(height: 24),
+              FloatingActionButton.extended(
+                heroTag: "signup",
+                label: Text('Sign up'),
+                icon: Icon(Icons.person_add),
+                backgroundColor: Theme.of(context).colorScheme.primary,
+                onPressed: () async {
+                  await signUp(context); // TODO make signUp return err, do the snackbar
+                },
               ),
             ],
           ),
