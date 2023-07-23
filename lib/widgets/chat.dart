@@ -16,9 +16,10 @@ class MsgBox extends StatelessWidget {
   final Color iconColor;
   MsgBox(this.msg, this.boxColor, this.iconColor);
 
+  // Build the icon and textbox lip (triangle) for the message box.
   Widget _ico(Role role) {
     Icon icon = (role == Role.ast) ? Icon(Icons.bubble_chart, color: iconColor) : Icon(Icons.person, color: iconColor);
-    return Expanded(
+    return Flexible(
         flex: 2,
         child: Stack(children: [
           Align(
@@ -30,68 +31,69 @@ class MsgBox extends StatelessWidget {
                     : TrianglePainter(pointRight: true, color: boxColor),
               )),
           Align(
-            alignment: (msg.role == Role.ast) ? Alignment(-1, -0.2) : Alignment(1, -0.2),
+            alignment: (msg.role == Role.ast) ? Alignment(-0.2, -0.2) : Alignment(0.2, -0.2),
             child: icon,
           )
         ]));
-    // return icon;
-    // return Expanded(
-    //   flex: 1,
-    //   child: icon,
-    // );
   }
 
-  Widget _msg(Message msg) {
-    // return Text(msg.msg);
+  // Build the text box, including the text and underneath the filled rounded rectangle, for the message.
+  Widget _msg(Message msg, double height) {
     return Flexible(
       flex: boxIconRatio,
-      child: Stack(children: [
-        Align(
-          alignment: (msg.role != Role.ast) ? Alignment.centerLeft : Alignment.centerRight,
-          child: LayoutBuilder(builder: (context, constraints) {
-            return Padding(
-              padding: (msg.role == Role.ast) ? EdgeInsets.only(right: boxOffset) : EdgeInsets.only(left: boxOffset),
-              child: Center(
-                child: Stack(
-                  children: [
-                    ClipRRect(
-                      borderRadius: BorderRadius.circular(boxCornerRad),
-                      child: Container(
-                        width: constraints.maxWidth,
-                        height: constraints.maxHeight - boxOffset,
-                        color: boxColor,
-                      ),
+      child: Align(
+        alignment: (msg.role != Role.ast) ? Alignment.centerLeft : Alignment.centerRight,
+        child: LayoutBuilder(builder: (context, constraints) {
+          return Padding(
+            padding: (msg.role == Role.ast) ? EdgeInsets.only(right: boxOffset) : EdgeInsets.only(left: boxOffset),
+            child: Center(
+              child: Stack(
+                children: [
+                  ClipRRect(
+                    borderRadius: BorderRadius.circular(boxCornerRad),
+                    child: Container(
+                      width: constraints.maxWidth,
+                      height: height,
+                      color: boxColor,
                     ),
-                    Align(
-                      alignment: (msg.role == Role.ast) ? Alignment.centerLeft : Alignment.centerRight,
-                      child: Container(margin: const EdgeInsets.all(16.0), child: Text(msg.msg)),
-                    ),
-                  ],
-                ),
+                  ),
+                  Align(
+                    alignment: (msg.role == Role.ast) ? Alignment.topLeft : Alignment.topRight,
+                    child: Container(margin: const EdgeInsets.all(8.0), child: Text(msg.msg)),
+                  ),
+                ],
               ),
-            );
-          }),
-        ),
-      ]),
+            ),
+          );
+        }),
+      ),
     );
+  }
+
+  double _calculateTextHeight(String text) {
+    final TextPainter textPainter = TextPainter(
+      text: TextSpan(text: text),
+      textDirection: TextDirection.ltr,
+    )..layout(maxWidth: double.infinity);
+    return textPainter.height;
   }
 
   @override
   Widget build(BuildContext context) {
+    final double height = _calculateTextHeight(msg.msg);
+    print("height: $height");
     final Widget icon = _ico(msg.role);
-    final Widget message = _msg(msg);
+    final Widget msgBox = _msg(msg, height);
     final Widget row = Row(
       children: [
-        (msg.role == Role.ast) ? icon : message,
-        (msg.role == Role.ast) ? message : icon,
+        (msg.role == Role.ast) ? icon : msgBox,
+        (msg.role == Role.ast) ? msgBox : icon,
       ],
     );
-    // Make the row height tall enough so the text doesn't overflow.
-    return Container(
-      height: 128,
+    return SizedBox(
+      height: height,
       child: row,
     );
-    // return row;
   }
 }
 
@@ -107,19 +109,14 @@ class _ChatState extends State<Chat> {
   Widget build(BuildContext context) {
     final Color boxColor = Theme.of(context).colorScheme.surface;
     final Color iconColor = Theme.of(context).colorScheme.onSurface;
-    return Column(
-      children: <Widget>[
-        Expanded(
-            child: ListView.builder(
-                reverse: true,
-                padding: const EdgeInsets.all(8),
-                itemCount: widget.messages.length,
-                itemBuilder: (BuildContext context, int index) {
-                  return SizedBox(
-                    child: MsgBox(widget.messages[index], boxColor, iconColor),
-                  );
-                })),
-      ],
+    return ListView.builder(
+      reverse: true,
+      shrinkWrap: true,
+      padding: const EdgeInsets.only(top: 8, bottom: 32),
+      itemCount: widget.messages.length,
+      itemBuilder: (BuildContext context, int index) {
+        return MsgBox(widget.messages[index], boxColor, iconColor);
+      },
     );
   }
 }
