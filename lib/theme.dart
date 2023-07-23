@@ -46,17 +46,17 @@ final moshiTextTheme = TextTheme(
     fontFamily: 'Raleway',
   ),
   bodyLarge: TextStyle(
-    fontSize: 48,
-    fontWeight: FontWeight.normal,
-    fontFamily: 'Raleway',
-  ),
-  bodyMedium: TextStyle(
     fontSize: 32,
     fontWeight: FontWeight.normal,
     fontFamily: 'Raleway',
   ),
-  bodySmall: TextStyle(
+  bodyMedium: TextStyle(
     fontSize: 24,
+    fontWeight: FontWeight.normal,
+    fontFamily: 'Raleway',
+  ),
+  bodySmall: TextStyle(
+    fontSize: 18,
     fontWeight: FontWeight.normal,
     fontFamily: 'Raleway',
   ),

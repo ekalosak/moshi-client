@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
-import '../main/main.dart';
 import '../../services/auth.dart';
 
 class SignUpScreen extends StatefulWidget {
@@ -19,8 +18,7 @@ class _SignUpScreenState extends State<SignUpScreen> {
     String email = emailController.text;
     String password = passwordController.text;
     String name = firstNameController.text;
-    final AuthService authService =
-        Provider.of<AuthService>(context, listen: false);
+    final AuthService authService = Provider.of<AuthService>(context, listen: false);
     if (name == '') {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text('Please provide a name Moshi can call you.')),
@@ -56,35 +54,38 @@ class _SignUpScreenState extends State<SignUpScreen> {
       ),
       body: Padding(
         padding: EdgeInsets.all(16.0),
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            TextField(
-              controller: firstNameController,
-              decoration: InputDecoration(
-                labelText: 'First Name',
+        child: Stack(children: [
+          if (isLoading) CircularProgressIndicator(),
+          Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              TextField(
+                controller: firstNameController,
+                decoration: InputDecoration(
+                  labelText: 'First Name',
+                ),
               ),
-            ),
-            TextField(
-              controller: emailController,
-              decoration: InputDecoration(
-                labelText: 'Email',
+              TextField(
+                controller: emailController,
+                decoration: InputDecoration(
+                  labelText: 'Email',
+                ),
               ),
-            ),
-            TextField(
-              controller: passwordController,
-              decoration: InputDecoration(
-                labelText: 'Password',
+              TextField(
+                controller: passwordController,
+                decoration: InputDecoration(
+                  labelText: 'Password',
+                ),
+                obscureText: true,
               ),
-              obscureText: true,
-            ),
-            SizedBox(height: 10),
-            ElevatedButton(
-              onPressed: isLoading ? null : () => signUp(context),
-              child: Text('Sign Up'),
-            ),
-          ],
-        ),
+              SizedBox(height: 10),
+              ElevatedButton(
+                onPressed: isLoading ? null : () => signUp(context),
+                child: Text('Sign Up'),
+              ),
+            ],
+          ),
+        ]),
       ),
     );
   }

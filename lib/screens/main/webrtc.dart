@@ -2,10 +2,8 @@ import 'dart:async';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_webrtc/flutter_webrtc.dart';
-import 'package:provider/provider.dart';
 
 import 'package:moshi_client/types.dart';
-import 'package:moshi_client/services/auth.dart';
 import 'package:moshi_client/services/moshi.dart' as moshi;
 import 'package:moshi_client/util.dart' as util;
 import 'package:moshi_client/widgets/chat.dart';
@@ -39,10 +37,6 @@ class _WebRTCScreenState extends State<WebRTCScreen> {
     Message(Role.usr, "Hey Moshi, what's up?"),
     Message(Role.ast, "Moshi moshi."),
   ];
-  String _iceGatheringState = '';
-  String _iceConnectionState = '';
-  String _signalingState = '';
-  String _dcState = '';
 
   @override
   void initState() {
@@ -117,9 +111,6 @@ class _WebRTCScreenState extends State<WebRTCScreen> {
       RTCDataChannel dc = await pc.createDataChannel('data', dataChannelDict);
       dc.onDataChannelState = (dcs) {
         print("dc: onDataChannelState: $dcs");
-        setState(() {
-          _dcState = _dcState + '\n\t-> $dcs';
-        });
       };
       dc.onMessage = (dcm) {
         if (!dcm.isBinary) {
@@ -246,10 +237,6 @@ class _WebRTCScreenState extends State<WebRTCScreen> {
     print("hangUpMoshi [START]");
     await tearDownWebRTC();
     setState(() {
-      _iceGatheringState = '';
-      _iceConnectionState = '';
-      _signalingState = '';
-      _dcState = '';
       if (micStatus == MicStatus.muted || micStatus == MicStatus.on) {
         micStatus = MicStatus.off;
       }
@@ -327,6 +314,19 @@ class _WebRTCScreenState extends State<WebRTCScreen> {
             height: 64,
             child: Row(children: [
               Expanded(
+                flex: 2,
+                // while call is ringing, show a spinner aligned topleft, otherwise nothing
+                child: (callStatus == CallStatus.ringing)
+                    ? Align(
+                        alignment: Alignment.topLeft,
+                        child: Padding(
+                          padding: const EdgeInsets.all(8.0),
+                          child: CircularProgressIndicator(),
+                        ),
+                      )
+                    : SizedBox(),
+              ),
+              Expanded(
                 flex: 3,
                 child: ConnectionStatus(
                   micStatus: micStatus,
@@ -335,10 +335,6 @@ class _WebRTCScreenState extends State<WebRTCScreen> {
                   colorScheme: Theme.of(context).colorScheme,
                 ),
               ),
-              Expanded(
-                flex: 2,
-                child: Container(),
-              )
             ])),
         Expanded(
           child: Chat(messages: _messages),
