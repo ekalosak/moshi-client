@@ -33,7 +33,7 @@ class _WebRTCScreenState extends State<WebRTCScreen> {
   ServerStatus serverStatus = ServerStatus.unknown;
   CallStatus callStatus = CallStatus.idle;
   final List<Message> _messages = [
-    Message(Role.ast, "Not much my excellent bro, you?"),
+    Message(Role.ast, "Not much my excellent bro, you?\nThis is\nlong text to\noverflow."),
     Message(Role.usr, "Hey Moshi, what's up?"),
     Message(Role.ast, "Moshi moshi."),
   ];

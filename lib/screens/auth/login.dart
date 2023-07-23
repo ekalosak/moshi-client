@@ -71,19 +71,7 @@ class _LoginScreenState extends State<LoginScreen> {
             children: [
               Expanded(
                 flex: 1,
-                child: Row(
-                  mainAxisAlignment: MainAxisAlignment.end,
-                  children: [
-                    FloatingActionButton.extended(
-                      heroTag: "signup",
-                      label: Text('Sign up'),
-                      icon: Icon(Icons.person_add),
-                      onPressed: () {
-                        context.go('/a/signup');
-                      },
-                    ),
-                  ],
-                ),
+                child: Container(),
               ),
               Expanded(
                 flex: 2,
@@ -141,6 +129,17 @@ class _LoginScreenState extends State<LoginScreen> {
                           context.go('/a/reset');
                         },
                       ),
+                      Padding(
+                        padding: EdgeInsets.all(8),
+                        child: FloatingActionButton.extended(
+                          heroTag: "signup",
+                          label: Text('Sign up'),
+                          icon: Icon(Icons.person_add),
+                          onPressed: () {
+                            context.go('/a/signup');
+                          },
+                        ),
+                      )
                     ],
                   ),
                 ),

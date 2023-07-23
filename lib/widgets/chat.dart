@@ -5,7 +5,7 @@ import 'package:moshi_client/types.dart';
 import 'painters.dart';
 
 const int boxIconRatio = 14;
-const double lipOffset = 25;
+const double lipOffset = 16;
 const double lipHeight = 20;
 const double boxOffset = 12;
 const double boxCornerRad = 12;
@@ -19,37 +19,45 @@ class MsgBox extends StatelessWidget {
   Widget _ico(Role role) {
     Icon icon = (role == Role.ast) ? Icon(Icons.bubble_chart, color: iconColor) : Icon(Icons.person, color: iconColor);
     return Expanded(
-      flex: 1,
-      child: icon,
-    );
+        flex: 2,
+        child: Stack(children: [
+          Align(
+              alignment: (msg.role != Role.ast) ? Alignment(-1, -0.2) : Alignment(1, -0.2),
+              child: CustomPaint(
+                size: Size(lipOffset, lipHeight),
+                painter: (msg.role == Role.ast)
+                    ? TrianglePainter(pointRight: false, color: boxColor)
+                    : TrianglePainter(pointRight: true, color: boxColor),
+              )),
+          Align(
+            alignment: (msg.role == Role.ast) ? Alignment(-1, -0.2) : Alignment(1, -0.2),
+            child: icon,
+          )
+        ]));
+    // return icon;
+    // return Expanded(
+    //   flex: 1,
+    //   child: icon,
+    // );
   }
 
   Widget _msg(Message msg) {
-    return Expanded(
+    // return Text(msg.msg);
+    return Flexible(
       flex: boxIconRatio,
       child: Stack(children: [
-        Align(
-            alignment: (msg.role == Role.ast) ? Alignment(-1, -0.2) : Alignment(1, -0.2),
-            child: CustomPaint(
-              size: Size(lipOffset, lipHeight),
-              painter: (msg.role == Role.ast)
-                  ? TrianglePainter(pointRight: false, color: boxColor)
-                  : TrianglePainter(pointRight: true, color: boxColor),
-            )),
         Align(
           alignment: (msg.role != Role.ast) ? Alignment.centerLeft : Alignment.centerRight,
           child: LayoutBuilder(builder: (context, constraints) {
             return Padding(
-              padding: (msg.role == Role.ast)
-                  ? EdgeInsets.only(left: lipOffset, right: boxOffset)
-                  : EdgeInsets.only(right: lipOffset, left: boxOffset),
+              padding: (msg.role == Role.ast) ? EdgeInsets.only(right: boxOffset) : EdgeInsets.only(left: boxOffset),
               child: Center(
                 child: Stack(
                   children: [
                     ClipRRect(
                       borderRadius: BorderRadius.circular(boxCornerRad),
                       child: Container(
-                        width: constraints.maxWidth - lipOffset,
+                        width: constraints.maxWidth,
                         height: constraints.maxHeight - boxOffset,
                         color: boxColor,
                       ),
@@ -70,14 +78,20 @@ class MsgBox extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Container(
-      child: Row(
-        children: [
-          (msg.role == Role.ast) ? _ico(msg.role) : _msg(msg),
-          (msg.role == Role.ast) ? _msg(msg) : _ico(msg.role),
-        ],
-      ),
+    final Widget icon = _ico(msg.role);
+    final Widget message = _msg(msg);
+    final Widget row = Row(
+      children: [
+        (msg.role == Role.ast) ? icon : message,
+        (msg.role == Role.ast) ? message : icon,
+      ],
     );
+    // Make the row height tall enough so the text doesn't overflow.
+    return Container(
+      height: 128,
+      child: row,
+    );
+    // return row;
   }
 }
 
@@ -94,7 +108,6 @@ class _ChatState extends State<Chat> {
     final Color boxColor = Theme.of(context).colorScheme.surface;
     final Color iconColor = Theme.of(context).colorScheme.onSurface;
     return Column(
-      // mainAxisAlignment: MainAxisAlignment.end,
       children: <Widget>[
         Expanded(
             child: ListView.builder(
@@ -102,8 +115,7 @@ class _ChatState extends State<Chat> {
                 padding: const EdgeInsets.all(8),
                 itemCount: widget.messages.length,
                 itemBuilder: (BuildContext context, int index) {
-                  return Container(
-                    height: 64,
+                  return SizedBox(
                     child: MsgBox(widget.messages[index], boxColor, iconColor),
                   );
                 })),
