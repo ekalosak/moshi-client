@@ -19,10 +19,10 @@ class ConnectionStatus extends StatelessWidget {
 
   Widget _micIcon(MicStatus status) {
     return switch (status) {
-      MicStatus.unknown => Icon(Icons.mic_none_outlined, color: colorScheme.background),
+      MicStatus.unknown => Icon(Icons.mic_off_outlined, color: colorScheme.background),
       MicStatus.noPermission => Icon(Icons.mic_off_outlined, color: colorScheme.error),
-      MicStatus.off => Icon(Icons.mic_off_outlined, color: colorScheme.background),
-      MicStatus.muted => Icon(Icons.mic_off_outlined, color: colorScheme.tertiary),
+      MicStatus.off => Icon(Icons.mic_none_outlined, color: colorScheme.background),
+      MicStatus.muted => Icon(Icons.mic_off_outlined, color: colorScheme.primary),
       MicStatus.on => Icon(Icons.mic_outlined, color: colorScheme.primary)
     };
   }
