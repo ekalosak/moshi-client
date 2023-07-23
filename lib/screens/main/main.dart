@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 
-import '../../services/auth.dart';
 import 'progress.dart';
 import 'settings.dart';
 import 'webrtc.dart';
@@ -47,10 +46,6 @@ class _MainScreenState extends State<MainScreen> {
             icon: Icon(Icons.transcribe),
             label: 'Chat',
           ),
-          // BottomNavigationBarItem(
-          //   icon: Icon(Icons.chat),
-          //   label: 'Chat',
-          // ),
           BottomNavigationBarItem(
             icon: Icon(Icons.analytics_outlined),
             label: 'Progress',

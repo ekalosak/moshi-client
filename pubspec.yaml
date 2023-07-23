@@ -24,18 +24,6 @@ dependencies:
   firebase_storage: ^11.2.5
   flutter_webrtc: ^0.9.36
   audio_streamer: ^3.0.0
-  # haishin_kit: ^0.11.0
-  # flutter_audio_capture: ^1.1.4
-  # record: ^4.4.4
-  # audioplayers: ^0.18.3
-  # sound_stream: ^0.3.0
-  # mic_stream: 0.6.4
-  # mic_stream: ^0.6.5
-  # record:
-  #   git:
-  #     url: git@github.com:llfbandit/record.git
-  #     ref: cd38fbb97261af7402051380e96be4cd27b8a13e
-  #     path: record
 
 dev_dependencies:
   flutter_test:
