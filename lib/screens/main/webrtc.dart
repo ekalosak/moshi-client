@@ -342,7 +342,7 @@ class _WebRTCScreenState extends State<WebRTCScreen> {
         SizedBox(
           height: 128,
           child: Row(children: [
-            Expanded(
+            Flexible(
                 flex: 2,
                 child: FractionallySizedBox(
                   widthFactor: 0.65,
@@ -362,9 +362,18 @@ class _WebRTCScreenState extends State<WebRTCScreen> {
                     ),
                   ),
                 )),
-            Expanded(
+            Flexible(
               flex: 3,
-              child: Placeholder(),
+              child: Align(
+                alignment: Alignment.centerRight,
+                child: FloatingActionButton(
+                  onPressed: () async {
+                    print("HOLD TO CHAT");
+                  },
+                  backgroundColor: Theme.of(context).colorScheme.primary,
+                  child: Icon(Icons.mic),
+                ),
+              ),
             )
           ]),
         ),
