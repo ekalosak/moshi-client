@@ -6,9 +6,11 @@ import 'painters.dart';
 
 const int boxIconRatio = 14;
 const double lipOffset = 16;
-const double lipHeight = 20;
+const double lipHeight = 12;
 const double boxOffset = 12;
-const double boxCornerRad = 12;
+const double boxCornerRad = 6;
+const double boxTextPadding = 10;
+const double betweenBoxPadding = 4;
 
 class MsgBox extends StatelessWidget {
   final Message msg;
@@ -38,62 +40,36 @@ class MsgBox extends StatelessWidget {
   }
 
   // Build the text box, including the text and underneath the filled rounded rectangle, for the message.
-  Widget _msg(Message msg, double height) {
+  Widget _msg(Message msg, Color textColor) {
+    final Text msgText = Text(
+      msg.msg,
+      style: TextStyle(color: textColor),
+    );
     return Flexible(
       flex: boxIconRatio,
-      child: Align(
-        alignment: (msg.role != Role.ast) ? Alignment.centerLeft : Alignment.centerRight,
-        child: LayoutBuilder(builder: (context, constraints) {
-          return Padding(
-            padding: (msg.role == Role.ast) ? EdgeInsets.only(right: boxOffset) : EdgeInsets.only(left: boxOffset),
-            child: Center(
-              child: Stack(
-                children: [
-                  ClipRRect(
-                    borderRadius: BorderRadius.circular(boxCornerRad),
-                    child: Container(
-                      width: constraints.maxWidth,
-                      height: height,
-                      color: boxColor,
-                    ),
-                  ),
-                  Align(
-                    alignment: (msg.role == Role.ast) ? Alignment.topLeft : Alignment.topRight,
-                    child: Container(margin: const EdgeInsets.all(8.0), child: Text(msg.msg)),
-                  ),
-                ],
-              ),
+      child: Padding(
+          padding: EdgeInsets.only(top: betweenBoxPadding),
+          child: Align(
+            alignment: (msg.role == Role.ast) ? Alignment.centerLeft : Alignment.centerRight,
+            child: Padding(
+              padding: (msg.role == Role.ast) ? EdgeInsets.only(right: boxOffset) : EdgeInsets.only(left: boxOffset),
+              child: RoundedBox(boxColor: boxColor, padding: boxTextPadding, child: msgText),
             ),
-          );
-        }),
-      ),
+          )),
     );
-  }
-
-  double _calculateTextHeight(String text) {
-    final TextPainter textPainter = TextPainter(
-      text: TextSpan(text: text),
-      textDirection: TextDirection.ltr,
-    )..layout(maxWidth: double.infinity);
-    return textPainter.height;
   }
 
   @override
   Widget build(BuildContext context) {
-    final double height = _calculateTextHeight(msg.msg);
-    print("height: $height");
     final Widget icon = _ico(msg.role);
-    final Widget msgBox = _msg(msg, height);
+    final Widget msgBox = _msg(msg, Theme.of(context).colorScheme.onSurface);
     final Widget row = Row(
       children: [
         (msg.role == Role.ast) ? icon : msgBox,
         (msg.role == Role.ast) ? msgBox : icon,
       ],
     );
-    return SizedBox(
-      height: height,
-      child: row,
-    );
+    return row;
   }
 }
 
@@ -108,7 +84,7 @@ class _ChatState extends State<Chat> {
   @override
   Widget build(BuildContext context) {
     final Color boxColor = Theme.of(context).colorScheme.surface;
-    final Color iconColor = Theme.of(context).colorScheme.onSurface;
+    final Color iconColor = Theme.of(context).colorScheme.primary;
     return ListView.builder(
       reverse: true,
       shrinkWrap: true,
@@ -118,5 +94,65 @@ class _ChatState extends State<Chat> {
         return MsgBox(widget.messages[index], boxColor, iconColor);
       },
     );
+  }
+}
+
+/// Draws a rouded box under a widget
+class RoundedBox extends StatelessWidget {
+  final Widget child;
+  final double padding;
+  final double cornerRadius;
+  final Color boxColor;
+
+  RoundedBox({
+    required this.child,
+    required this.boxColor,
+    this.padding = 8.0,
+    this.cornerRadius = boxCornerRad,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return CustomPaint(
+      painter: _RoundedBoxPainter(
+        padding: padding,
+        cornerRadius: cornerRadius,
+        boxColor: boxColor,
+      ),
+      child: Padding(
+        padding: EdgeInsets.all(padding),
+        child: child,
+      ),
+    );
+  }
+}
+
+class _RoundedBoxPainter extends CustomPainter {
+  final double padding;
+  final double cornerRadius;
+  final Color boxColor;
+
+  _RoundedBoxPainter({
+    required this.padding,
+    required this.cornerRadius,
+    required this.boxColor,
+  });
+
+  @override
+  void paint(Canvas canvas, Size size) {
+    final paint = Paint()..color = boxColor;
+    final rect = Rect.fromLTRB(
+      0,
+      0,
+      size.width,
+      size.height,
+    );
+    final rRect = RRect.fromRectAndRadius(rect, Radius.circular(cornerRadius));
+    canvas.drawRRect(rRect, paint);
+  }
+
+  @override
+  bool shouldRepaint(CustomPainter oldDelegate) {
+    return false;
   }
 }

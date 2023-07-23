@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 
 final moshiTheme = ThemeData(
   fontFamily: 'Raleway',
-  // textTheme: moshiTextTheme,
+  textTheme: moshiTextTheme,
   colorScheme: moshiColorScheme,
 );
 
@@ -29,35 +29,35 @@ final moshiColorScheme = ColorScheme(
   onTertiary: deepindigo,
 );
 
-// final moshiTextTheme = TextTheme(
-//   displayLarge: TextStyle(
-//     fontSize: 48,
-//     fontWeight: FontWeight.bold,
-//     fontFamily: 'Raleway',
-//   ),
-//   displayMedium: TextStyle(
-//     fontSize: 32,
-//     fontWeight: FontWeight.bold,
-//     fontFamily: 'Raleway',
-//   ),
-//   displaySmall: TextStyle(
-//     fontSize: 24,
-//     fontWeight: FontWeight.bold,
-//     fontFamily: 'Raleway',
-//   ),
-//   bodyLarge: TextStyle(
-//     fontSize: 32,
-//     fontWeight: FontWeight.normal,
-//     fontFamily: 'Raleway',
-//   ),
-//   bodyMedium: TextStyle(
-//     fontSize: 24,
-//     fontWeight: FontWeight.normal,
-//     fontFamily: 'Raleway',
-//   ),
-//   bodySmall: TextStyle(
-//     fontSize: 18,
-//     fontWeight: FontWeight.normal,
-//     fontFamily: 'Raleway',
-//   ),
-// );
+final moshiTextTheme = TextTheme(
+  displayLarge: TextStyle(
+    fontSize: 48,
+    fontWeight: FontWeight.bold,
+    fontFamily: 'Raleway',
+  ),
+  displayMedium: TextStyle(
+    fontSize: 32,
+    fontWeight: FontWeight.bold,
+    fontFamily: 'Raleway',
+  ),
+  displaySmall: TextStyle(
+    fontSize: 24,
+    fontWeight: FontWeight.bold,
+    fontFamily: 'Raleway',
+  ),
+  bodyLarge: TextStyle(
+    fontSize: 24,
+    fontWeight: FontWeight.normal,
+    fontFamily: 'Raleway',
+  ),
+  bodyMedium: TextStyle(
+    fontSize: 16,
+    fontWeight: FontWeight.normal,
+    fontFamily: 'Raleway',
+  ),
+  bodySmall: TextStyle(
+    fontSize: 12,
+    fontWeight: FontWeight.normal,
+    fontFamily: 'Raleway',
+  ),
+);
