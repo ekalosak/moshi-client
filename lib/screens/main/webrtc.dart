@@ -98,23 +98,51 @@ class _WebRTCScreenState extends State<WebRTCScreen> {
   Future<String?> callMoshi() async {
     String? err;
     print("callMoshi [START]");
-    if (_pc != null) {
-      print("peer connection already exists.");
-      return null;
+    if (_pc != null || _dc != null) {
+      print("peer connection already exists, ending previous call.");
+      await tearDownWebRTC();
     }
     try {
       // Create peer connection
       print("creating peer connection with config: $pcConfig");
       RTCPeerConnection pc = await setupPeerConnection(pcConfig);
+      pc.onConnectionState = (pcs) {
+        print("pc: onConnectionState: $pcs");
+        if (pcs == RTCPeerConnectionState.RTCPeerConnectionStateConnected) {
+          print("pc: connected");
+        } else if (pcs == RTCPeerConnectionState.RTCPeerConnectionStateDisconnected) {
+          // TODO set an error message to be displayed in the snackbox on build
+          print("pc: disconnected");
+          setState(() {
+            callStatus = CallStatus.idle;
+          });
+        } else if (pcs == RTCPeerConnectionState.RTCPeerConnectionStateFailed) {
+          print("pc: failed");
+          setState(() {
+            callStatus = CallStatus.idle;
+          });
+        } else {
+          print("TODO pc: connection state change unhandled: $pcs");
+        }
+      };
       print("created pc: $pc");
       setState(() {
         _pc = pc;
       });
-      // Create data channels
+      // Create data channel
       RTCDataChannelInit dataChannelDict = RTCDataChannelInit()..maxRetransmits = 30;
       RTCDataChannel dc = await pc.createDataChannel('data', dataChannelDict);
       dc.onDataChannelState = (dcs) {
-        print("dc: onDataChannelState: $dcs");
+        if (dcs == RTCDataChannelState.RTCDataChannelOpen) {
+          print("dc: data channel open");
+        } else if (dcs == RTCDataChannelState.RTCDataChannelClosed) {
+          print("dc: data channel closed");
+          setState(() {
+            callStatus = CallStatus.idle; // TODO also handle channel closed for the peer connection
+          });
+        } else {
+          print("TODO dc: data channel state change unhandled: $dcs");
+        }
       };
       dc.onMessage = (dcm) {
         if (!dcm.isBinary) {
@@ -321,7 +349,7 @@ class _WebRTCScreenState extends State<WebRTCScreen> {
     setState(() {
       micStatus = MicStatus.on;
     });
-    print("\n\nEnabled audio track(s)");
+    print("Enabled audio track(s)");
   }
 
   /// Whenever the user's finger leaves the button, mute the track and update the status.
@@ -333,7 +361,7 @@ class _WebRTCScreenState extends State<WebRTCScreen> {
     setState(() {
       micStatus = MicStatus.muted;
     });
-    print("\n\nDisabled audio track(s)");
+    print("Disabled audio track(s)");
   }
 
   bool readyForCall() {
