@@ -87,9 +87,6 @@ class _WebRTCScreenState extends State<WebRTCScreen> {
       });
       return err;
     }
-    setState(() {
-      callStatus = CallStatus.inCall;
-    });
     print("startPressed [END]");
     return null;
   }
@@ -168,6 +165,7 @@ class _WebRTCScreenState extends State<WebRTCScreen> {
   Future<String?> stopPressed() async {
     print("stopPressed [START]");
     // TODO return erros returned by hangUpMoshi or by stopMicrophoneStream
+    await _dc?.send(RTCDataChannelMessage("status bye"));
     await hangUpMoshi();
     await stopMicrophoneStream();
     print("stopPressed [END]");
@@ -205,11 +203,10 @@ class _WebRTCScreenState extends State<WebRTCScreen> {
     RTCSessionDescription offer = await pc.createOffer();
     print("offer:\n\ttype: ${offer.type}\n\tsdp:\n${offer.sdp}");
     await pc.setLocalDescription(offer);
-    RTCSessionDescription? _answer = await moshi.sendOfferGetAnswer(offer);
-    if (_answer == null) {
+    RTCSessionDescription? answer = await moshi.sendOfferGetAnswer(offer);
+    if (answer == null) {
       return "Failed to get SDP from Moshi server.";
     }
-    RTCSessionDescription answer = _answer!;
     print("answer:\n\ttype: ${answer.type}\n\tsdp:\n${answer.sdp}");
     await pc.setRemoteDescription(answer);
     print("negotiate [END]");
@@ -225,20 +222,20 @@ class _WebRTCScreenState extends State<WebRTCScreen> {
     RTCPeerConnection pc = _pc!;
     // Add listeners for ICE state change.
     // NOTE webrtc implementation handles resolving ice candidates.
-    pc?.onIceGatheringState = (gs) async {
+    pc.onIceGatheringState = (gs) async {
       print("pc: onIceGatheringState: $gs");
     };
-    pc?.onIceConnectionState = (cs) async {
+    pc.onIceConnectionState = (cs) async {
       print("pc: onIceConnectionState: $cs");
     };
-    pc?.onSignalingState = (ss) async {
+    pc.onSignalingState = (ss) async {
       print("pc: onIceSignalingState: $ss");
     };
-    pc?.onIceCandidate = (candidate) async {
+    pc.onIceCandidate = (candidate) async {
       print("pc: onIceCandidate: ${candidate.candidate}");
     };
     // Handle what to do when tracks are added
-    pc?.onTrack = (evt) {
+    pc.onTrack = (evt) {
       if (evt.track.kind == 'audio') {
         print("pc: audio track added");
       } else {
@@ -283,6 +280,7 @@ class _WebRTCScreenState extends State<WebRTCScreen> {
 
   /// Destroy the peer connections
   Future<void> tearDownWebRTC() async {
+    print("tearDownWebRTC [START]");
     await _pc?.dispose();
     await _dc?.close();
     if (!mounted) return;
@@ -290,11 +288,12 @@ class _WebRTCScreenState extends State<WebRTCScreen> {
       _pc = null;
       _dc = null;
     });
+    print("tearDownWebRTC [END]");
   }
 
   /// Insert a new message into the Chat widget
   void _addMsg(Message msg) {
-    print("_addMsg: $msg");
+    print("_addMsg");
     setState(() {
       _messages.insert(0, msg);
     });
@@ -316,7 +315,33 @@ class _WebRTCScreenState extends State<WebRTCScreen> {
       case "ping":
         print("TODO send pong");
         break;
+      case "error":
+        _handleError(body);
+        break;
+      default:
+        print("TODO unhandled message type: $msgtp");
     }
+  }
+
+  void _handleError(String? errtype) async {
+    print("_handleError");
+    switch (errtype) {
+      case "usrNotSpeaking":
+        util.showError(
+            context, "Moshi hung up after waiting for you to speak. Please feel free to start another conversation.");
+        break;
+      default:
+        print("TODO unhandled error type: $errtype");
+    }
+    await stopPressed();
+  }
+
+  /// Update the call state to inCall
+  void _handleHello() {
+    print("_handleHello");
+    setState(() {
+      callStatus = CallStatus.inCall;
+    });
   }
 
   /// Parse the status and modify screen state accordingly.
@@ -325,6 +350,7 @@ class _WebRTCScreenState extends State<WebRTCScreen> {
     print("statusType: $statusType");
     switch (statusType) {
       case "hello":
+        _handleHello();
         break;
       default:
         print("TODO unhandled status type: $statusType");
@@ -334,9 +360,9 @@ class _WebRTCScreenState extends State<WebRTCScreen> {
   /// Parse the Message from a datachannel (non-binary) serialization and add it to the screen
   void _handleTranscript(String body) {
     final Role role = (body.split(" ")[0] == "ast") ? Role.ast : Role.usr;
-    print('role: $role');
+    print('\trole: $role');
     final String content = body.split(" ").sublist(1).join(' ');
-    print('content: $content');
+    print('\tcontent: $content');
     _addMsg(Message(role, content));
   }
 
@@ -362,10 +388,6 @@ class _WebRTCScreenState extends State<WebRTCScreen> {
       micStatus = MicStatus.muted;
     });
     print("Disabled audio track(s)");
-  }
-
-  bool readyForCall() {
-    return (callStatus == CallStatus.idle);
   }
 
   @override
@@ -435,17 +457,34 @@ class _WebRTCScreenState extends State<WebRTCScreen> {
                       child: FloatingActionButton(
                         autofocus: true,
                         onPressed: () async {
-                          final String? err = (readyForCall()) ? await startPressed() : await stopPressed();
+                          final String? err;
+                          switch (callStatus) {
+                            case CallStatus.inCall:
+                              err = await stopPressed();
+                              break;
+                            case CallStatus.idle:
+                              err = await startPressed();
+                              break;
+                            default:
+                              err = null;
+                              break;
+                          }
                           if (err != null) {
                             print("ERROR: $err");
                             util.showError(context, "I'm sorry, Moshi didn't pick up the phone. Please call again.");
                           }
                         },
-                        backgroundColor: (callStatus == CallStatus.idle)
-                            ? Theme.of(context).colorScheme.primary
-                            : Theme.of(context).colorScheme.secondary,
+                        backgroundColor: {
+                          CallStatus.idle: Theme.of(context).colorScheme.primary,
+                          CallStatus.ringing: Colors.grey,
+                          CallStatus.inCall: Theme.of(context).colorScheme.secondary,
+                        }[callStatus],
                         child: Icon(
-                          (readyForCall()) ? Icons.add_call : Icons.call_end,
+                          {
+                            CallStatus.idle: Icons.call,
+                            CallStatus.ringing: Icons.call_made,
+                            CallStatus.inCall: Icons.call_end,
+                          }[callStatus],
                         ),
                       ),
                     ))),
