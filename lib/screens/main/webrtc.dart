@@ -33,7 +33,11 @@ class _WebRTCScreenState extends State<WebRTCScreen> {
   ServerStatus serverStatus = ServerStatus.unknown;
   CallStatus callStatus = CallStatus.idle;
   final List<Message> _messages = [
-    Message(Role.ast, "Not much my excellent bro, you?"),
+    Message(Role.ast, "It's the big round one just below on the left."),
+    Message(Role.usr, "Where is that?"),
+    Message(Role.ast, "Click the call button and start a conversation."),
+    Message(Role.usr, "Cool - how?"),
+    Message(Role.ast, "I'm here to help you learn a second language!"),
     Message(Role.usr, "Hey Moshi, what's up?"),
     Message(Role.ast, "Moshi moshi."),
   ];
@@ -481,7 +485,7 @@ class _WebRTCScreenState extends State<WebRTCScreen> {
                         }[callStatus],
                         child: Icon(
                           {
-                            CallStatus.idle: Icons.call,
+                            CallStatus.idle: Icons.wifi_calling_3,
                             CallStatus.ringing: Icons.call_made,
                             CallStatus.inCall: Icons.call_end,
                           }[callStatus],
