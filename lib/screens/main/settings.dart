@@ -22,8 +22,11 @@ class SettingsScreen extends StatelessWidget {
   Widget build(BuildContext context) {
     return Center(
       child: Container(
-        child: ElevatedButton(
-          child: Text('Log Out'),
+        child: FloatingActionButton.extended(
+          heroTag: "logout",
+          label: Text('Log out'),
+          icon: Icon(Icons.logout),
+          backgroundColor: Theme.of(context).colorScheme.primary,
           onPressed: () {
             logOut(context);
           },

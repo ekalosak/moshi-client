@@ -25,33 +25,61 @@ class _MainScreenState extends State<MainScreen> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        title: Text('Moshi'),
-      ),
-      body: _screens[_currentIndex],
-      bottomNavigationBar: BottomNavigationBar(
-        currentIndex: _currentIndex,
-        onTap: (index) {
-          setState(() {
-            _currentIndex = index;
-          });
-        },
-        items: [
-          BottomNavigationBarItem(
-            icon: Icon(Icons.settings),
-            label: 'Settings',
+    Drawer menuDrawer = Drawer(
+      child: ListView(
+        children: [
+          DrawerHeader(
+            decoration: BoxDecoration(
+              color: Theme.of(context).colorScheme.background,
+            ),
+            child: Text('Moshi'),
           ),
-          BottomNavigationBarItem(
-            icon: Icon(Icons.transcribe),
-            label: 'Chat',
+          ListTile(
+            title: Text('Chat'),
+            onTap: () {
+              setState(() {
+                _currentIndex = 1;
+              });
+              Navigator.pop(context);
+            },
           ),
-          BottomNavigationBarItem(
-            icon: Icon(Icons.analytics_outlined),
-            label: 'Progress',
+          ListTile(
+            title: Text('Progress'),
+            onTap: () {
+              setState(() {
+                _currentIndex = 2;
+              });
+              Navigator.pop(context);
+            },
+          ),
+          ListTile(
+            title: Text('Settings'),
+            onTap: () {
+              setState(() {
+                _currentIndex = 0;
+              });
+              Navigator.pop(context);
+            },
           ),
         ],
       ),
+    );
+    return Scaffold(
+      appBar: AppBar(
+        title: Text('Moshi'),
+        leading: Builder(
+          builder: (BuildContext context) {
+            return IconButton(
+              icon: Icon(Icons.menu),
+              onPressed: () {
+                Scaffold.of(context).openDrawer();
+              },
+            );
+          },
+        ),
+      ),
+      drawer: menuDrawer,
+      body: _screens[_currentIndex],
     );
   }
 }
