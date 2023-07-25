@@ -24,6 +24,7 @@ dependencies:
   firebase_storage: ^11.2.5
   flutter_webrtc: ^0.9.36
   audio_streamer: ^3.0.0
+  cloud_firestore: ^4.8.3
 
 dev_dependencies:
   flutter_test:

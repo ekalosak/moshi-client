@@ -1,5 +1,9 @@
 import 'package:flutter/material.dart';
+import 'package:go_router/go_router.dart';
+import 'package:provider/provider.dart';
 
+import 'package:moshi_client/services/auth.dart';
+import 'profile.dart';
 import 'progress.dart';
 import 'settings.dart';
 import 'webrtc.dart';
@@ -10,21 +14,26 @@ class MainScreen extends StatefulWidget {
 }
 
 class _MainScreenState extends State<MainScreen> {
-  int _currentIndex = 1;
+  int _currentIndex = 0;
   final List<Widget> _screens = [];
 
   @override
   void initState() {
     super.initState();
     _screens.addAll([
-      SettingsScreen(),
       WebRTCScreen(),
       ProgressScreen(),
+      ProfileScreen(),
+      SettingsScreen(),
     ]);
   }
 
   @override
   Widget build(BuildContext context) {
+    final AuthService authService = Provider.of<AuthService>(context, listen: false);
+    if (authService.currentUser == null) {
+      context.go('/');
+    }
     Drawer menuDrawer = Drawer(
       child: ListView(
         children: [
@@ -38,13 +47,22 @@ class _MainScreenState extends State<MainScreen> {
             title: Text('Chat'),
             onTap: () {
               setState(() {
-                _currentIndex = 1;
+                _currentIndex = 0;
               });
               Navigator.pop(context);
             },
           ),
           ListTile(
             title: Text('Progress'),
+            onTap: () {
+              setState(() {
+                _currentIndex = 1;
+              });
+              Navigator.pop(context);
+            },
+          ),
+          ListTile(
+            title: Text('Profile'),
             onTap: () {
               setState(() {
                 _currentIndex = 2;
@@ -56,7 +74,7 @@ class _MainScreenState extends State<MainScreen> {
             title: Text('Settings'),
             onTap: () {
               setState(() {
-                _currentIndex = 0;
+                _currentIndex = 3;
               });
               Navigator.pop(context);
             },

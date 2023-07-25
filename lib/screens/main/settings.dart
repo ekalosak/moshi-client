@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:provider/provider.dart';
 
-import '../main/main.dart';
 import '../../services/auth.dart';
 
 class SettingsScreen extends StatelessWidget {
@@ -21,16 +20,14 @@ class SettingsScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Center(
-      child: Container(
-        child: FloatingActionButton.extended(
-          heroTag: "logout",
-          label: Text('Log out'),
-          icon: Icon(Icons.logout),
-          backgroundColor: Theme.of(context).colorScheme.primary,
-          onPressed: () {
-            logOut(context);
-          },
-        ),
+      child: FloatingActionButton.extended(
+        heroTag: "logout",
+        label: Text('Log out'),
+        icon: Icon(Icons.logout),
+        backgroundColor: Theme.of(context).colorScheme.primary,
+        onPressed: () {
+          logOut(context);
+        },
       ),
     );
   }

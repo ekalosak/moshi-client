@@ -50,7 +50,7 @@ class _LoginScreenState extends State<LoginScreen> {
     final AuthService authService = Provider.of<AuthService>(context, listen: false);
     if (err != null) {
       // If err isn't null, show a snackbar with the error
-      WidgetsBinding.instance!.addPostFrameCallback((_) {
+      WidgetsBinding.instance.addPostFrameCallback((_) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(content: Text(err!)),
         );

@@ -287,7 +287,10 @@ class _WebRTCScreenState extends State<WebRTCScreen> {
     print("tearDownWebRTC [START]");
     await _pc?.dispose();
     await _dc?.close();
-    if (!mounted) return;
+    if (!mounted) {
+      print("tearDownWebRTC [END]");
+      return;
+    }
     setState(() {
       _pc = null;
       _dc = null;
