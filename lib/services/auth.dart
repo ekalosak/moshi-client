@@ -85,26 +85,6 @@ class AuthService {
     return err;
   }
 
-  // Future<String?> signInWithGoogle(BuildContext context) async {
-  //   try {
-  //     final GoogleSignInAccount? googleUser = await GoogleSignIn().signIn();
-  //     final GoogleSignInAuthentication googleAuth = await googleUser!.authentication;
-  //     final credential = GoogleAuthProvider.credential(
-  //       accessToken: googleAuth.accessToken,
-  //       idToken: googleAuth.idToken,
-  //     );
-  //     final UserCredential userCredential = await _firebaseAuth.signInWithCredential(credential);
-  //     return userCredential.user!.uid;
-  //   } catch (e) {
-  //     print("Unknown error");
-  //     print(e);
-  //     ScaffoldMessenger.of(context).showSnackBar(
-  //       SnackBar(content: Text('An error occurred. Please try again later.')),
-  //     );
-  //     return null;
-  //   }
-  // }
-
   // Retrun null if successful, otherwise error message.
   Future<String?> signUpWithEmailAndPassword(String email, String password, String firstName) async {
     String? err;

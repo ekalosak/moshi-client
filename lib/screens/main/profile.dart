@@ -48,12 +48,13 @@ class _ProfileScreenState extends State {
         FirebaseFirestore.instance.collection('profiles').doc(uid);
     print("got profile ref");
     DocumentSnapshot<Map<String, dynamic>> documentSnapshot = await documentReference.get();
-    print("got profile");
     if (!documentSnapshot.exists) {
+      print("snapshot doesn't exist");
       return null;
     } else {
+      String name = authService.currentUser!.displayName ?? 'MissingName';
       Map<String, dynamic> data = documentSnapshot.data()!;
-      return Profile(lang: data['lang'], name: data['name']);
+      return Profile(lang: data['lang'], name: name);
     }
   }
 
@@ -61,9 +62,10 @@ class _ProfileScreenState extends State {
   Future<void> _updateProfile(String uid, Profile profile) async {
     DocumentReference<Map<String, dynamic>> documentReference =
         FirebaseFirestore.instance.collection('profiles').doc(uid);
+    await FirebaseAuth.instance.currentUser!.updateDisplayName(profile.name);
     await documentReference.set({
       'lang': profile.lang,
-      'name': profile.name,
+      // 'name': profile.name,
     });
   }
 
@@ -108,9 +110,6 @@ class _ProfileScreenState extends State {
             ScaffoldMessenger.of(context).showSnackBar(
               SnackBar(content: Text(err!)),
             );
-            setState(() {
-              err = null;
-            });
           });
         }
         return Padding(
@@ -160,8 +159,9 @@ class _ProfileScreenState extends State {
   @override
   Widget build(BuildContext context) {
     print("profile: build");
-    final User user = authService.currentUser!;
-    print("profile: build: user: $user");
+    // final User user = authService.currentUser!;
+    final User user = FirebaseAuth.instance.currentUser!;
+    print("screens/profile: build: user: $user");
     return Padding(padding: EdgeInsets.all(16.0), child: _profileForm(user.uid));
   }
 }
