@@ -12,7 +12,17 @@ class LoginScreen extends StatefulWidget {
 class _LoginScreenState extends State<LoginScreen> {
   final TextEditingController emailController = TextEditingController();
   final TextEditingController passwordController = TextEditingController();
+  late AuthService authService;
   String? err;
+
+  @override
+  void initState() {
+    super.initState();
+    final AuthService authService = Provider.of<AuthService>(context, listen: false);
+    if (authService.currentUser != null) {
+      context.go('/m');
+    }
+  }
 
   @override
   void dispose() {
@@ -21,33 +31,20 @@ class _LoginScreenState extends State<LoginScreen> {
     super.dispose();
   }
 
-  Future<String?> loginWithEmailPassword(AuthService authService) async {
-    final String? authToken = await authService.signInWithEmailAndPassword(
+  Future<String?> loginWithEmailPassword() async {
+    final String? err = await authService.signInWithEmailAndPassword(
       emailController.text,
       passwordController.text,
-      context,
     );
-    if (authToken != null) {
+    if (err != null) {
       return null;
     } else {
       return "Login with email+password failed.";
     }
   }
 
-  // Future<void> loginWithGoogle(BuildContext context) async {
-  //   final AuthService authService = Provider.of<AuthService>(context, listen: false);
-  //   final String? authToken = await authService.signInWithGoogle(context);
-  //   if (authToken != null) {
-  //     print("Login with google succeded!");
-  //     context.go('/m');
-  //   } else {
-  //     print("Login with google failed.");
-  //   }
-  // }
-
   @override
   Widget build(BuildContext context) {
-    final AuthService authService = Provider.of<AuthService>(context, listen: false);
     if (err != null) {
       // If err isn't null, show a snackbar with the error
       WidgetsBinding.instance.addPostFrameCallback((_) {
@@ -101,7 +98,7 @@ class _LoginScreenState extends State<LoginScreen> {
                         icon: Icon(Icons.login),
                         backgroundColor: Theme.of(context).colorScheme.primary,
                         onPressed: () async {
-                          err = await loginWithEmailPassword(authService);
+                          err = await loginWithEmailPassword();
                           setState(() {
                             err = err;
                           });

@@ -8,7 +8,7 @@ class SettingsScreen extends StatelessWidget {
   Future<void> logOut(BuildContext context) async {
     final AuthService authService = Provider.of<AuthService>(context, listen: false);
     try {
-      await authService.signOut(context);
+      await authService.signOut();
       context.go('/');
     } catch (e) {
       ScaffoldMessenger.of(context).showSnackBar(

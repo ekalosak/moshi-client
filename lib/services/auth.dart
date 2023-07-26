@@ -46,128 +46,121 @@ class AuthService {
 
   User? get currentUser => _currentUser;
 
-  Future<String?> signInWithEmailAndPassword(String email, String password, BuildContext context) async {
+  Future<String?> signInWithEmailAndPassword(String email, String password) async {
+    String? err;
     try {
       UserCredential userCredential = await _firebaseAuth.signInWithEmailAndPassword(
         email: email,
         password: password,
       );
-      return userCredential.user!.uid;
+      print("signInWithEmailAndPassword userCredential.user: ${userCredential.user}");
+      err = null;
     } on FirebaseAuthException catch (e) {
       print("FirebaseAuthException");
       print(e);
       print("FirebaseAuthException.code");
       print(e.code);
-      String errorMessage;
       if (e.code == 'user-not-found') {
-        errorMessage = 'No user found for that email.';
+        err = 'No user found for that email.';
       } else if (e.code == 'wrong-password') {
-        errorMessage = 'Wrong password provided for that user.';
+        err = 'Wrong password provided for that user.';
       } else if (e.code == 'unknown') {
         if (e.toString().contains('auth/invalid-email')) {
-          errorMessage = 'Email invalid.';
+          err = 'Email invalid.';
         } else if (e.toString().contains('auth/wrong-password')) {
-          errorMessage = 'Wrong password.';
+          err = 'Wrong password.';
         } else {
-          errorMessage = 'An error occurred. Please try again later.';
+          print("Nonspecific FirebaseAuthException: $e");
+          err = 'An error occurred. Please try again later.';
         }
       } else {
-        errorMessage = 'An error occurred. Please try again later.';
+        print("Nonspecific Exception: $e");
+        err = 'An error occurred. Please try again later.';
       }
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text(errorMessage)),
-      );
-      return null;
     } catch (e) {
       print("Unknown error");
       print(e);
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('An error occurred. Please try again later.')),
-      );
-      return null;
+      err = 'An error occurred. Please try again later.';
     }
+    return err;
   }
 
-  Future<String?> signInWithGoogle(BuildContext context) async {
-    try {
-      final GoogleSignInAccount? googleUser = await GoogleSignIn().signIn();
-      final GoogleSignInAuthentication googleAuth = await googleUser!.authentication;
+  // Future<String?> signInWithGoogle(BuildContext context) async {
+  //   try {
+  //     final GoogleSignInAccount? googleUser = await GoogleSignIn().signIn();
+  //     final GoogleSignInAuthentication googleAuth = await googleUser!.authentication;
+  //     final credential = GoogleAuthProvider.credential(
+  //       accessToken: googleAuth.accessToken,
+  //       idToken: googleAuth.idToken,
+  //     );
+  //     final UserCredential userCredential = await _firebaseAuth.signInWithCredential(credential);
+  //     return userCredential.user!.uid;
+  //   } catch (e) {
+  //     print("Unknown error");
+  //     print(e);
+  //     ScaffoldMessenger.of(context).showSnackBar(
+  //       SnackBar(content: Text('An error occurred. Please try again later.')),
+  //     );
+  //     return null;
+  //   }
+  // }
 
-      final credential = GoogleAuthProvider.credential(
-        accessToken: googleAuth.accessToken,
-        idToken: googleAuth.idToken,
-      );
-
-      final UserCredential userCredential = await _firebaseAuth.signInWithCredential(credential);
-
-      return userCredential.user!.uid;
-    } catch (e) {
-      print("Unknown error");
-      print(e);
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('An error occurred. Please try again later.')),
-      );
-      return null;
-    }
-  }
-
-  Future<String?> signUpWithEmailAndPassword(
-      String email, String password, String firstName, BuildContext context) async {
+  // Retrun null if successful, otherwise error message.
+  Future<String?> signUpWithEmailAndPassword(String email, String password, String firstName) async {
+    String? err;
+    print("signUpWithEmailAndPassword");
     try {
       UserCredential userCredential = await _firebaseAuth.createUserWithEmailAndPassword(
         email: email,
         password: password,
       );
-
-      await userCredential.user!.updateDisplayName(firstName);
-      await userCredential.user?.sendEmailVerification();
-
-      final String authToken = userCredential.user!.uid;
-      return authToken;
+      final user = userCredential.user;
+      await user?.updateDisplayName(firstName);
+      await user?.sendEmailVerification();
+      err = await signOut();
+      if (err == null) {
+        err = await signInWithEmailAndPassword(email, password);
+      }
     } on FirebaseAuthException catch (e) {
       print("FirebaseAuthException");
       print(e);
-      String errorMessage;
+      print("FirebaseAuthException.code");
+      print(e.code);
+      err = 'An error occurred. Please try again later.';
       if (e.code == 'weak-password') {
-        errorMessage = 'The password provided is too weak.';
+        err = 'The password provided is too weak.';
+      } else if (e.code == "email-already-in-use") {
+        err = 'An account already exists for that email.';
       } else if (e.code == 'unknown') {
         if (e.toString().contains('auth/invalid-email')) {
-          errorMessage = 'Email invalid.';
+          err = 'Email invalid.';
         } else if (e.toString().contains('auth/email-already-in-use')) {
-          errorMessage = 'The account already exists for that email.';
+          err = 'The account already exists for that email.';
         } else if (e.toString().contains('auth/missing-password')) {
-          errorMessage = 'Please provide a password.';
+          err = 'Please provide a password.';
         } else {
-          errorMessage = 'An error occurred. Please try again later.';
+          err = 'An error occurred. Please try again later.';
         }
-      } else {
-        errorMessage = 'An error occurred. Please try again later.';
       }
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text(errorMessage)),
-      );
-      return null;
     } catch (e) {
       print("Unknown error");
       print(e);
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('An error occurred. Please try again later.')),
-      );
-      return null;
+      err = 'An error occurred. Please try again later.';
     }
+    return err;
   }
 
-  // TODO non-brut error handling around signOut
-  Future<void> signOut(BuildContext context) async {
+  Future<String?> signOut() async {
+    String? err;
     try {
       await _firebaseAuth.signOut(); // NOTE redirect to '/' route is done by caller.
       _currentUser = null; // do this immediately because there might be a delay in the listener.
+      err = null;
     } catch (e) {
       print(e);
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('An error occurred. Please try again later.')),
-      );
+      err = 'An error occurred. Please try again later.';
     }
+    return err;
   }
 
   // TODO non-brut error handling around sendPasswordResetEmail

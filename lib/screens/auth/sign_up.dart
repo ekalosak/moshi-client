@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:go_router/go_router.dart';
 import 'package:provider/provider.dart';
 
 import '../../services/auth.dart';
@@ -15,7 +16,8 @@ class _SignUpScreenState extends State<SignUpScreen> {
   bool isLoading = false;
   String? err;
 
-  Future<void> signUp(BuildContext context) async {
+  Future<String?> signUp() async {
+    String? err;
     String email = emailController.text;
     String password = passwordController.text;
     String name = firstNameController.text;
@@ -24,26 +26,22 @@ class _SignUpScreenState extends State<SignUpScreen> {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text('Please provide a name Moshi can call you.')),
       );
+      return "Please provide a name Moshi can call you.";
     } else {
       setState(() {
         isLoading = true;
       });
-      final String? authToken = await authService.signUpWithEmailAndPassword(
-        email,
-        password,
-        name,
-        context,
-      );
+      err = await authService.signUpWithEmailAndPassword(email, password, name);
       setState(() {
         isLoading = false;
       });
 
-      if (authToken != null) {
+      if (err == null) {
         print("Signup succeded!");
-        Navigator.of(context).pop(); // TODO move this to synchronous code
       } else {
-        print("Signup failed."); // NOTE authService handles the popups for user
+        print("Signup failed: $err");
       }
+      return err;
     }
   }
 
@@ -51,7 +49,7 @@ class _SignUpScreenState extends State<SignUpScreen> {
   Widget build(BuildContext context) {
     if (err != null) {
       // If err isn't null, show a snackbar with the error
-      WidgetsBinding.instance!.addPostFrameCallback((_) {
+      WidgetsBinding.instance.addPostFrameCallback((_) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(content: Text(err!)),
         );
@@ -97,7 +95,14 @@ class _SignUpScreenState extends State<SignUpScreen> {
                 icon: Icon(Icons.person_add),
                 backgroundColor: Theme.of(context).colorScheme.primary,
                 onPressed: () async {
-                  await signUp(context); // TODO make signUp return err, do the snackbar
+                  final String? err = await signUp();
+                  if (err == null) {
+                    context.go('/m');
+                  } else {
+                    setState(() {
+                      this.err = err;
+                    });
+                  }
                 },
               ),
             ],

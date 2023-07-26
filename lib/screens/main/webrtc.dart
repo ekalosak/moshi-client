@@ -2,9 +2,11 @@ import 'dart:async';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_webrtc/flutter_webrtc.dart';
+import 'package:provider/provider.dart';
 
 import 'package:moshi_client/types.dart';
 import 'package:moshi_client/services/moshi.dart' as moshi;
+import 'package:moshi_client/services/auth.dart';
 import 'package:moshi_client/util.dart' as util;
 import 'package:moshi_client/widgets/chat.dart';
 import 'package:moshi_client/widgets/status.dart';
@@ -32,19 +34,30 @@ class _WebRTCScreenState extends State<WebRTCScreen> {
   MicStatus micStatus = MicStatus.off;
   ServerStatus serverStatus = ServerStatus.unknown;
   CallStatus callStatus = CallStatus.idle;
-  final List<Message> _messages = [
-    Message(Role.ast, "It's the big round one just below on the left."),
-    Message(Role.usr, "Where is that?"),
-    Message(Role.ast, "Click the call button and start a conversation."),
-    Message(Role.usr, "Cool - how?"),
-    Message(Role.ast, "I'm here to help you learn a second language!"),
-    Message(Role.usr, "Hey Moshi, what's up?"),
-    Message(Role.ast, "Moshi moshi."),
-  ];
+  late List<Message> _messages;
+  late AuthService _authService;
+  late String _username;
 
   @override
   void initState() {
     super.initState();
+    AuthService authService = Provider.of<AuthService>(context, listen: false);
+    // authService.currentUser.
+    final String username = authService.currentUser!.displayName ?? "MissingName";
+    print("curusr: ${authService.currentUser}");
+    final List<Message> msgs = [
+      Message(Role.ast, "It's the big round one just below on the left."),
+      Message(Role.usr, "Where is that?"),
+      Message(Role.ast, "Click the call button and start a conversation."),
+      Message(Role.usr, "Cool - how?"),
+      Message(Role.ast, "I'm here to help you learn a second language!"),
+      Message(Role.usr, "Hey Moshi, what's up?"),
+      Message(Role.ast, "Moshi moshi, $username"),
+    ];
+    setState(() {
+      _authService = authService;
+      _messages = msgs;
+    });
   }
 
   /// Clean up the mic stream when the widget is disposed
