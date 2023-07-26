@@ -17,15 +17,17 @@ class _LoginScreenState extends State<LoginScreen> {
 
   @override
   void initState() {
-    super.initState();
-    final AuthService authService = Provider.of<AuthService>(context, listen: false);
+    print("LoginScreen.initState");
+    authService = Provider.of<AuthService>(context, listen: false);
     if (authService.currentUser != null) {
       context.go('/m');
     }
+    super.initState();
   }
 
   @override
   void dispose() {
+    print("LoginScreen.dispose");
     emailController.dispose();
     passwordController.dispose();
     super.dispose();

@@ -117,10 +117,9 @@ class AuthService {
       final user = userCredential.user;
       await user?.updateDisplayName(firstName);
       await user?.sendEmailVerification();
+      // NOTE need to refresh credentials after updating displayName.
       err = await signOut();
-      if (err == null) {
-        err = await signInWithEmailAndPassword(email, password);
-      }
+      err ??= await signInWithEmailAndPassword(email, password);
     } on FirebaseAuthException catch (e) {
       print("FirebaseAuthException");
       print(e);
