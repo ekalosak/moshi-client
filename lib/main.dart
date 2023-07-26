@@ -11,19 +11,19 @@ import 'services/auth.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
-  await Firebase.initializeApp(
-    options: DefaultFirebaseOptions.currentPlatform,
-  );
   if (kDebugMode) {
     print("DEBUG");
     try {
-      FirebaseFirestore.instance.useFirestoreEmulator('localhost', 8080);
+      FirebaseFirestore.instance.useFirestoreEmulator('localhost', 8081);
       await FirebaseAuth.instance.useAuthEmulator('localhost', 9099);
     } catch (e) {
       // ignore: avoid_print
       print(e);
     }
   }
+  await Firebase.initializeApp(
+    options: DefaultFirebaseOptions.currentPlatform,
+  );
   final authService = AuthService();
   runApp(
     AuthServiceProvider(

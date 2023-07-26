@@ -76,51 +76,42 @@ class _ProfileScreenState extends State {
     return data['langs'].cast<String>();
   }
 
-  // Column(
-  //   mainAxisAlignment: MainAxisAlignment.center,
-  //   children: [
-  //     TextField(
-  //       controller: nameCont,
-  //       decoration: InputDecoration(
-  //         labelText: 'Name',
-  //       ),
-  //     ),
-  //     TextField(
-  //       controller: langCont,
-  //       decoration: InputDecoration(
-  //         labelText: 'Language',
-  //       ),
-  //     ),
-  //     // only show the FAB if there is any text in the text fields
-  //     if (nameCont.text.isNotEmpty || langCont.text.isNotEmpty)
-  //       FloatingActionButton.extended(
-  //         heroTag: "save_profile",
-  //         label: Text('Save'),
-  //         icon: Icon(Icons.save),
-  //         backgroundColor: Theme.of(context).colorScheme.primary,
-  //         onPressed: () async {
-  //           print("saving profile");
-  //         },
-  //       ),
-  //   ],
-  // );
-
   /// Build the profile form.
   /// If the user's profile document exists, populate the text fields with the profile data.
   /// Otherwise, leave the text fields blank.
   /// Listen to changes to the text fields - if the user changes the text, show the save button.
   ///
   Widget _profileForm(String uid) {
+    String? err;
+    print("profile: _profileForm");
     return FutureBuilder(
       future: _getProfile(uid),
       builder: (BuildContext context, AsyncSnapshot<Profile?> snapshot) {
+        print("profile: _profileForm: snapshot: $snapshot");
         if (snapshot.hasData) {
           Profile? profile = snapshot.data;
           nameCont.text = profile!.name;
           langCont.text = profile.lang;
-        } else {
-          // show spinny thing while waiting for data
+        } else if (snapshot.hasError) {
+          err = "I had trouble finding your file, sorry about that.";
+          print("profile: _profileForm: snapshot.hasError: ${snapshot.error.toString()}");
+        } else if (snapshot.connectionState == ConnectionState.done) {
+          print("profile: _profileForm: snapshot.connectionState == ConnectionState.done");
+        } else if (snapshot.connectionState == ConnectionState.waiting) {
           return CircularProgressIndicator();
+        } else {
+          print("unhandled case");
+        }
+        // if err show it to user
+        if (err != null) {
+          WidgetsBinding.instance!.addPostFrameCallback((_) {
+            ScaffoldMessenger.of(context).showSnackBar(
+              SnackBar(content: Text(err!)),
+            );
+            setState(() {
+              err = null;
+            });
+          });
         }
         return Padding(
             padding: EdgeInsets.all(16.0),
@@ -168,7 +159,9 @@ class _ProfileScreenState extends State {
 
   @override
   Widget build(BuildContext context) {
+    print("profile: build");
     final User user = authService.currentUser!;
+    print("profile: build: user: $user");
     return Padding(padding: EdgeInsets.all(16.0), child: _profileForm(user.uid));
   }
 }

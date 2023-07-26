@@ -4,7 +4,7 @@ import 'package:http/http.dart' as http;
 
 const serverProtocol = "http";
 const serverName = "localhost";
-const serverPort = "8080";
+const serverPort = "8079";
 const serverEndpoint = "$serverProtocol://$serverName:$serverPort";
 final healthzEndpoint = Uri.parse("$serverEndpoint/healthz");
 final offerEndpoint = Uri.parse("$serverEndpoint/offer");
@@ -27,10 +27,7 @@ Future<bool> healthCheck() async {
 Future<RTCSessionDescription?> sendOfferGetAnswer(RTCSessionDescription offer) async {
   print("sendOfferGetAnswer [START]");
   try {
-    final response = await http.post(
-      offerEndpoint,
-      body: jsonEncode(offer.toMap())
-    );
+    final response = await http.post(offerEndpoint, body: jsonEncode(offer.toMap()));
     print("/offer: ${response.statusCode}");
     print("\t${response.body}");
     if (response.statusCode == 200) {
