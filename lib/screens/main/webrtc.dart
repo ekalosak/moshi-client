@@ -35,14 +35,12 @@ class _WebRTCScreenState extends State<WebRTCScreen> {
   ServerStatus serverStatus = ServerStatus.unknown;
   CallStatus callStatus = CallStatus.idle;
   late List<Message> _messages;
-  late AuthService _authService;
-  late String _username;
 
   @override
   void initState() {
     super.initState();
+    // TODO use firebase auth directly, not auth service.
     AuthService authService = Provider.of<AuthService>(context, listen: false);
-    // authService.currentUser.
     final String username = authService.currentUser!.displayName ?? "MissingName";
     print("curusr: ${authService.currentUser}");
     final List<Message> msgs = [
@@ -55,7 +53,6 @@ class _WebRTCScreenState extends State<WebRTCScreen> {
       Message(Role.ast, "Moshi moshi, $username"),
     ];
     setState(() {
-      _authService = authService;
       _messages = msgs;
     });
   }

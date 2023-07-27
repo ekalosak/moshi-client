@@ -1,10 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
+import 'package:moshi_client/screens/main/progress.dart';
 import 'package:provider/provider.dart';
 
 import 'package:moshi_client/services/auth.dart';
 import 'profile.dart';
 import 'progress.dart';
+import 'transcripts.dart';
 import 'settings.dart';
 import 'webrtc.dart';
 
@@ -22,8 +24,9 @@ class _MainScreenState extends State<MainScreen> {
     super.initState();
     _screens.addAll([
       WebRTCScreen(),
-      ProgressScreen(),
       ProfileScreen(),
+      ProgressScreen(),
+      // TranscriptsScreen(),
       SettingsScreen(),
     ]);
   }
