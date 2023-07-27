@@ -12,3 +12,12 @@ class Message {
 }
 
 enum DCMsg { transcript, status, ping }
+
+/// Profile represents the user's profile document from Firestore.
+class Profile {
+  String primaryLang;
+  String lang;
+  String name;
+  String uid;
+  Profile({required this.uid, required this.lang, required this.name, this.primaryLang = 'en'});
+}

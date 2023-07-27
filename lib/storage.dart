@@ -1,14 +1,7 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 
-/// Profile represents the user's profile document from Firestore.
-class Profile {
-  String primaryLang;
-  String lang;
-  String name;
-  String uid;
-  Profile({required this.uid, required this.lang, required this.name, this.primaryLang = 'en'});
-}
+import 'package:moshi_client/types.dart';
 
 Stream<DocumentSnapshot> profileStream(User user) {
   return FirebaseFirestore.instance.collection('profiles').doc(user.uid).snapshots(includeMetadataChanges: true);

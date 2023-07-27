@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 import 'package:moshi_client/storage.dart';
+import 'package:moshi_client/types.dart';
 import 'package:moshi_client/util.dart';
 import 'package:moshi_client/widgets/util.dart';
 import 'profile.dart';
@@ -17,7 +18,7 @@ class MainScreen extends StatefulWidget {
 }
 
 class _MainScreenState extends State<MainScreen> {
-  int _currentIndex = 1;
+  int _currentIndex = 0;
   final List<Widget> _screens = [];
 
   @override

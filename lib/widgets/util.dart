@@ -4,6 +4,7 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:go_router/go_router.dart';
 
 import 'package:moshi_client/storage.dart';
+import 'package:moshi_client/types.dart';
 
 /// Ensure the user is authorized to view the page.
 Widget authorized(BuildContext context, Widget widg) {
@@ -26,7 +27,6 @@ Widget withProfileAndConfig(Function makeWidget) {
         return StreamBuilder<DocumentSnapshot>(
           stream: profileStream(FirebaseAuth.instance.currentUser!),
           builder: (BuildContext context, AsyncSnapshot<DocumentSnapshot> pSnap) {
-            print("withProfileAndConfig: pSnap: ${pSnap.connectionState}, slSnap: ${slSnap.connectionState}");
             if (pSnap.connectionState == ConnectionState.waiting || slSnap.connectionState == ConnectionState.waiting) {
               return Center(child: CircularProgressIndicator());
             } else if (pSnap.hasError) {

@@ -1,15 +1,21 @@
+// TODO change state variables using listeners instead of setState
+// TODO refactor the calling into services/webrtc.dart
+// TODO add session management into services/webrtc.dart
+//  - create a session object that holds the peer connection, data channel, and local stream
+//  - create a session manager that holds the session and handles the signaling
+//  - keep connection alive by sending pings every 10 seconds
+//  - keep connection alive between calls instead of tearing down and re-establishing
 import 'dart:async';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_webrtc/flutter_webrtc.dart';
-import 'package:provider/provider.dart';
 
 import 'package:moshi_client/types.dart';
 import 'package:moshi_client/services/moshi.dart' as moshi;
-import 'package:moshi_client/services/auth.dart';
 import 'package:moshi_client/util.dart' as util;
 import 'package:moshi_client/widgets/chat.dart';
 import 'package:moshi_client/widgets/status.dart';
+import 'package:moshi_client/widgets/util.dart';
 
 const iceServers = [
   {
@@ -34,27 +40,26 @@ class _WebRTCScreenState extends State<WebRTCScreen> {
   MicStatus micStatus = MicStatus.off;
   ServerStatus serverStatus = ServerStatus.unknown;
   CallStatus callStatus = CallStatus.idle;
+  bool _justStarted = true;
   late List<Message> _messages;
 
-  @override
-  void initState() {
-    super.initState();
-    // TODO use firebase auth directly, not auth service.
-    AuthService authService = Provider.of<AuthService>(context, listen: false);
-    final String username = authService.currentUser!.displayName ?? "MissingName";
-    print("curusr: ${authService.currentUser}");
-    final List<Message> msgs = [
+  /// Initialize the messages list with some example messages.
+  List<Message> _initMessages(Profile profile) {
+    // TODO get instructions from a serverless function that takes the user's language as a parameter
+    return [
       Message(Role.ast, "It's the big round one just below on the left."),
       Message(Role.usr, "Where is that?"),
       Message(Role.ast, "Click the call button and start a conversation."),
       Message(Role.usr, "Cool - how?"),
       Message(Role.ast, "I'm here to help you learn a second language!"),
       Message(Role.usr, "Hey Moshi, what's up?"),
-      Message(Role.ast, "Moshi moshi, $username"),
+      Message(Role.ast, "Moshi moshi, ${profile.name}"),
     ];
-    setState(() {
-      _messages = msgs;
-    });
+  }
+
+  @override
+  void initState() {
+    super.initState();
   }
 
   /// Clean up the mic stream when the widget is disposed
@@ -72,6 +77,7 @@ class _WebRTCScreenState extends State<WebRTCScreen> {
     print("startPressed [START]");
     setState(() {
       _messages.clear();
+      _justStarted = false;
     });
     // Backend server check
     bool healthy = await moshi.healthCheck();
@@ -192,18 +198,16 @@ class _WebRTCScreenState extends State<WebRTCScreen> {
     try {
       final mediaConstraints = <String, dynamic>{'audio': true, 'video': false};
       var stream = await navigator.mediaDevices.getUserMedia(mediaConstraints);
-      _mediaDevicesList = await navigator.mediaDevices.enumerateDevices();
-      print("_mediaDevicesList.length: ${_mediaDevicesList?.length}");
-      for (var md in (_mediaDevicesList ?? [])) {
-        print("media device: ${md.label}");
-      }
       setState(() {
         micStatus = MicStatus.muted;
         _localStream = stream;
       });
+      MediaStreamTrack audio = _localStream!.getAudioTracks()[0];
+      audio.onMute = () => micStatus = MicStatus.muted;
+      audio.onUnMute = () => micStatus = MicStatus.on;
     } catch (error) {
       print("Error: $error");
-      return "We couldn't get a hold of your microphone, try enabling it in your system settings.";
+      return "I couldn't get access to your microphone, try enabling it in your phone's settings.";
     }
     print("startMicrophoneStream [END]");
     return null;
@@ -355,7 +359,6 @@ class _WebRTCScreenState extends State<WebRTCScreen> {
 
   /// Update the call state to inCall
   void _handleHello() {
-    print("_handleHello");
     setState(() {
       callStatus = CallStatus.inCall;
     });
@@ -364,7 +367,6 @@ class _WebRTCScreenState extends State<WebRTCScreen> {
   /// Parse the status and modify screen state accordingly.
   void _handleStatus(String body) {
     final String statusType = body.split(" ")[0];
-    print("statusType: $statusType");
     switch (statusType) {
       case "hello":
         _handleHello();
@@ -377,145 +379,160 @@ class _WebRTCScreenState extends State<WebRTCScreen> {
   /// Parse the Message from a datachannel (non-binary) serialization and add it to the screen
   void _handleTranscript(String body) {
     final Role role = (body.split(" ")[0] == "ast") ? Role.ast : Role.usr;
-    print('\trole: $role');
     final String content = body.split(" ").sublist(1).join(' ');
-    print('\tcontent: $content');
     _addMsg(Message(role, content));
   }
 
   /// While hold-to-chat pressed, enable the mic and send audio to the server.
   void _enableMic() {
     for (var audioTrack in _localStream!.getAudioTracks()) {
-      print("_enableMic: enabling audioTrack: $audioTrack");
       audioTrack.enabled = true;
     }
-    setState(() {
-      micStatus = MicStatus.on;
-    });
-    print("Enabled audio track(s)");
   }
 
   /// Whenever the user's finger leaves the button, mute the track and update the status.
   void _disableMic() {
     for (var audioTrack in _localStream!.getAudioTracks()) {
-      print("_disableMic: disabling audioTrack: $audioTrack");
       audioTrack.enabled = false;
     }
-    setState(() {
-      micStatus = MicStatus.muted;
-    });
-    print("Disabled audio track(s)");
   }
 
   @override
   Widget build(BuildContext context) {
-    final FractionallySizedBox holdToChatButton = FractionallySizedBox(
-        widthFactor: 0.65,
-        heightFactor: 0.65,
-        child: GestureDetector(
-          onTapDown: (_) {
-            _enableMic();
-          },
-          onTapUp: (_) {
-            _disableMic();
-          },
-          onTapCancel: () {
-            _disableMic();
-          },
-          child: FloatingActionButton.extended(
-            onPressed: () async {},
-            backgroundColor: Theme.of(context).colorScheme.primary,
-            label: Text("Hold to speak"),
-            icon: Icon(Icons.mic),
-          ),
-        ));
+    return authorized(context, withProfileAndConfig(_buildCallPage));
+  }
+
+  Widget _buildCallPage(BuildContext context, Profile profile, List<String> supportedLangs) {
+    if (_justStarted) {
+      _messages = _initMessages(profile);
+    }
+    final Row topStatusBar = _topStatusBar(context);
+    final Chat middleChatBox = Chat(messages: _messages);
+    final Row bottomButtons = _bottomButtons(context);
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
         SizedBox(
-            height: 64,
-            child: Row(children: [
-              Expanded(
-                flex: 2,
-                // while call is ringing, show a spinner aligned topleft, otherwise nothing
-                child: (callStatus == CallStatus.ringing)
-                    ? Align(
-                        alignment: Alignment.topLeft,
-                        child: Padding(
-                          padding: const EdgeInsets.all(8.0),
-                          child: CircularProgressIndicator(),
-                        ),
-                      )
-                    : SizedBox(),
-              ),
-              Expanded(
-                flex: 3,
-                child: ConnectionStatus(
-                  micStatus: micStatus,
-                  serverStatus: serverStatus,
-                  callStatus: callStatus,
-                  colorScheme: Theme.of(context).colorScheme,
-                ),
-              ),
-            ])),
+          height: 64,
+          child: topStatusBar,
+        ),
         Expanded(
-          child: Chat(messages: _messages),
+          child: middleChatBox,
         ),
-        SizedBox(
-          height: 128,
-          child: Row(children: [
-            Flexible(
-                flex: 2,
-                child: Align(
-                    alignment: Alignment.center,
-                    child: FractionallySizedBox(
-                      widthFactor: 0.65,
-                      heightFactor: 0.65,
-                      child: FloatingActionButton(
-                        autofocus: true,
-                        onPressed: () async {
-                          final String? err;
-                          switch (callStatus) {
-                            case CallStatus.inCall:
-                              err = await stopPressed();
-                              break;
-                            case CallStatus.idle:
-                              err = await startPressed();
-                              break;
-                            default:
-                              err = null;
-                              break;
-                          }
-                          if (err != null) {
-                            print("ERROR: $err");
-                            util.showError(context, "I'm sorry, Moshi didn't pick up the phone. Please call again.");
-                          }
-                        },
-                        backgroundColor: {
-                          CallStatus.idle: Theme.of(context).colorScheme.primary,
-                          CallStatus.ringing: Colors.grey,
-                          CallStatus.inCall: Theme.of(context).colorScheme.secondary,
-                        }[callStatus],
-                        child: Icon(
-                          {
-                            CallStatus.idle: Icons.wifi_calling_3,
-                            CallStatus.ringing: Icons.call_made,
-                            CallStatus.inCall: Icons.call_end,
-                          }[callStatus],
-                        ),
-                      ),
-                    ))),
-            Flexible(
-              flex: 3,
-              child: Align(
-                alignment: Alignment.center,
-                child: (callStatus == CallStatus.inCall) ? holdToChatButton : SizedBox(),
-              ), // NOTE DEBUG just to get placement right
-            ),
-          ]),
-        ),
+        SizedBox(height: 128, child: bottomButtons),
         SizedBox(height: 16),
       ],
+    );
+  }
+
+  /// The bottom row of buttons.
+  Row _bottomButtons(BuildContext context) {
+    final GestureDetector holdToChatButton = _holdToChatButton(context);
+    return Row(children: [
+      Flexible(
+          flex: 2,
+          child: Align(
+              alignment: Alignment.center,
+              child: FractionallySizedBox(
+                widthFactor: 0.65,
+                heightFactor: 0.65,
+                child: FloatingActionButton(
+                  autofocus: true,
+                  onPressed: () async {
+                    final String? err;
+                    switch (callStatus) {
+                      case CallStatus.inCall:
+                        err = await stopPressed();
+                        break;
+                      case CallStatus.idle:
+                        err = await startPressed();
+                        break;
+                      default:
+                        err = null;
+                        break;
+                    }
+                    if (err != null) {
+                      if (mounted) {
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          SnackBar(content: Text(err)),
+                        );
+                      }
+                    }
+                  },
+                  backgroundColor: {
+                    CallStatus.idle: Theme.of(context).colorScheme.primary,
+                    CallStatus.ringing: Colors.grey,
+                    CallStatus.inCall: Theme.of(context).colorScheme.secondary,
+                  }[callStatus],
+                  child: Icon(
+                    {
+                      CallStatus.idle: Icons.wifi_calling_3,
+                      CallStatus.ringing: Icons.call_made,
+                      CallStatus.inCall: Icons.call_end,
+                    }[callStatus],
+                  ),
+                ),
+              ))),
+      Flexible(
+        flex: 3,
+        child: Align(
+          alignment: Alignment.center,
+          child: (callStatus == CallStatus.inCall)
+              ? FractionallySizedBox(
+                  widthFactor: 0.65,
+                  heightFactor: 0.65,
+                  child: holdToChatButton,
+                )
+              : SizedBox(),
+        ), // NOTE DEBUG just to get placement right
+      ),
+    ]);
+  }
+
+  Row _topStatusBar(BuildContext context) {
+    return Row(children: [
+      Expanded(
+        flex: 2,
+        // while call is ringing, show a spinner aligned topleft, otherwise nothing
+        child: (callStatus == CallStatus.ringing)
+            ? Align(
+                alignment: Alignment.topLeft,
+                child: Padding(
+                  padding: const EdgeInsets.all(8.0),
+                  child: CircularProgressIndicator(),
+                ),
+              )
+            : SizedBox(),
+      ),
+      Expanded(
+        flex: 3,
+        child: ConnectionStatus(
+          micStatus: micStatus,
+          serverStatus: serverStatus,
+          callStatus: callStatus,
+          colorScheme: Theme.of(context).colorScheme,
+        ),
+      ),
+    ]);
+  }
+
+  GestureDetector _holdToChatButton(BuildContext context) {
+    return GestureDetector(
+      onTapDown: (_) {
+        _enableMic();
+      },
+      onTapUp: (_) {
+        _disableMic();
+      },
+      onTapCancel: () {
+        _disableMic();
+      },
+      child: FloatingActionButton.extended(
+        onPressed: () async {},
+        backgroundColor: Theme.of(context).colorScheme.primary,
+        label: Text("Hold to speak"),
+        icon: Icon(Icons.mic),
+      ),
     );
   }
 }

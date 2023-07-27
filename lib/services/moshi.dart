@@ -1,3 +1,4 @@
+/// This module is responsible for communicating with the Moshi server.
 import 'dart:convert';
 import 'package:flutter_webrtc/flutter_webrtc.dart';
 import 'package:http/http.dart' as http;
