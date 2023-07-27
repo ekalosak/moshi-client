@@ -129,8 +129,7 @@ class _MainScreenState extends State<MainScreen> {
                     ),
                     child: Center(
                       child: Text(
-                        // getLangEmoji(lang),
-                        "${lang.toUpperCase()} ${getLangEmoji(lang)}",
+                        getLangEmoji(lang),
                         style: TextStyle(
                           color: Theme.of(context).colorScheme.primary,
                           fontSize: 24.0,
