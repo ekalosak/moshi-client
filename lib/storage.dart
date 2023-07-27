@@ -1,4 +1,5 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 
 /// Profile represents the user's profile document from Firestore.
 class Profile {
@@ -7,6 +8,14 @@ class Profile {
   String name;
   String uid;
   Profile({required this.uid, required this.lang, required this.name, this.primaryLang = 'en'});
+}
+
+Stream<DocumentSnapshot> profileStream(User user) {
+  return FirebaseFirestore.instance.collection('profiles').doc(user.uid).snapshots(includeMetadataChanges: true);
+}
+
+Stream<DocumentSnapshot> supportedLangsStream() {
+  return FirebaseFirestore.instance.collection('config').doc('supported_langs').snapshots();
 }
 
 /// Get the supported languages from Firestore.

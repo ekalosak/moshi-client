@@ -1,10 +1,8 @@
-import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
-import 'package:go_router/go_router.dart';
 
 import 'package:moshi_client/storage.dart';
 import 'package:moshi_client/util.dart';
+import 'package:moshi_client/widgets/util.dart';
 import 'profile.dart';
 import 'progress.dart';
 // import 'transcripts.dart';
@@ -36,59 +34,13 @@ class _MainScreenState extends State<MainScreen> {
 
   @override
   Widget build(BuildContext context) {
-    User? user_ = FirebaseAuth.instance.currentUser;
-    if (user_ == null) {
-      context.go('/a');
-    }
-    User user = user_!;
-    final Stream<DocumentSnapshot> profileStream =
-        FirebaseFirestore.instance.collection('profiles').doc(user.uid).snapshots(includeMetadataChanges: true);
-    final Stream<DocumentSnapshot> supportedLangsStream =
-        FirebaseFirestore.instance.collection('config').doc('supported_langs').snapshots();
-    return StreamBuilder<DocumentSnapshot>(
-        stream: supportedLangsStream,
-        builder: (BuildContext context, AsyncSnapshot<DocumentSnapshot> slSnap) {
-          return StreamBuilder<DocumentSnapshot>(
-            stream: profileStream,
-            builder: (BuildContext context, AsyncSnapshot<DocumentSnapshot> pSnap) {
-              return _buildMainScreen(context, pSnap, slSnap);
-            },
-          );
-        });
+    return authorized(context, withProfileAndConfig(_buildScaffold));
   }
 
-  // Inside the StreamBuilder, we have access to the profile snapshot and the supported_langs snapshot.
-  // If either snapshot is loading, we show a loading indicator.
-  // If either snapshot has an error, we show an error message.
-  // Otherwise, we show the main screen.
-  Widget _buildMainScreen(
-      BuildContext context, AsyncSnapshot<DocumentSnapshot> pSnap, AsyncSnapshot<DocumentSnapshot> slSnap) {
-    print("_buildMainScreen: pSnap: ${pSnap.connectionState}, slSnap: ${slSnap.connectionState}");
-    if (pSnap.connectionState == ConnectionState.waiting || slSnap.connectionState == ConnectionState.waiting) {
-      return Center(child: CircularProgressIndicator());
-    } else if (pSnap.hasError) {
-      print("_buildMainScreen: ERROR: profile snapshot: ${pSnap.error.toString()}");
-    } else if (slSnap.hasError) {
-      print("_buildMainScreen: ERROR: supported_langs snapshot: ${slSnap.error.toString()}");
-    } else {
-      List<String> supportedLangs = slSnap.data!['langs'].cast<String>();
-      Profile profile = Profile(
-        uid: pSnap.data!.id,
-        lang: pSnap.data!['lang'],
-        name: pSnap.data!['name'],
-        primaryLang: pSnap.data!['primary_lang'],
-      );
-      TextButton flagButton = _flagButton(profile, supportedLangs);
-      Drawer menuDrawer = _makeDrawer();
-      return _buildScaffold(menuDrawer, flagButton);
-    }
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(content: Text("Couldn't connect to Moshi servers. Please check your internet connection.")),
-    );
-    return Container();
-  }
-
-  Scaffold _buildScaffold(Drawer menuDrawer, TextButton flagButton) {
+  /// Returns a Scaffold with a hamburger menu, a flag button, and a body.
+  Scaffold _buildScaffold(BuildContext context, Profile profile, List<String> supportedLangs) {
+    TextButton flagButton = _flagButton(profile, supportedLangs);
+    Drawer menuDrawer = _makeDrawer();
     return Scaffold(
       appBar: AppBar(
         title: Text('Moshi'),
@@ -109,6 +61,7 @@ class _MainScreenState extends State<MainScreen> {
     );
   }
 
+  /// Returns a TextButton that shows the user's language and opens a modal bottom sheet to change it.
   TextButton _flagButton(Profile profile, List<String> supportedLangs) {
     return TextButton(
       child: Text(getLangEmoji(profile.lang)),
@@ -168,6 +121,7 @@ class _MainScreenState extends State<MainScreen> {
     );
   }
 
+  /// Returns a Drawer with links to the other screens (the hamburger menu).
   Drawer _makeDrawer() {
     return Drawer(
       child: ListView(
