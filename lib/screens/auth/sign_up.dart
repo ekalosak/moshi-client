@@ -3,6 +3,7 @@ import 'package:go_router/go_router.dart';
 import 'package:provider/provider.dart';
 
 import '../../services/auth.dart';
+import 'package:moshi_client/storage.dart';
 
 class SignUpScreen extends StatefulWidget {
   @override

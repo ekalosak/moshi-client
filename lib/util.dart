@@ -9,3 +9,24 @@ void showError(BuildContext context, String msg) async {
 void log(String msg) {
   print(msg);
 }
+
+String getLangEmoji(String lang) {
+  switch (lang) {
+    case 'en':
+      return '🇺🇸';
+    case 'es':
+      return '🇲🇽';
+    case 'fr':
+      return '🇫🇷';
+    case 'de':
+      return '🇩🇪';
+    case 'ja':
+      return '🇯🇵';
+    case 'ko':
+      return '🇰🇷';
+    case 'zh':
+      return '🇨🇳';
+    default:
+      return lang;
+  }
+}

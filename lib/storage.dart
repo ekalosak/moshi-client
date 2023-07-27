@@ -2,9 +2,11 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 
 /// Profile represents the user's profile document from Firestore.
 class Profile {
+  String primaryLang;
   String lang;
   String name;
-  Profile({required this.lang, required this.name});
+  String uid;
+  Profile({required this.uid, required this.lang, required this.name, this.primaryLang = 'en'});
 }
 
 /// Get the supported languages from Firestore.
@@ -25,20 +27,29 @@ Future<Profile?> getProfile(String uid) async {
     return null;
   } else {
     Map<String, dynamic> data = documentSnapshot.data()!;
-    return Profile(lang: data['lang'], name: data['name']);
+    return Profile(uid: uid, lang: data['lang'], name: data['name'], primaryLang: data['primary_lang']);
   }
 }
 
 /// Update the user's profile document in Firestore.
-Future<String?> updateProfile(String uid, Profile profile) async {
+// Require string uid; optional string lang, name, primaryLang.
+Future<String?> updateProfile({required String uid, String? lang, String? name, String? primaryLang}) async {
   String? err;
   DocumentReference<Map<String, dynamic>> documentReference =
       FirebaseFirestore.instance.collection('profiles').doc(uid);
   try {
-    await documentReference.set({
-      'lang': profile.lang,
-      'name': profile.name,
-    });
+    // construct a map of the fields to update
+    Map<String, dynamic> data = {};
+    if (lang != null) {
+      data['lang'] = lang;
+    }
+    if (name != null) {
+      data['name'] = name;
+    }
+    if (primaryLang != null) {
+      data['primary_lang'] = primaryLang;
+    }
+    await documentReference.update(data);
   } catch (e) {
     print("Unknown error");
     print(e);
