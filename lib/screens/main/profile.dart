@@ -23,15 +23,11 @@ class ProfileScreen extends StatefulWidget {
 class _ProfileScreenState extends State {
   final TextEditingController nameCont = TextEditingController();
   final TextEditingController langCont = TextEditingController();
-  late AuthService authService;
   String? err;
 
   @override
   void initState() {
     super.initState();
-    setState(() {
-      authService = Provider.of<AuthService>(context, listen: false);
-    });
   }
 
   @override
@@ -47,7 +43,6 @@ class _ProfileScreenState extends State {
         FirebaseFirestore.instance.collection('config').doc('supported_langs');
     DocumentSnapshot<Map<String, dynamic>> documentSnapshot = await documentReference.get();
     Map<String, dynamic> data = documentSnapshot.data()!;
-    print("data['langs']: ${data['langs']}");
     return data['langs'].cast<String>();
   }
 
@@ -62,9 +57,8 @@ class _ProfileScreenState extends State {
       print("snapshot doesn't exist");
       return null;
     } else {
-      String name = authService.currentUser!.displayName ?? 'MissingName';
       Map<String, dynamic> data = documentSnapshot.data()!;
-      return Profile(lang: data['lang'], name: name);
+      return Profile(lang: data['lang'], name: data['name']);
     }
   }
 
@@ -74,10 +68,9 @@ class _ProfileScreenState extends State {
     DocumentReference<Map<String, dynamic>> documentReference =
         FirebaseFirestore.instance.collection('profiles').doc(uid);
     try {
-      await FirebaseAuth.instance.currentUser!.updateDisplayName(profile.name);
       await documentReference.set({
         'lang': profile.lang,
-        // 'name': profile.name,
+        'name': profile.name,
       });
     } catch (e) {
       print("Unknown error");
@@ -94,6 +87,7 @@ class _ProfileScreenState extends State {
   ///
   Widget _profileForm(String uid) {
     String? err;
+    List<String> langs = [];
     print("profile: _profileForm");
     return FutureBuilder(
       future: Future.wait([_getProfile(uid), _getSupportedLangs()]),
@@ -104,7 +98,8 @@ class _ProfileScreenState extends State {
           print("profile: _profileForm: snapshot.hasError: ${snapshot.error.toString()}");
         } else if (snapshot.hasData) {
           Profile? profile = snapshot.data![0];
-          List<String> langs = snapshot.data![1];
+          langs = snapshot.data![1];
+          print("langs: $langs");
           nameCont.text = profile!.name;
           langCont.text = profile.lang;
         } else if (snapshot.connectionState == ConnectionState.done) {
@@ -138,17 +133,24 @@ class _ProfileScreenState extends State {
                     // setState(() {});
                   },
                 ),
-                TextField(
-                  controller: langCont,
+                // Language dropdown from supported languages
+                DropdownButtonFormField<String>(
                   decoration: InputDecoration(
                     labelText: 'Language',
                   ),
-                  onChanged: (String text) {
-                    print("lang changed: $text");
-                    // setState(() {});
+                  value: "ja",
+                  items: langs.map((String value) {
+                    return DropdownMenuItem<String>(
+                      value: value,
+                      child: Text(value),
+                    );
+                  }).toList(),
+                  onChanged: (String? newValue) {
+                    print("lang changed: $newValue");
                   },
                 ),
                 // only show the FAB if there is any text in the text fields
+                SizedBox(height: 16.0),
                 if (nameCont.text.isNotEmpty || langCont.text.isNotEmpty)
                   FloatingActionButton.extended(
                     heroTag: "save_profile",
@@ -173,7 +175,6 @@ class _ProfileScreenState extends State {
   @override
   Widget build(BuildContext context) {
     print("screens/profile: build");
-    // final User user = authService.currentUser!;
     final User user = FirebaseAuth.instance.currentUser!;
     print("screens/profile: build: user: $user");
     return Padding(padding: EdgeInsets.all(16.0), child: _profileForm(user.uid));
