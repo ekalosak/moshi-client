@@ -41,6 +41,16 @@ class _ProfileScreenState extends State {
     super.dispose();
   }
 
+  // /// Get the supported languages from Firestore.
+  Future<List<String>> _getSupportedLangs() async {
+    DocumentReference<Map<String, dynamic>> documentReference =
+        FirebaseFirestore.instance.collection('config').doc('supported_langs');
+    DocumentSnapshot<Map<String, dynamic>> documentSnapshot = await documentReference.get();
+    Map<String, dynamic> data = documentSnapshot.data()!;
+    print("data['langs']: ${data['langs']}");
+    return data['langs'].cast<String>();
+  }
+
   /// Get the user's profile document from Firestore.
   Future<Profile?> _getProfile(String uid) async {
     print("getting profile: uid: $uid");
@@ -59,23 +69,22 @@ class _ProfileScreenState extends State {
   }
 
   /// Update the user's profile document in Firestore.
-  Future<void> _updateProfile(String uid, Profile profile) async {
+  Future<String?> _updateProfile(String uid, Profile profile) async {
+    String? err;
     DocumentReference<Map<String, dynamic>> documentReference =
         FirebaseFirestore.instance.collection('profiles').doc(uid);
-    await FirebaseAuth.instance.currentUser!.updateDisplayName(profile.name);
-    await documentReference.set({
-      'lang': profile.lang,
-      // 'name': profile.name,
-    });
-  }
-
-  /// Get the supported language codes from Firestore.
-  Future<List<String>> _getSupportedLangs() async {
-    DocumentReference<Map<String, dynamic>> documentReference =
-        FirebaseFirestore.instance.collection('config').doc('supported_langs');
-    DocumentSnapshot<Map<String, dynamic>> documentSnapshot = await documentReference.get();
-    Map<String, dynamic> data = documentSnapshot.data()!;
-    return data['langs'].cast<String>();
+    try {
+      await FirebaseAuth.instance.currentUser!.updateDisplayName(profile.name);
+      await documentReference.set({
+        'lang': profile.lang,
+        // 'name': profile.name,
+      });
+    } catch (e) {
+      print("Unknown error");
+      print(e);
+      err = 'An error occurred. Please try again later.';
+    }
+    return err;
   }
 
   /// Build the profile form.
@@ -87,26 +96,28 @@ class _ProfileScreenState extends State {
     String? err;
     print("profile: _profileForm");
     return FutureBuilder(
-      future: _getProfile(uid),
-      builder: (BuildContext context, AsyncSnapshot<Profile?> snapshot) {
+      future: Future.wait([_getProfile(uid), _getSupportedLangs()]),
+      builder: (BuildContext context, AsyncSnapshot<List<dynamic>> snapshot) {
         print("profile: _profileForm: snapshot: $snapshot");
-        if (snapshot.hasData) {
-          Profile? profile = snapshot.data;
-          nameCont.text = profile!.name;
-          langCont.text = profile.lang;
-        } else if (snapshot.hasError) {
+        if (snapshot.hasError) {
           err = "I had trouble finding your file, sorry about that.";
           print("profile: _profileForm: snapshot.hasError: ${snapshot.error.toString()}");
+        } else if (snapshot.hasData) {
+          Profile? profile = snapshot.data![0];
+          List<String> langs = snapshot.data![1];
+          nameCont.text = profile!.name;
+          langCont.text = profile.lang;
         } else if (snapshot.connectionState == ConnectionState.done) {
           print("profile: _profileForm: snapshot.connectionState == ConnectionState.done");
         } else if (snapshot.connectionState == ConnectionState.waiting) {
           return CircularProgressIndicator();
         } else {
+          err = "I had trouble finding your file, sorry about that.";
           print("unhandled case");
         }
         // if err show it to user
         if (err != null) {
-          WidgetsBinding.instance!.addPostFrameCallback((_) {
+          WidgetsBinding.instance.addPostFrameCallback((_) {
             ScaffoldMessenger.of(context).showSnackBar(
               SnackBar(content: Text(err!)),
             );
@@ -123,7 +134,8 @@ class _ProfileScreenState extends State {
                     labelText: 'Name',
                   ),
                   onChanged: (String text) {
-                    setState(() {});
+                    print("name changed: $text");
+                    // setState(() {});
                   },
                 ),
                 TextField(
@@ -132,7 +144,8 @@ class _ProfileScreenState extends State {
                     labelText: 'Language',
                   ),
                   onChanged: (String text) {
-                    setState(() {});
+                    print("lang changed: $text");
+                    // setState(() {});
                   },
                 ),
                 // only show the FAB if there is any text in the text fields
@@ -144,9 +157,10 @@ class _ProfileScreenState extends State {
                     backgroundColor: Theme.of(context).colorScheme.primary,
                     onPressed: () async {
                       Profile profile = Profile(name: nameCont.text, lang: langCont.text);
-                      await _updateProfile(uid, profile);
+                      // err = await _updateProfile(uid, profile) ?? "Profile saved!";
+                      err = await _updateProfile(uid, profile);
                       ScaffoldMessenger.of(context).showSnackBar(
-                        SnackBar(content: Text("Profile saved!")),
+                        SnackBar(content: Text(err ?? "Profile saved!")),
                       );
                     },
                   ),
@@ -158,7 +172,7 @@ class _ProfileScreenState extends State {
 
   @override
   Widget build(BuildContext context) {
-    print("profile: build");
+    print("screens/profile: build");
     // final User user = authService.currentUser!;
     final User user = FirebaseAuth.instance.currentUser!;
     print("screens/profile: build: user: $user");

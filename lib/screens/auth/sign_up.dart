@@ -32,6 +32,10 @@ class _SignUpScreenState extends State<SignUpScreen> {
     String password = passwordController.text;
     String name = firstNameController.text;
     final AuthService authService = Provider.of<AuthService>(context, listen: false);
+    // TODO add language selector
+    // TODO take language from selector, make new profile in Firebase.
+    //  - collection profiles
+    //  - document uid
     if (name == '') {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text('Please provide a name Moshi can call you.')),
