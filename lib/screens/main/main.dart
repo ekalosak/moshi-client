@@ -1,9 +1,15 @@
+// This module provide the main entrypoint for the non-auth screens.
+// The HomeScreen listens for auth changes and redirects here if the user is signed in.
+
+import 'dart:async';
 import 'package:flutter/material.dart';
+import 'package:firebase_auth/firebase_auth.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
 
 import 'package:moshi_client/storage.dart';
 import 'package:moshi_client/types.dart';
 import 'package:moshi_client/util.dart';
-import 'package:moshi_client/widgets/util.dart';
+import 'package:moshi_client/screens/auth/make_profile.dart';
 import 'profile.dart';
 import 'progress.dart';
 // import 'transcripts.dart';
@@ -13,35 +19,84 @@ import 'settings.dart';
 import 'webrtc.dart';
 
 class MainScreen extends StatefulWidget {
+  // make MainScreen take User user as a param
+  final User user;
+  MainScreen({required this.user});
   @override
   _MainScreenState createState() => _MainScreenState();
 }
 
 class _MainScreenState extends State<MainScreen> {
-  int _currentIndex = 0;
-  final List<Widget> _screens = [];
+  Profile? profile;
+  int _index = 0;
+  List<String> supportedLangs = [];
+  late StreamSubscription _profileListener;
+  late StreamSubscription _supportedLangsListener;
 
   @override
   void initState() {
     super.initState();
-    _screens.addAll([
-      WebRTCScreen(),
-      ProfileScreen(),
-      ProgressScreen(),
-      // TranscriptsScreen(),
-      SettingsScreen(),
-    ]);
+    _profileListener = FirebaseFirestore.instance
+        .collection('profiles')
+        .doc(widget.user.uid)
+        .snapshots()
+        .listen((DocumentSnapshot snapshot) {
+      if (snapshot.exists && snapshot.data() != null) {
+        setState(() {
+          profile = Profile(
+            uid: snapshot.id,
+            lang: snapshot['lang'],
+            name: snapshot['name'],
+            primaryLang: snapshot['primary_lang'],
+          );
+        });
+      } else {
+        print("Profile doesn't exist or is empty.");
+        print("snapshot: $snapshot");
+        Navigator.pushAndRemoveUntil(
+            context, MaterialPageRoute(builder: (context) => MakeProfileScreen(user: widget.user)), (route) => false);
+      }
+    });
+    _supportedLangsListener = FirebaseFirestore.instance
+        .collection('config')
+        .doc('supported_langs')
+        .snapshots()
+        .listen((DocumentSnapshot snapshot) {
+      if (snapshot.exists && snapshot.data() != null) {
+        setState(() {
+          supportedLangs = snapshot['langs'].cast<String>();
+        });
+      } else {
+        throw Exception("Supported languages don't exist or is empty.");
+      }
+    });
   }
 
   @override
-  Widget build(BuildContext context) {
-    return authorized(context, withProfileAndConfig(_buildScaffold));
+  void dispose() {
+    _profileListener.cancel();
+    _supportedLangsListener.cancel();
+    super.dispose();
   }
 
-  /// Returns a Scaffold with a hamburger menu, a flag button, and a body.
-  Scaffold _buildScaffold(BuildContext context, Profile profile, List<String> supportedLangs) {
-    TextButton flagButton = _flagButton(profile, supportedLangs);
-    Drawer menuDrawer = _makeDrawer();
+  // TODO show a loading screen, not just a spinner
+  // if we're waiting for profile or supported langs, show a spinner
+  // otherwise build the scaffold
+  @override
+  Widget build(BuildContext context) {
+    if (profile == null || supportedLangs.isEmpty) {
+      return Center(
+        child: CircularProgressIndicator(),
+      );
+    } else {
+      return _buildScaffold(profile!, supportedLangs);
+    }
+  }
+
+  Widget _buildScaffold(Profile pro, List<String> slans) {
+    TextButton flagButton = _flagButton(pro, supportedLangs);
+    Drawer menuDrawer = _drawer();
+    Widget body = _body(pro, slans, _index);
     return Scaffold(
       appBar: AppBar(
         title: Text('Moshi'),
@@ -58,8 +113,23 @@ class _MainScreenState extends State<MainScreen> {
         actions: [flagButton],
       ),
       drawer: menuDrawer,
-      body: _screens[_currentIndex],
+      body: body,
     );
+  }
+
+  Widget _body(Profile pro, List<String> slans, int index) {
+    switch (index) {
+      case 0:
+        return WebRTCScreen(profile: pro);
+      case 1:
+        return ProfileScreen(profile: pro, supportedLangs: slans);
+      case 2:
+        return ProgressScreen(profile: pro);
+      case 3:
+        return SettingsScreen();
+      default:
+        throw ("ERROR: invalid index");
+    }
   }
 
   /// Returns a TextButton that shows the user's language and opens a modal bottom sheet to change it.
@@ -123,7 +193,7 @@ class _MainScreenState extends State<MainScreen> {
   }
 
   /// Returns a Drawer with links to the other screens (the hamburger menu).
-  Drawer _makeDrawer() {
+  Drawer _drawer() {
     return Drawer(
       child: ListView(
         children: [
@@ -137,7 +207,7 @@ class _MainScreenState extends State<MainScreen> {
             title: Text('Chat'),
             onTap: () {
               setState(() {
-                _currentIndex = 0;
+                _index = 0;
               });
               Navigator.pop(context);
             },
@@ -146,7 +216,7 @@ class _MainScreenState extends State<MainScreen> {
             title: Text('Profile'),
             onTap: () {
               setState(() {
-                _currentIndex = 1;
+                _index = 1;
               });
               Navigator.pop(context);
             },
@@ -155,7 +225,7 @@ class _MainScreenState extends State<MainScreen> {
             title: Text('Progress'),
             onTap: () {
               setState(() {
-                _currentIndex = 2;
+                _index = 2;
               });
               Navigator.pop(context);
             },
@@ -164,7 +234,7 @@ class _MainScreenState extends State<MainScreen> {
             title: Text('Settings'),
             onTap: () {
               setState(() {
-                _currentIndex = 3;
+                _index = 3;
               });
               Navigator.pop(context);
             },

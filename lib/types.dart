@@ -21,3 +21,8 @@ class Profile {
   String uid;
   Profile({required this.uid, required this.lang, required this.name, this.primaryLang = 'en'});
 }
+
+class Config {
+  List<String> supportedLangs;
+  Config({required this.supportedLangs});
+}

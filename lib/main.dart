@@ -5,9 +5,8 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 
 import 'firebase_options.dart';
-import 'routes.dart';
 import 'theme.dart';
-import 'services/auth.dart';
+import 'screens/home.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -24,22 +23,16 @@ void main() async {
       print(e);
     }
   }
-  final authService = AuthService();
-  runApp(
-    AuthServiceProvider(
-      authService: authService,
-      child: MyApp(),
-    ),
-  );
+  runApp(MyApp());
 }
 
 class MyApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
-    return MaterialApp.router(
+    return MaterialApp(
       title: 'Moshi',
       theme: moshiTheme,
-      routerConfig: router,
+      home: HomeScreen(),
     );
   }
 }

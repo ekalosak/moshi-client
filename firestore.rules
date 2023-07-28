@@ -9,7 +9,7 @@ service cloud.firestore {
       allow read: if request.auth != null && request.auth.uid == resource.data.uid;
     }
     match /config/supported_langs {
-    	allow read;
+    	allow read: if request.auth != null;
     }
     match /{document=**} {
       allow read, write: if false;

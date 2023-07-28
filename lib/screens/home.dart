@@ -1,36 +1,44 @@
+/// This module routes the user to login if not auth otherwise to main.
+import 'dart:async';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
-import 'package:provider/provider.dart';
 
 import 'main/main.dart';
 import 'auth/login.dart';
-import '../services/auth.dart';
 
-class HomeScreen extends StatelessWidget {
+class HomeScreen extends StatefulWidget {
+  @override
+  State<StatefulWidget> createState() => _HomeScreenState();
+}
+
+class _HomeScreenState extends State<HomeScreen> {
+  User? user;
+  late StreamSubscription<User?> _userListener;
+
+  @override
+  void initState() {
+    super.initState();
+    _userListener = FirebaseAuth.instance.authStateChanges().listen((User? user) {
+      if (user == null) {
+        print('User is currently signed out.');
+      } else {
+        print('User is signed in.');
+      }
+      setState(() {
+        this.user = null;
+      });
+    });
+  }
+
+  @override
+  void dispose() {
+    _userListener.cancel();
+    super.dispose();
+  }
+
   @override
   Widget build(BuildContext context) {
     print("HomeScreen.build");
-    final AuthService authService = Provider.of<AuthService>(context, listen: false);
-    return StreamBuilder<User?>(
-      stream: authService.authStateChanges,
-      builder: (context, snapshot) {
-        if (snapshot.connectionState == ConnectionState.waiting) {
-          print("Loading authentication service...");
-          return Center(
-            child: SizedBox(
-              width: 60,
-              height: 60,
-              child: CircularProgressIndicator(),
-            ),
-          );
-        }
-        final user = snapshot.data;
-        if (user != null) {
-          return MainScreen();
-        } else {
-          return LoginScreen();
-        }
-      },
-    );
+    return (user == null) ? LoginScreen() : MainScreen(user: user!);
   }
 }

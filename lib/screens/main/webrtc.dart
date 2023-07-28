@@ -15,7 +15,6 @@ import 'package:moshi_client/services/moshi.dart' as moshi;
 import 'package:moshi_client/util.dart' as util;
 import 'package:moshi_client/widgets/chat.dart';
 import 'package:moshi_client/widgets/status.dart';
-import 'package:moshi_client/widgets/util.dart';
 
 const iceServers = [
   {
@@ -28,6 +27,8 @@ const pcConfig = {
 };
 
 class WebRTCScreen extends StatefulWidget {
+  final Profile profile;
+  WebRTCScreen({required this.profile});
   @override
   _WebRTCScreenState createState() => _WebRTCScreenState();
 }
@@ -43,7 +44,7 @@ class _WebRTCScreenState extends State<WebRTCScreen> {
   late List<Message> _messages;
 
   /// Initialize the messages list with some example messages.
-  List<Message> _initMessages(Profile profile) {
+  List<Message> _initMessages() {
     // TODO get instructions from a serverless function that takes the user's language as a parameter
     return [
       Message(Role.ast, "It's the big round one just below on the left."),
@@ -52,7 +53,7 @@ class _WebRTCScreenState extends State<WebRTCScreen> {
       Message(Role.usr, "Cool - how?"),
       Message(Role.ast, "I'm here to help you learn a second language!"),
       Message(Role.usr, "Hey Moshi, what's up?"),
-      Message(Role.ast, "Moshi moshi, ${profile.name}"),
+      Message(Role.ast, "Moshi moshi, ${widget.profile.name}"),
     ];
   }
 
@@ -398,12 +399,8 @@ class _WebRTCScreenState extends State<WebRTCScreen> {
 
   @override
   Widget build(BuildContext context) {
-    return authorized(context, withProfileAndConfig(_buildCallPage));
-  }
-
-  Widget _buildCallPage(BuildContext context, Profile profile, List<String> supportedLangs) {
     if (_justStarted) {
-      _messages = _initMessages(profile);
+      _messages = _initMessages();
     }
     final Row topStatusBar = _topStatusBar(context);
     final Chat middleChatBox = Chat(messages: _messages);
@@ -483,7 +480,7 @@ class _WebRTCScreenState extends State<WebRTCScreen> {
                   child: holdToChatButton,
                 )
               : SizedBox(),
-        ), // NOTE DEBUG just to get placement right
+        ),
       ),
     ]);
   }

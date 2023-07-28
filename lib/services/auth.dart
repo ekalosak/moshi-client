@@ -84,50 +84,6 @@ class AuthService {
     return err;
   }
 
-  // Retrun null if successful, otherwise error message.
-  Future<String?> signUpWithEmailAndPassword(String email, String password, String firstName) async {
-    String? err;
-    print("signUpWithEmailAndPassword");
-    try {
-      UserCredential userCredential = await _firebaseAuth.createUserWithEmailAndPassword(
-        email: email,
-        password: password,
-      );
-      final user = userCredential.user;
-      await user?.updateDisplayName(firstName);
-      await user?.sendEmailVerification();
-      // NOTE need to refresh credentials after updating displayName.
-      err = await signOut();
-      err ??= await signInWithEmailAndPassword(email, password);
-    } on FirebaseAuthException catch (e) {
-      print("FirebaseAuthException");
-      print(e);
-      print("FirebaseAuthException.code");
-      print(e.code);
-      err = 'An error occurred. Please try again later.';
-      if (e.code == 'weak-password') {
-        err = 'The password provided is too weak.';
-      } else if (e.code == "email-already-in-use") {
-        err = 'An account already exists for that email.';
-      } else if (e.code == 'unknown') {
-        if (e.toString().contains('auth/invalid-email')) {
-          err = 'Email invalid.';
-        } else if (e.toString().contains('auth/email-already-in-use')) {
-          err = 'The account already exists for that email.';
-        } else if (e.toString().contains('auth/missing-password')) {
-          err = 'Please provide a password.';
-        } else {
-          err = 'An error occurred. Please try again later.';
-        }
-      }
-    } catch (e) {
-      print("Unknown error");
-      print(e);
-      err = 'An error occurred. Please try again later.';
-    }
-    return err;
-  }
-
   Future<String?> signOut() async {
     String? err;
     try {
