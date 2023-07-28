@@ -3,8 +3,8 @@ import 'package:flutter/material.dart';
 
 import 'package:moshi_client/storage.dart';
 import 'package:moshi_client/types.dart';
-import 'package:moshi_client/util.dart';
 import 'package:moshi_client/widgets/util.dart';
+import 'package:moshi_client/widgets/langdropdown.dart';
 
 class ProfileScreen extends StatefulWidget {
   @override
@@ -42,7 +42,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
             _nameField(pro),
-            _languageDropdown(pro, slans),
+            languageDropdown(slans, lang: pro.primaryLang),
             SizedBox(height: 16.0),
             _saveButton(uid, pro),
           ],
@@ -62,25 +62,6 @@ class _ProfileScreenState extends State<ProfileScreen> {
             SnackBar(content: Text(err ?? "Profile saved!")),
           );
         });
-      },
-    );
-  }
-
-  DropdownButtonFormField<String> _languageDropdown(Profile pro, List<String> slans) {
-    return DropdownButtonFormField<String>(
-      decoration: InputDecoration(
-        labelText: 'Native language',
-      ),
-      value: pro.primaryLang,
-      items: slans.map((String value) {
-        return DropdownMenuItem<String>(
-          value: value,
-          child: Text("${getLangEmoji(value)} ${value.toUpperCase()}"),
-        );
-      }).toList(),
-      onChanged: (String? newValue) {
-        print("lang changed: $newValue");
-        pro.primaryLang = newValue!;
       },
     );
   }

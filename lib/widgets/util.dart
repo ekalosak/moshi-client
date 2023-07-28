@@ -51,3 +51,26 @@ Widget withProfileAndConfig(Function makeWidget) {
         );
       });
 }
+
+Widget withConfig(Function makeWidget) {
+  return StreamBuilder<DocumentSnapshot>(
+    stream: supportedLangsStream(),
+    builder: (BuildContext context, AsyncSnapshot<DocumentSnapshot> slSnap) {
+      if (slSnap.connectionState == ConnectionState.waiting) {
+        return Center(child: CircularProgressIndicator());
+      } else if (slSnap.hasError) {
+        print("withConfig: ERROR: supported_langs snapshot: ${slSnap.error.toString()}");
+        // add callback to show snackbar
+        WidgetsBinding.instance.addPostFrameCallback((_) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(content: Text("Couldn't connect to Moshi servers. Please check your internet connection.")),
+          );
+        });
+        return Container();
+      } else {
+        List<String> supportedLangs = slSnap.data!['langs'].cast<String>();
+        return makeWidget(context, supportedLangs);
+      }
+    },
+  );
+}

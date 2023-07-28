@@ -34,7 +34,6 @@ class WebRTCScreen extends StatefulWidget {
 
 class _WebRTCScreenState extends State<WebRTCScreen> {
   MediaStream? _localStream;
-  List<MediaDeviceInfo>? _mediaDevicesList;
   RTCPeerConnection? _pc;
   RTCDataChannel? _dc;
   MicStatus micStatus = MicStatus.off;
