@@ -1,6 +1,6 @@
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 
-import 'package:moshi_client/storage.dart';
 import 'package:moshi_client/types.dart';
 import 'package:moshi_client/util.dart';
 
@@ -67,15 +67,24 @@ class _ProfileScreenState extends State<ProfileScreen> {
       icon: Icon(Icons.save),
       backgroundColor: Theme.of(context).colorScheme.primary,
       onPressed: () async {
+        print("uid: ${widget.profile.uid}");
+        print("name: ${nameCont.text}");
+        print("primaryLang: $primaryLang");
         String? err = await updateProfile(
           uid: widget.profile.uid,
           name: nameCont.text,
-          primaryLang: widget.profile.primaryLang,
+          primaryLang: primaryLang,
         );
         WidgetsBinding.instance.addPostFrameCallback((_) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(content: Text(err ?? "Profile saved!")),
-          );
+          ScaffoldMessenger.of(context).showSnackBar((err == null)
+              ? SnackBar(
+                  content: Text("✅ Profile saved!"),
+                  backgroundColor: Theme.of(context).colorScheme.primary,
+                )
+              : SnackBar(
+                  content: Text("❌ Error saving profile, please try again."),
+                  backgroundColor: Theme.of(context).colorScheme.error,
+                ));
         });
       },
     );
@@ -89,4 +98,32 @@ class _ProfileScreenState extends State<ProfileScreen> {
       ),
     );
   }
+}
+
+/// Update the user's profile document in Firestore.
+// Require string uid; optional string lang, name, primaryLang.
+Future<String?> updateProfile({required String uid, String? lang, String? name, String? primaryLang}) async {
+  String? err;
+  print("updateProfile: uid: $uid, lang: $lang, name: $name, primaryLang: $primaryLang");
+  DocumentReference<Map<String, dynamic>> documentReference =
+      FirebaseFirestore.instance.collection('profiles').doc(uid);
+  try {
+    // construct a map of the fields to update
+    Map<String, dynamic> data = {};
+    if (lang != null) {
+      data['lang'] = lang;
+    }
+    if (name != null) {
+      data['name'] = name;
+    }
+    if (primaryLang != null) {
+      data['primary_lang'] = primaryLang;
+    }
+    await documentReference.update(data);
+  } catch (e) {
+    print("Unknown error");
+    print(e);
+    err = 'An error occurred. Please try again later.';
+  }
+  return err;
 }
