@@ -2,7 +2,8 @@
 /// It creates the user in Firebase Auth and then navigates to the profile creation page.
 import 'package:firebase_auth/firebase_auth.dart' show FirebaseAuth, FirebaseAuthException, UserCredential;
 import 'package:flutter/material.dart';
-import 'package:go_router/go_router.dart';
+
+import 'package:moshi_client/screens/auth/make_profile.dart';
 
 class SignUpScreen extends StatefulWidget {
   @override
@@ -129,11 +130,17 @@ class _SignUpScreenState extends State<SignUpScreen> {
         if (err == null) {
           WidgetsBinding.instance.addPostFrameCallback((_) {
             ScaffoldMessenger.of(context).showSnackBar(
-              SnackBar(content: Text("Account created! Please check your email to verify your account.")),
+              SnackBar(
+                // add the green check emoji
+                content: Text("✅ Account created!\n📧 Please check your email to verify your account."),
+                backgroundColor: Theme.of(context).colorScheme.primary,
+              ),
             );
           });
           if (mounted) {
-            context.go('/a/makeprofile');
+            Navigator.of(context).pushAndRemoveUntil(
+                MaterialPageRoute(builder: (context) => MakeProfileScreen(user: FirebaseAuth.instance.currentUser!)),
+                (route) => false);
           }
         } else {
           WidgetsBinding.instance.addPostFrameCallback((_) {

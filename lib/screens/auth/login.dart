@@ -1,8 +1,8 @@
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
-import 'package:go_router/go_router.dart';
-import 'package:provider/provider.dart';
-
-import '../../services/auth.dart';
+import 'package:moshi_client/screens/main/main.dart';
+import 'password_reset.dart';
+import 'sign_up.dart';
 
 class LoginScreen extends StatefulWidget {
   @override
@@ -12,52 +12,53 @@ class LoginScreen extends StatefulWidget {
 class _LoginScreenState extends State<LoginScreen> {
   final TextEditingController emailController = TextEditingController();
   final TextEditingController passwordController = TextEditingController();
-  late AuthService authService;
-  String? err;
-
-  @override
-  void initState() {
-    print("LoginScreen.initState");
-    authService = Provider.of<AuthService>(context, listen: false);
-    if (authService.currentUser != null) {
-      context.go('/m');
-    }
-    super.initState();
-  }
 
   @override
   void dispose() {
-    print("LoginScreen.dispose");
     emailController.dispose();
     passwordController.dispose();
     super.dispose();
   }
 
   Future<String?> loginWithEmailPassword() async {
-    final String? err = await authService.signInWithEmailAndPassword(
-      emailController.text,
-      passwordController.text,
-    );
-    if (err != null) {
-      return null;
-    } else {
-      return "Login with email+password failed.";
+    String? err;
+    try {
+      await FirebaseAuth.instance.signInWithEmailAndPassword(
+        email: emailController.text,
+        password: passwordController.text,
+      );
+    } on FirebaseAuthException catch (e) {
+      print("FirebaseAuthException");
+      print(e);
+      print("FirebaseAuthException.code");
+      print(e.code);
+      if (e.code == 'user-not-found') {
+        err = 'No user found for that email.';
+      } else if (e.code == 'wrong-password') {
+        err = 'Wrong password provided for that user.';
+      } else if (e.code == 'unknown') {
+        if (e.toString().contains('auth/invalid-email')) {
+          err = 'Email invalid.';
+        } else if (e.toString().contains('auth/wrong-password')) {
+          err = 'Wrong password.';
+        } else {
+          print("Nonspecific FirebaseAuthException: $e");
+          err = 'An error occurred. Please try again later.';
+        }
+      } else {
+        print("Nonspecific Exception: $e");
+        err = 'An error occurred. Please try again later.';
+      }
+    } catch (e) {
+      print("Unknown error");
+      print(e);
+      err = 'An error occurred. Please try again later.';
     }
+    return err;
   }
 
   @override
   Widget build(BuildContext context) {
-    if (err != null) {
-      // If err isn't null, show a snackbar with the error
-      WidgetsBinding.instance.addPostFrameCallback((_) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text(err!)),
-        );
-        setState(() {
-          err = null;
-        });
-      });
-    }
     return Scaffold(
       appBar: AppBar(
         title: Text('Login'),
@@ -100,10 +101,21 @@ class _LoginScreenState extends State<LoginScreen> {
                         icon: Icon(Icons.login),
                         backgroundColor: Theme.of(context).colorScheme.primary,
                         onPressed: () async {
-                          err = await loginWithEmailPassword();
-                          setState(() {
-                            err = err;
-                          });
+                          String? err = await loginWithEmailPassword();
+                          if (err != null) {
+                            WidgetsBinding.instance.addPostFrameCallback((_) {
+                              ScaffoldMessenger.of(context).showSnackBar(
+                                SnackBar(content: Text(err)),
+                              );
+                            });
+                          } else if (mounted) {
+                            Navigator.of(context).pushAndRemoveUntil(
+                              MaterialPageRoute(
+                                builder: (context) => MainScreen(user: FirebaseAuth.instance.currentUser!),
+                              ),
+                              (route) => false,
+                            );
+                          }
                         },
                       ),
                     ),
@@ -122,7 +134,11 @@ class _LoginScreenState extends State<LoginScreen> {
                         label: Text('Reset password'),
                         icon: Icon(Icons.lock),
                         onPressed: () {
-                          context.go('/a/reset');
+                          Navigator.of(context).push(
+                            MaterialPageRoute(
+                              builder: (context) => PasswordResetScreen(),
+                            ),
+                          );
                         },
                       ),
                       Padding(
@@ -132,7 +148,11 @@ class _LoginScreenState extends State<LoginScreen> {
                           label: Text('Sign up'),
                           icon: Icon(Icons.person_add),
                           onPressed: () {
-                            context.go('/a/signup');
+                            Navigator.of(context).push(
+                              MaterialPageRoute(
+                                builder: (context) => SignUpScreen(),
+                              ),
+                            );
                           },
                         ),
                       )

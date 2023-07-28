@@ -1,29 +1,31 @@
 import 'package:flutter/material.dart';
-import 'package:provider/provider.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 
-import '../../services/auth.dart';
+// class PasswordResetScreen extends StatelessWidget {
+// stateful widget
+class PasswordResetScreen extends StatefulWidget {
+  @override
+  _PasswordResetScreenState createState() => _PasswordResetScreenState();
+}
 
-class PasswordResetScreen extends StatelessWidget {
+class _PasswordResetScreenState extends State<PasswordResetScreen> {
   final TextEditingController emailController = TextEditingController();
 
-  Future<void> resetPassword(BuildContext context) async {
-    final AuthService authService = Provider.of<AuthService>(context, listen: false);
-    final String? err;
+  @override
+  void dispose() {
+    emailController.dispose();
+    super.dispose();
+  }
+
+  Future<String?> _resetPassword(BuildContext context) async {
+    String? err;
     try {
-      err = await authService.sendPasswordResetEmail(emailController.text);
-      if (err != null) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text(err)),
-        );
-      } else {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text("Password reset email sent!")),
-        );
-        Navigator.of(context).pop();
-      }
+      await FirebaseAuth.instance.sendPasswordResetEmail(email: emailController.text);
     } catch (e) {
-      print(e);
+      RegExp regExp = RegExp(r"\[.*?\]");
+      err = "$e".replaceAll(regExp, "");
     }
+    return err;
   }
 
   @override
@@ -50,7 +52,15 @@ class PasswordResetScreen extends StatelessWidget {
               icon: Icon(Icons.login),
               backgroundColor: Theme.of(context).colorScheme.primary,
               onPressed: () async {
-                await resetPassword(context);
+                final String? err = await _resetPassword(context);
+                if (err == null && mounted) {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(content: Text("Password reset email sent!")),
+                  );
+                  Navigator.pop(context);
+                } else if (err != null && mounted) {
+                  ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(err)));
+                }
               },
             )
           ],

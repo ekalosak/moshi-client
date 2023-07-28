@@ -1,31 +1,10 @@
+import 'dart:async';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 
 import 'package:moshi_client/util.dart';
-import 'package:moshi_client/widgets/util.dart';
 import 'package:moshi_client/screens/home.dart';
-
-// Create a new profile for the user in Firestore.
-Future<String?> _createProfileFirestore(String uid, String name, String lang1, String lang2) async {
-  print("_createProfileFirestore");
-  String? err;
-  DocumentReference<Map<String, dynamic>> documentReference =
-      FirebaseFirestore.instance.collection('profiles').doc(uid);
-  Map<String, dynamic> data = {
-    'name': name,
-    'lang': lang1,
-    'primary_lang': lang2,
-  };
-  try {
-    await documentReference.set(data);
-  } catch (e) {
-    print("Unknown error");
-    print(e);
-    err = 'An error occurred. Please try again later.';
-  }
-  return err;
-}
 
 class MakeProfileScreen extends StatefulWidget {
   final User user;
@@ -35,22 +14,29 @@ class MakeProfileScreen extends StatefulWidget {
 }
 
 class _MakeProfileScreenState extends State<MakeProfileScreen> {
-  final TextEditingController nameController = TextEditingController();
+  final TextEditingController _nameController = TextEditingController();
+  late Stream<DocumentSnapshot> _supportedLangsStream;
+  List<String> supportedLangs = [];
   bool isLoading = false;
-  List<String>? supportedLangs;
   String? firstLang;
   String? secondLang;
 
   @override
+  void initState() {
+    super.initState();
+    _supportedLangsStream = FirebaseFirestore.instance.collection('config').doc('supported_langs').snapshots();
+  }
+
+  @override
   void dispose() {
-    nameController.dispose();
+    _nameController.dispose();
     super.dispose();
   }
 
   // Validate the input and create a new profile for the user in Firestore.
   Future<String?> _createProfile() async {
     String? err;
-    String name = nameController.text;
+    String name = _nameController.text;
     if (name == '') {
       return "Please provide a name Moshi can call you.";
     } else if (firstLang == null || secondLang == null) {
@@ -68,36 +54,52 @@ class _MakeProfileScreenState extends State<MakeProfileScreen> {
 
   @override
   Widget build(BuildContext context) {
-    return authorized(context, withConfig(_buildScaffold));
+    return Scaffold(
+        appBar: AppBar(title: Text('Set up your profile')),
+        body: Padding(
+          padding: EdgeInsets.all(16.0),
+          child: StreamBuilder(
+            stream: _supportedLangsStream,
+            builder: (BuildContext context, AsyncSnapshot<DocumentSnapshot> snapshot) {
+              if (snapshot.connectionState == ConnectionState.waiting) {
+                return Center(child: CircularProgressIndicator());
+              } else if (snapshot.hasError) {
+                throw ("ERROR make_profile supported_langs snapshot: ${snapshot.error.toString()}");
+              } else {
+                supportedLangs = snapshot.data!['langs'].cast<String>();
+                return _makeProfileForm();
+              }
+            },
+          ),
+        ));
   }
 
-  Widget _buildScaffold(BuildContext context, List<String> supportedLangs) {
+  Widget _makeProfileForm() {
     firstLang = firstLang ?? supportedLangs[0];
     secondLang = secondLang ?? supportedLangs[0];
-    return Scaffold(
-      appBar: AppBar(title: Text('Set up your profile')),
-      body: Padding(
-        padding: EdgeInsets.all(16.0),
-        child: Stack(
+    return Stack(
+      children: [
+        if (isLoading) CircularProgressIndicator(),
+        Column(
+          mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            if (isLoading) CircularProgressIndicator(),
-            Column(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                TextField(
-                  controller: nameController,
-                  decoration: InputDecoration(
-                    labelText: 'What should Moshi call you?',
-                  ),
-                ),
-                _firstDropdown(supportedLangs),
-                _secondDropdown(supportedLangs),
-                _makeProfileButton(),
-              ],
+            TextField(
+              controller: _nameController,
+              decoration: InputDecoration(
+                labelText: 'What should Moshi call you?',
+              ),
             ),
-          ],
+            _firstDropdown(supportedLangs),
+            _secondDropdown(supportedLangs),
+            _makeProfileButton(),
+          ]
+              .map((e) => Padding(
+                    padding: EdgeInsets.symmetric(vertical: 8.0),
+                    child: e,
+                  ))
+              .toList(),
         ),
-      ),
+      ],
     );
   }
 
@@ -106,8 +108,11 @@ class _MakeProfileScreenState extends State<MakeProfileScreen> {
       heroTag: "save_profile",
       label: Text('Save'),
       icon: Icon(Icons.person_add),
-      backgroundColor: Theme.of(context).colorScheme.primary,
+      backgroundColor: (isLoading) ? Colors.grey : Theme.of(context).colorScheme.primary,
       onPressed: () async {
+        if (isLoading) {
+          return;
+        }
         String? err = await _createProfile();
         WidgetsBinding.instance.addPostFrameCallback((_) {
           ScaffoldMessenger.of(context).showSnackBar(
@@ -163,4 +168,25 @@ class _MakeProfileScreenState extends State<MakeProfileScreen> {
       },
     );
   }
+}
+
+// Create a new profile for the user in Firestore.
+Future<String?> _createProfileFirestore(String uid, String name, String lang1, String lang2) async {
+  print("_createProfileFirestore");
+  String? err;
+  DocumentReference<Map<String, dynamic>> documentReference =
+      FirebaseFirestore.instance.collection('profiles').doc(uid);
+  Map<String, dynamic> data = {
+    'name': name,
+    'lang': lang1,
+    'primary_lang': lang2,
+  };
+  try {
+    await documentReference.set(data);
+  } catch (e) {
+    print("Unknown error");
+    print(e);
+    err = 'An error occurred. Please try again later.';
+  }
+  return err;
 }
