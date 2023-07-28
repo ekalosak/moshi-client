@@ -33,25 +33,6 @@ class _MakeProfileScreenState extends State<MakeProfileScreen> {
     super.dispose();
   }
 
-  // Validate the input and create a new profile for the user in Firestore.
-  Future<String?> _createProfile() async {
-    String? err;
-    String name = _nameController.text;
-    if (name == '') {
-      return "Please provide a name Moshi can call you.";
-    } else if (firstLang == null || secondLang == null) {
-      return "Please select your native language and the language you're learning.";
-    }
-    setState(() {
-      isLoading = true;
-    });
-    err = await _createProfileFirestore(widget.user.uid, name, firstLang!, secondLang!);
-    setState(() {
-      isLoading = false;
-    });
-    return err;
-  }
-
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -116,8 +97,7 @@ class _MakeProfileScreenState extends State<MakeProfileScreen> {
         String? err = await _createProfile();
         WidgetsBinding.instance.addPostFrameCallback((_) {
           ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(content: Text(err ?? "Profile created!")),
-          );
+              (err == null) ? SnackBar(content: Text("✅ Profile created!")) : SnackBar(content: Text("❌ $err")));
         });
         if (err == null) {
           if (mounted) {
@@ -168,6 +148,25 @@ class _MakeProfileScreenState extends State<MakeProfileScreen> {
       },
     );
   }
+
+  // Validate the input and create a new profile for the user in Firestore.
+  Future<String?> _createProfile() async {
+    String? err;
+    String name = _nameController.text;
+    if (name == '') {
+      return "Please provide a name Moshi can call you.";
+    } else if (firstLang == null || secondLang == null) {
+      return "Please select your native language and the language you're learning.";
+    }
+    setState(() {
+      isLoading = true;
+    });
+    err = await _createProfileFirestore(widget.user.uid, name, firstLang!, secondLang!);
+    setState(() {
+      isLoading = false;
+    });
+    return err;
+  }
 }
 
 // Create a new profile for the user in Firestore.
@@ -178,8 +177,8 @@ Future<String?> _createProfileFirestore(String uid, String name, String lang1, S
       FirebaseFirestore.instance.collection('profiles').doc(uid);
   Map<String, dynamic> data = {
     'name': name,
-    'lang': lang1,
-    'primary_lang': lang2,
+    'lang': lang2,
+    'primary_lang': lang1,
   };
   try {
     await documentReference.set(data);

@@ -25,7 +25,7 @@ class _HomeScreenState extends State<HomeScreen> {
         print('User is signed in.');
       }
       setState(() {
-        this.user = null;
+        this.user = user;
       });
     });
   }
