@@ -278,8 +278,8 @@ class _WebRTCScreenState extends State<WebRTCScreen> {
     await _localStream?.dispose();
     setState(() {
       // TODO these state changes should be set by callbacks from the webrtc implementation.
-      if (micStatus == MicStatus.muted || micStatus == MicStatus.on) {
-        micStatus = MicStatus.off;
+      if (micStatus == MicStatus.on) {
+        micStatus = MicStatus.muted;
       }
     });
     print("stopMicrophoneStream [END]");
@@ -290,7 +290,6 @@ class _WebRTCScreenState extends State<WebRTCScreen> {
     print("hangUpMoshi [START]");
     await tearDownWebRTC();
     setState(() {
-      serverStatus = ServerStatus.unknown;
       callStatus = CallStatus.idle;
     });
     print("hangUpMoshi [END]");

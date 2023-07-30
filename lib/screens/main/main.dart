@@ -6,7 +6,6 @@ import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 
-import 'package:moshi_client/storage.dart';
 import 'package:moshi_client/types.dart';
 import 'package:moshi_client/util.dart';
 import 'package:moshi_client/screens/auth/make_profile.dart';

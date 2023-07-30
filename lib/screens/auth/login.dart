@@ -23,10 +23,12 @@ class _LoginScreenState extends State<LoginScreen> {
   Future<String?> loginWithEmailPassword() async {
     String? err;
     try {
-      await FirebaseAuth.instance.signInWithEmailAndPassword(
+      UserCredential credentials = await FirebaseAuth.instance.signInWithEmailAndPassword(
         email: emailController.text,
         password: passwordController.text,
       );
+      // TODO remove this security hole
+      print(credentials.user!.getIdToken());
     } on FirebaseAuthException catch (e) {
       print("FirebaseAuthException");
       print(e);
