@@ -33,9 +33,26 @@ Future<RTCSessionDescription?> sendOfferGetAnswer(
   print("sendOfferGetAnswer [START]");
   String token = await FirebaseAuth.instance.currentUser!.getIdToken();
   try {
-    final response = await http.post(offerEndpoint, body: jsonEncode(offer.toMap()), headers: {
-      "Authorization": "Bearer $token",
-    });
+    print("\n\nping\n\n");
+    // final response = await http.post(
+    //   Uri.parse("http://localhost:8080/ping"),
+    //   body: jsonEncode({"msg": "ping"}),
+    //   headers: {
+    //     "Authorization": "Bearer $token",
+    //     "Content-Type": "application/json",
+    //   },
+    // );
+    // fastapi gives 422 """"Input should be a valid dictionary or object to extract fields from","input":"{\"sdp\":\"v=0\\r\\n..."""
+
+    final response = await http.post(
+      offerEndpoint,
+      body: jsonEncode(offer.toMap()),
+      headers: {
+        "Authorization": "Bearer $token",
+        "Content-Type": "application/json",
+      },
+    );
+
     print("offer response code: ${response.statusCode}");
     print("offer response body: ${response.body}");
     if (response.statusCode == 200) {
