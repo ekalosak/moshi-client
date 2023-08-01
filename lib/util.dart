@@ -12,20 +12,30 @@ void log(String msg) {
 
 String getLangEmoji(String lang) {
   switch (lang) {
-    case 'en':
+    case 'en-US':
       return '🇺🇸';
-    case 'es':
+    case 'es-MX':
       return '🇲🇽';
-    case 'fr':
+    case 'es-ES':
+      return '🇪🇸';
+    case 'fr-FR':
       return '🇫🇷';
-    case 'de':
+    case 'fr-CA':
+      return '🇨🇦';
+    case 'it-IT':
+      return '🇮🇹';
+    case 'de-DE':
       return '🇩🇪';
-    case 'ja':
+    case 'ja-JP':
       return '🇯🇵';
-    case 'ko':
+    case 'ko-KR':
       return '🇰🇷';
-    case 'zh':
+    case 'cmn-CN':
       return '🇨🇳';
+    case 'cmn-TW':
+      return '🇹🇼';
+    case 'cmn-HK':
+      return '🇭🇰';
     default:
       return lang;
   }

@@ -20,15 +20,16 @@ class ConnectionStatus extends StatelessWidget {
   Widget _micIcon(MicStatus status) {
     return switch (status) {
       MicStatus.off => Icon(Icons.mic_off_outlined, color: colorScheme.background),
-      MicStatus.noPermission => Icon(Icons.mic_off_outlined, color: colorScheme.error),
-      MicStatus.muted => Icon(Icons.mic_off_outlined, color: colorScheme.primary),
+      MicStatus.noPermission => Icon(Icons.mic_off, color: colorScheme.error),
+      MicStatus.muted => Icon(Icons.mic_none_outlined, color: colorScheme.primary),
       MicStatus.on => Icon(Icons.mic_outlined, color: colorScheme.tertiary)
     };
   }
 
   Widget _serverIcon(ServerStatus status) {
     return switch (status) {
-      ServerStatus.unknown => Icon(Icons.cloud_off_outlined, color: colorScheme.background),
+      ServerStatus.unknown => Icon(Icons.cloud_outlined, color: colorScheme.background),
+      ServerStatus.pending => Icon(Icons.cloud_sync_outlined, color: colorScheme.secondary),
       ServerStatus.ready => Icon(Icons.cloud_done_outlined, color: colorScheme.primary),
       ServerStatus.error => Icon(Icons.cloud_off_outlined, color: colorScheme.error)
     };
@@ -63,6 +64,7 @@ enum MicStatus {
 }
 
 enum ServerStatus {
+  pending,
   unknown,
   ready,
   error,

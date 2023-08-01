@@ -41,6 +41,7 @@ class _MainScreenState extends State<MainScreen> {
         .snapshots()
         .listen((DocumentSnapshot snapshot) {
       if (snapshot.exists && snapshot.data() != null) {
+        print("Profile exists and is not empty: $snapshot");
         setState(() {
           profile = Profile(
             uid: snapshot.id,
@@ -62,6 +63,7 @@ class _MainScreenState extends State<MainScreen> {
         .snapshots()
         .listen((DocumentSnapshot snapshot) {
       if (snapshot.exists && snapshot.data() != null) {
+        print("Supported langs exist and aren't empty: $snapshot");
         setState(() {
           supportedLangs = snapshot['langs'].cast<String>();
         });
@@ -83,6 +85,9 @@ class _MainScreenState extends State<MainScreen> {
   // otherwise build the scaffold
   @override
   Widget build(BuildContext context) {
+    print("MainScreen.build");
+    print("profile: $profile");
+    print("supportedLangs: $supportedLangs");
     if (profile == null || supportedLangs.isEmpty) {
       return Center(
         child: CircularProgressIndicator(),

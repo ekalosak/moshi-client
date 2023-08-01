@@ -78,11 +78,14 @@ class _WebRTCScreenState extends State<WebRTCScreen> {
     setState(() {
       _messages.clear();
       _justStarted = false;
+      callStatus = CallStatus.ringing;
+      serverStatus = ServerStatus.pending;
     });
     // Backend server check
     bool healthy = await moshi.healthCheck();
     setState(() {
       serverStatus = (healthy) ? ServerStatus.ready : ServerStatus.error;
+      callStatus = (healthy) ? callStatus : CallStatus.idle;
     });
     if (!healthy) {
       return "Moshi servers unhealthy, please try again.";
@@ -96,9 +99,6 @@ class _WebRTCScreenState extends State<WebRTCScreen> {
       return err;
       // return "Moshi requires microphone permissions. Please enable in your system settings.";
     }
-    setState(() {
-      callStatus = CallStatus.ringing;
-    });
     err = await callMoshi();
     if (err != null) {
       setState(() {
@@ -386,6 +386,7 @@ class _WebRTCScreenState extends State<WebRTCScreen> {
   void _enableMic() {
     for (var audioTrack in _localStream!.getAudioTracks()) {
       audioTrack.enabled = true;
+      print("audioTrack.enabled = true; $audioTrack");
     }
   }
 
@@ -393,6 +394,7 @@ class _WebRTCScreenState extends State<WebRTCScreen> {
   void _disableMic() {
     for (var audioTrack in _localStream!.getAudioTracks()) {
       audioTrack.enabled = false;
+      print("audioTrack.enabled = false; $audioTrack");
     }
   }
 
@@ -432,6 +434,7 @@ class _WebRTCScreenState extends State<WebRTCScreen> {
                 widthFactor: 0.65,
                 heightFactor: 0.65,
                 child: FloatingActionButton(
+                  // New call
                   autofocus: true,
                   onPressed: () async {
                     final String? err;
@@ -489,7 +492,7 @@ class _WebRTCScreenState extends State<WebRTCScreen> {
       Expanded(
         flex: 2,
         // while call is ringing, show a spinner aligned topleft, otherwise nothing
-        child: (callStatus == CallStatus.ringing)
+        child: (callStatus == CallStatus.ringing || serverStatus == ServerStatus.pending)
             ? Align(
                 alignment: Alignment.topLeft,
                 child: Padding(
