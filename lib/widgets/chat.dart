@@ -12,67 +12,6 @@ const double boxCornerRad = 6;
 const double boxTextPadding = 10;
 const double betweenBoxPadding = 4;
 
-class MsgBox extends StatelessWidget {
-  final Message msg;
-  final Color boxColor;
-  final Color iconColor;
-  MsgBox(this.msg, this.boxColor, this.iconColor);
-
-  // Build the icon and textbox lip (triangle) for the message box.
-  Widget _ico(Role role) {
-    Icon icon = (role == Role.ast) ? Icon(Icons.bubble_chart, color: iconColor) : Icon(Icons.person, color: iconColor);
-    return Flexible(
-        flex: 2,
-        child: Stack(children: [
-          Align(
-              alignment: (msg.role != Role.ast) ? Alignment(-1, -0.2) : Alignment(1, -0.2),
-              child: CustomPaint(
-                size: Size(lipOffset, lipHeight),
-                painter: (msg.role == Role.ast)
-                    ? TrianglePainter(pointRight: false, color: boxColor)
-                    : TrianglePainter(pointRight: true, color: boxColor),
-              )),
-          Align(
-            alignment: (msg.role == Role.ast) ? Alignment(-0.2, -0.2) : Alignment(0.2, -0.2),
-            child: icon,
-          )
-        ]));
-  }
-
-  // Build the text box, including the text and underneath the filled rounded rectangle, for the message.
-  Widget _msg(Message msg, Color textColor) {
-    final Text msgText = Text(
-      msg.msg,
-      style: TextStyle(color: textColor),
-    );
-    return Flexible(
-      flex: boxIconRatio,
-      child: Padding(
-          padding: EdgeInsets.only(top: betweenBoxPadding),
-          child: Align(
-            alignment: (msg.role == Role.ast) ? Alignment.centerLeft : Alignment.centerRight,
-            child: Padding(
-              padding: (msg.role == Role.ast) ? EdgeInsets.only(right: boxOffset) : EdgeInsets.only(left: boxOffset),
-              child: RoundedBox(boxColor: boxColor, padding: boxTextPadding, child: msgText),
-            ),
-          )),
-    );
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    final Widget icon = _ico(msg.role);
-    final Widget msgBox = _msg(msg, Theme.of(context).colorScheme.onSurface);
-    final Widget row = Row(
-      children: [
-        (msg.role == Role.ast) ? icon : msgBox,
-        (msg.role == Role.ast) ? msgBox : icon,
-      ],
-    );
-    return row;
-  }
-}
-
 class Chat extends StatefulWidget {
   final List<Message> messages;
   Chat({required this.messages});
@@ -154,5 +93,67 @@ class _RoundedBoxPainter extends CustomPainter {
   @override
   bool shouldRepaint(CustomPainter oldDelegate) {
     return false;
+  }
+}
+
+/// Draws a message box with a triangle lip on one side.
+class MsgBox extends StatelessWidget {
+  final Message msg;
+  final Color boxColor;
+  final Color iconColor;
+  MsgBox(this.msg, this.boxColor, this.iconColor);
+
+  // Build the icon and textbox lip (triangle) for the message box.
+  Widget _ico(Role role) {
+    Icon icon = (role == Role.ast) ? Icon(Icons.bubble_chart, color: iconColor) : Icon(Icons.person, color: iconColor);
+    return Flexible(
+        flex: 2,
+        child: Stack(children: [
+          Align(
+              alignment: (msg.role != Role.ast) ? Alignment(-1, -0.2) : Alignment(1, -0.2),
+              child: CustomPaint(
+                size: Size(lipOffset, lipHeight),
+                painter: (msg.role == Role.ast)
+                    ? TrianglePainter(pointRight: false, color: boxColor)
+                    : TrianglePainter(pointRight: true, color: boxColor),
+              )),
+          Align(
+            alignment: (msg.role == Role.ast) ? Alignment(-0.2, -0.2) : Alignment(0.2, -0.2),
+            child: icon,
+          )
+        ]));
+  }
+
+  // Build the text box, including the text and underneath the filled rounded rectangle, for the message.
+  Widget _msg(Message msg, Color textColor) {
+    final Text msgText = Text(
+      msg.msg,
+      style: TextStyle(color: textColor),
+    );
+    return Flexible(
+      flex: boxIconRatio,
+      child: Padding(
+          padding: EdgeInsets.only(top: betweenBoxPadding),
+          child: Align(
+            alignment: (msg.role == Role.ast) ? Alignment.centerLeft : Alignment.centerRight,
+            child: Padding(
+              padding: (msg.role == Role.ast) ? EdgeInsets.only(right: boxOffset) : EdgeInsets.only(left: boxOffset),
+              child: RoundedBox(boxColor: boxColor, padding: boxTextPadding, child: msgText),
+            ),
+          )),
+    );
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final Widget icon = _ico(msg.role);
+    final Widget msgBox = _msg(msg, Theme.of(context).colorScheme.onSurface);
+    final Widget row = Row(
+      children: [
+        (msg.role == Role.ast) ? icon : msgBox,
+        (msg.role == Role.ast) ? msgBox : icon,
+      ],
+    );
+    return row;
   }
 }

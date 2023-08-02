@@ -11,14 +11,13 @@ class Message {
   String msg;
   Message(this.role, this.msg);
 
+  /// Raises:
+  /// - an exception if the string is not a valid Role;
+  /// - an exception if the string is not a valid Message;
+  /// - an exception if the keys 'role' or 'content' are missing.
   factory Message.fromMap(Map<String, dynamic> map) {
-    print("Message.fromMap: $map");
-    // get the role from the String map['role']
     Role role = Role.values.firstWhere((e) => e.toString() == 'Role.${map["role"]}');
-    // check that content is in the map keys; if it isn't, print the map
     String msg = map['content'];
-    print("role: $role");
-    print("msg: $msg");
     return Message(role, msg);
   }
 }

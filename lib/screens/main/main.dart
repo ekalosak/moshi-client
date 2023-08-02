@@ -257,7 +257,16 @@ class _MainScreenState extends State<MainScreen> {
       case 1:
         return "Profile";
       case 2:
-        return "Progress";
+        switch (_progressIndex) {
+          case 0:
+            return "Vocabulary";
+          case 1:
+            return "Streak";
+          case 2:
+            return "Transcripts";
+          default:
+            throw ("ERROR: invalid progress index");
+        }
       case 3:
         return "Settings";
       default:
