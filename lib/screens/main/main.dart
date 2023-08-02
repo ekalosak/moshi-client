@@ -1,6 +1,3 @@
-// This module provide the main entrypoint for the non-auth screens.
-// The HomeScreen listens for auth changes and redirects here if the user is signed in.
-
 import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
@@ -81,8 +78,6 @@ class _MainScreenState extends State<MainScreen> {
   }
 
   // TODO show a loading screen, not just a spinner
-  // if we're waiting for profile or supported langs, show a spinner
-  // otherwise build the scaffold
   @override
   Widget build(BuildContext context) {
     print("MainScreen.build");
@@ -101,9 +96,10 @@ class _MainScreenState extends State<MainScreen> {
     TextButton flagButton = _flagButton(pro, supportedLangs);
     Drawer menuDrawer = _drawer();
     Widget body = _body(pro, slans, _index);
+    Widget bottomNavigationBar = _bottomNavigationBar(_index);
     return Scaffold(
       appBar: AppBar(
-        title: Text('Moshi'),
+        title: Text(_titleForIndex(_index)),
         leading: Builder(
           builder: (BuildContext context) {
             return IconButton(
@@ -118,6 +114,7 @@ class _MainScreenState extends State<MainScreen> {
       ),
       drawer: menuDrawer,
       body: body,
+      bottomNavigationBar: bottomNavigationBar,
     );
   }
 
@@ -196,6 +193,12 @@ class _MainScreenState extends State<MainScreen> {
     );
   }
 
+  void _changeIndex(int index) {
+    setState(() {
+      _index = index;
+    });
+  }
+
   /// Returns a Drawer with links to the other screens (the hamburger menu).
   Drawer _drawer() {
     return Drawer(
@@ -210,41 +213,55 @@ class _MainScreenState extends State<MainScreen> {
           ListTile(
             title: Text('Chat'),
             onTap: () {
-              setState(() {
-                _index = 0;
-              });
+              _changeIndex(0);
               Navigator.pop(context);
             },
           ),
           ListTile(
             title: Text('Profile'),
             onTap: () {
-              setState(() {
-                _index = 1;
-              });
+              _changeIndex(1);
               Navigator.pop(context);
             },
           ),
           ListTile(
             title: Text('Progress'),
             onTap: () {
-              setState(() {
-                _index = 2;
-              });
+              _changeIndex(2);
               Navigator.pop(context);
             },
           ),
           ListTile(
             title: Text('Settings'),
             onTap: () {
-              setState(() {
-                _index = 3;
-              });
+              _changeIndex(3);
               Navigator.pop(context);
             },
           ),
         ],
       ),
     );
+  }
+
+  String _titleForIndex(int index) {
+    switch (index) {
+      case 0:
+        return "Chat";
+      case 1:
+        return "Profile";
+      case 2:
+        return "Progress";
+      case 3:
+        return "Settings";
+      default:
+        throw ("ERROR: invalid index");
+    }
+  }
+
+  Widget? _bottomNavigationBar(int index) {
+    if (_index != 2) {
+      return null;
+    }
+    ...
   }
 }
