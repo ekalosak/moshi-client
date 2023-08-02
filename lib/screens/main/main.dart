@@ -24,7 +24,8 @@ class MainScreen extends StatefulWidget {
 
 class _MainScreenState extends State<MainScreen> {
   Profile? profile;
-  int _index = 0;
+  int _index = 2;
+  int _progressIndex = 2;
   List<String> supportedLangs = [];
   late StreamSubscription _profileListener;
   late StreamSubscription _supportedLangsListener;
@@ -96,7 +97,7 @@ class _MainScreenState extends State<MainScreen> {
     TextButton flagButton = _flagButton(pro, supportedLangs);
     Drawer menuDrawer = _drawer();
     Widget body = _body(pro, slans, _index);
-    Widget bottomNavigationBar = _bottomNavigationBar(_index);
+    Widget? bottomNavigationBar = _bottomNavigationBar(_index);
     return Scaffold(
       appBar: AppBar(
         title: Text(_titleForIndex(_index)),
@@ -125,7 +126,7 @@ class _MainScreenState extends State<MainScreen> {
       case 1:
         return ProfileScreen(profile: pro, supportedLangs: slans);
       case 2:
-        return ProgressScreen(profile: pro);
+        return ProgressScreen(profile: pro, index: _progressIndex);
       case 3:
         return SettingsScreen();
       default:
@@ -199,6 +200,12 @@ class _MainScreenState extends State<MainScreen> {
     });
   }
 
+  void _changeProgressIndex(int index) {
+    setState(() {
+      _progressIndex = index;
+    });
+  }
+
   /// Returns a Drawer with links to the other screens (the hamburger menu).
   Drawer _drawer() {
     return Drawer(
@@ -262,6 +269,23 @@ class _MainScreenState extends State<MainScreen> {
     if (_index != 2) {
       return null;
     }
-    ...
+    return BottomNavigationBar(
+      currentIndex: _progressIndex,
+      onTap: _changeProgressIndex,
+      items: [
+        BottomNavigationBarItem(
+          icon: Icon(Icons.book),
+          label: 'Vocabulary',
+        ),
+        BottomNavigationBarItem(
+          icon: Icon(Icons.trending_up),
+          label: 'Streak',
+        ),
+        BottomNavigationBarItem(
+          icon: Icon(Icons.chat_rounded),
+          label: 'Transcripts',
+        ),
+      ],
+    );
   }
 }

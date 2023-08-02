@@ -5,8 +5,8 @@ import 'package:moshi_client/types.dart';
 import 'package:moshi_client/util.dart';
 
 class ProfileScreen extends StatefulWidget {
-  Profile profile;
-  List<String> supportedLangs;
+  final Profile profile;
+  final List<String> supportedLangs;
   ProfileScreen({required this.profile, required this.supportedLangs});
   @override
   _ProfileScreenState createState() => _ProfileScreenState();

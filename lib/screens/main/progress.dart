@@ -5,7 +5,8 @@ import 'package:moshi_client/screens/main/transcripts.dart';
 
 class ProgressScreen extends StatefulWidget {
   final Profile profile;
-  ProgressScreen({required this.profile});
+  final int index;
+  ProgressScreen({required this.profile, required this.index});
 
   @override
   State<ProgressScreen> createState() => _ProgressScreenState();
@@ -17,60 +18,31 @@ class _ProgressScreenState extends State<ProgressScreen> {
   @override
   void initState() {
     super.initState();
-    body = TranscriptScreen(profile: widget.profile);
+    // body = TranscriptScreen(profile: widget.profile);
+    body = _buildBody(widget.profile, widget.index);
   }
 
-  SegmentedButton _pageSelector() {
-    return SegmentedButton(
-      showSelectedIcon: false,
-      segments: [
-        ButtonSegment(
-          value: 0,
-          icon: Icon(Icons.book),
-          label: Text('Vocabulary'),
-        ),
-        ButtonSegment(
-          value: 1,
-          icon: Icon(Icons.trending_up),
-          label: Text('Streak'),
-        ),
-        ButtonSegment(
-          value: 0,
-          icon: Icon(Icons.all_inbox_rounded),
-          label: Text('Transcripts'),
-        ),
-      ],
-      selected: <int>{0},
-      onSelectionChanged: (p0) {
-        print('SegmentedButton.onSelectionChanged: $p0');
-        setState(() {
-          switch (p0) {
-            case 0:
-              print("TODO");
-              // body = VocabScreen(profile: widget.profile);
-              break;
-            case 1:
-              print("TODO");
-              // body = StreakScreen(profile: widget.profile);
-              break;
-            case 2:
-              body = TranscriptScreen(profile: widget.profile);
-              break;
-          }
-        });
-      },
-    );
+  Widget _buildBody(Profile pro, int index) {
+    switch (index) {
+      case 0:
+        return Text("TODO");
+      case 1:
+        return Text("TODO");
+      case 2:
+        return TranscriptScreen(profile: pro);
+      default:
+        throw ("ERROR: invalid index");
+    }
   }
 
   @override
   Widget build(BuildContext context) {
     // this is the body of a scaffold, do not create another scaffold
     // it needs a segmented button to switch between vocab, streak, and transcripts
+    Widget body = _buildBody(widget.profile, widget.index);
     return Padding(
-        padding: EdgeInsets.all(16),
-        child: Column(crossAxisAlignment: CrossAxisAlignment.center, children: [
-          Flexible(flex: 1, child: _pageSelector()),
-          Flexible(flex: 9, child: body),
-        ]));
+      padding: EdgeInsets.all(16),
+      child: body,
+    );
   }
 }

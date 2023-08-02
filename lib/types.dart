@@ -3,12 +3,24 @@ import 'dart:core';
 enum Role {
   usr,
   ast,
+  sys,
 }
 
 class Message {
   Role role;
   String msg;
   Message(this.role, this.msg);
+
+  factory Message.fromMap(Map<String, dynamic> map) {
+    print("Message.fromMap: $map");
+    // get the role from the String map['role']
+    Role role = Role.values.firstWhere((e) => e.toString() == 'Role.${map["role"]}');
+    // check that content is in the map keys; if it isn't, print the map
+    String msg = map['content'];
+    print("role: $role");
+    print("msg: $msg");
+    return Message(role, msg);
+  }
 }
 
 enum DCMsg { transcript, status, ping }

@@ -5,7 +5,7 @@ service cloud.firestore {
   	match /profiles/{documentId} {
       allow read, write, create: if request.auth != null && request.auth.uid == documentId;
     }
-    match /conversations/{documentId} {
+    match /transcripts/{documentId} {
       allow read: if request.auth != null && request.auth.uid == resource.data.uid;
     }
     match /config/supported_langs {
