@@ -1,6 +1,6 @@
 {
-    "name": "moshi_client",
-    "short_name": "moshi_client",
+    "name": "moshi",
+    "short_name": "moshi",
     "start_url": ".",
     "display": "standalone",
     "background_color": "#0175C2",

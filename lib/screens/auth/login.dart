@@ -1,6 +1,6 @@
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
-import 'package:moshi_client/screens/main/main.dart';
+import 'package:moshi/screens/main/main.dart';
 import 'password_reset.dart';
 import 'sign_up.dart';
 

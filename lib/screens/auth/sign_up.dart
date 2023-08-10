@@ -3,7 +3,7 @@
 import 'package:firebase_auth/firebase_auth.dart' show FirebaseAuth, FirebaseAuthException, UserCredential;
 import 'package:flutter/material.dart';
 
-import 'package:moshi_client/screens/auth/make_profile.dart';
+import 'package:moshi/screens/auth/make_profile.dart';
 
 class SignUpScreen extends StatefulWidget {
   @override

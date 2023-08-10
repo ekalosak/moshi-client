@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 
-import 'package:moshi_client/types.dart';
-import 'package:moshi_client/screens/main/transcripts.dart';
+import 'package:moshi/types.dart';
+import 'package:moshi/screens/main/transcripts.dart';
 
 class ProgressScreen extends StatefulWidget {
   final Profile profile;

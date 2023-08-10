@@ -1,4 +1,4 @@
-// import 'package:moshi_client/types.dart';
+// import 'package:moshi/types.dart';
 
 // abstract class Message<T> {
 //     T parse()

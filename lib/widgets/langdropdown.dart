@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 
-import 'package:moshi_client/util.dart';
+import 'package:moshi/util.dart';
 
 // make the Profile optional
 DropdownButtonFormField<String> languageDropdown(

@@ -1,4 +1,4 @@
-package com.example.moshi_client
+package com.chatmoshi.moshi
 
 import io.flutter.embedding.android.FlutterActivity
 

@@ -1,8 +1,8 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 
-import 'package:moshi_client/types.dart';
-import 'package:moshi_client/util.dart';
+import 'package:moshi/types.dart';
+import 'package:moshi/util.dart';
 
 class ProfileScreen extends StatefulWidget {
   final Profile profile;

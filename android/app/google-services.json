@@ -1,40 +1,40 @@
 {
   "project_info": {
-    "project_number": "462213871057",
+    "project_number": "638882664430",
     "project_id": "moshi-3",
     "storage_bucket": "moshi-3.appspot.com"
   },
   "client": [
     {
       "client_info": {
-        "mobilesdk_app_id": "1:462213871057:android:45ace2746f6a1f8ca19cf0",
+        "mobilesdk_app_id": "1:638882664430:android:ecae935915cf5f24ea88ff",
         "android_client_info": {
           "package_name": "com.chatmoshi.moshi"
         }
       },
       "oauth_client": [
         {
-          "client_id": "462213871057-sl6htg7n3jvff0cu55ke542q2q4dqq3o.apps.googleusercontent.com",
+          "client_id": "638882664430-p75u4ne4f5aqdncpqhctek0dhsmm737t.apps.googleusercontent.com",
           "client_type": 3
         }
       ],
       "api_key": [
         {
-          "current_key": "AIzaSyBiY9BUsA3Rw7DqMguoN_DZ7Jz83thxbzw"
+          "current_key": "AIzaSyC8aV6P_FhLUfttgjjRacVS5HATDrVCsPQ"
         }
       ],
       "services": {
         "appinvite_service": {
           "other_platform_oauth_client": [
             {
-              "client_id": "462213871057-8m16oj1q1r8l1t36r2cbr1qiqum36g0v.apps.googleusercontent.com",
+              "client_id": "638882664430-p75u4ne4f5aqdncpqhctek0dhsmm737t.apps.googleusercontent.com",
               "client_type": 3
             },
             {
-              "client_id": "462213871057-fob3m0kof31gm1i5ld0p37a7ar2odrs8.apps.googleusercontent.com",
+              "client_id": "638882664430-lfvkpjv7j4t71s2pa533fth8aqg9iv2i.apps.googleusercontent.com",
               "client_type": 2,
               "ios_info": {
-                "bundle_id": "com.chatmoshi.moshi.RunnerTests"
+                "bundle_id": "com.chatmoshi.moshi"
               }
             }
           ]
