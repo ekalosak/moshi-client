@@ -27,7 +27,6 @@ class _LoginScreenState extends State<LoginScreen> {
         email: emailController.text,
         password: passwordController.text,
       );
-      // TODO remove this security hole
       print(credentials.user!.getIdToken());
     } on FirebaseAuthException catch (e) {
       print("FirebaseAuthException");
