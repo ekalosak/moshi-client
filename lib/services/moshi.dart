@@ -26,35 +26,38 @@ Future<bool> healthCheck() async {
   }
 }
 
+class AuthError implements Exception {
+  final String message;
+  AuthError(this.message);
+}
+
 /// Send WebRTC SDP offer to Moshi server
 Future<RTCSessionDescription?> sendOfferGetAnswer(
   RTCSessionDescription offer,
 ) async {
   print("sendOfferGetAnswer [START]");
   String token = await FirebaseAuth.instance.currentUser!.getIdToken();
-  try {
-    print("offer endpoint: ${offerEndpoint.toString()}");
-    final response = await http.post(
-      offerEndpoint,
-      body: jsonEncode(offer.toMap()),
-      headers: {
-        "Authorization": "Bearer $token",
-        "Content-Type": "application/json",
-      },
-    );
+  // print("offer endpoint: ${offerEndpoint.toString()}");
+  final response = await http.post(
+    offerEndpoint,
+    body: jsonEncode(offer.toMap()),
+    headers: {
+      "Authorization": "Bearer $token",
+      "Content-Type": "application/json",
+    },
+  );
 
-    print("offer response code: ${response.statusCode}");
-    print("offer response body: ${response.body}");
-    if (response.statusCode == 200) {
-      Map<String, dynamic> data = jsonDecode(response.body);
-      print("sendOfferGetAnswer [END]");
-      return RTCSessionDescription(data['sdp'], data['type']);
-    } else {
-      print("sendOfferGetAnswer: Error: failed to get answer from server");
-      return null;
-    }
-  } catch (e) {
-    print("sendOfferGetAnswer: Error: $e");
+  print("offer response code: ${response.statusCode}");
+  print("offer response body: ${response.body}");
+  if (response.statusCode == 200) {
+    Map<String, dynamic> data = jsonDecode(response.body);
+    print("sendOfferGetAnswer [END]");
+    return RTCSessionDescription(data['sdp'], data['type']);
+  } else if (response.statusCode == 401) {
+    print("401");
+    throw AuthError("Auth token invalid");
+  } else {
+    print("sendOfferGetAnswer: Error: failed to get answer from server");
     return null;
   }
 }

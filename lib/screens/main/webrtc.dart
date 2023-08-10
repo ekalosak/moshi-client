@@ -11,6 +11,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_webrtc/flutter_webrtc.dart';
 
 import 'package:moshi_client/types.dart';
+import 'package:moshi_client/screens/auth/login.dart' as login;
 import 'package:moshi_client/services/moshi.dart' as moshi;
 import 'package:moshi_client/util.dart' as util;
 import 'package:moshi_client/widgets/chat.dart';
@@ -128,7 +129,6 @@ class _WebRTCScreenState extends State<WebRTCScreen> {
         if (pcs == RTCPeerConnectionState.RTCPeerConnectionStateConnected) {
           print("pc: connected");
         } else if (pcs == RTCPeerConnectionState.RTCPeerConnectionStateDisconnected) {
-          // TODO set an error message to be displayed in the snackbox on build
           print("pc: disconnected");
           setState(() {
             callStatus = CallStatus.idle;
@@ -158,17 +158,30 @@ class _WebRTCScreenState extends State<WebRTCScreen> {
             callStatus = CallStatus.idle; // TODO also handle channel closed for the peer connection
           });
         } else {
-          print("TODO dc: data channel state change unhandled: $dcs");
+          throw "Unhanlded data channel state: $dcs";
         }
       };
       dc.onMessage = (dcm) {
         if (!dcm.isBinary) {
           _handleStringMessage(dcm.text);
         } else {
-          print("dc: got binary msg");
+          print("TODO handle binary data channel messages");
         }
       };
-      err = await negotiate();
+      try {
+        err = await negotiate();
+      } on moshi.AuthError catch (e) {
+        print(e.message);
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(content: Text("Please log in.")),
+          );
+          Navigator.of(context).pushAndRemoveUntil(
+            MaterialPageRoute(builder: (context) => login.LoginScreen()),
+            (Route<dynamic> route) => false,
+          );
+        }
+      }
       if (err != null) {
         await hangUpMoshi();
         return err;
@@ -219,7 +232,8 @@ class _WebRTCScreenState extends State<WebRTCScreen> {
     RTCPeerConnection pc = _pc!;
     // NOTE createOffer collects the available codecs from the audio tracks added to the stream
     RTCSessionDescription offer = await pc.createOffer();
-    print("offer:\n\ttype: ${offer.type}\n\tsdp:\n${offer.sdp}");
+    print("negotiate: Got offer");
+    // print("offer:\n\ttype: ${offer.type}\n\tsdp:\n${offer.sdp}");
     await pc.setLocalDescription(offer);
     RTCSessionDescription? answer = await moshi.sendOfferGetAnswer(offer);
     if (answer == null) {
@@ -250,7 +264,7 @@ class _WebRTCScreenState extends State<WebRTCScreen> {
       print("pc: onIceSignalingState: $ss");
     };
     pc.onIceCandidate = (candidate) async {
-      print("pc: onIceCandidate: ${candidate.candidate}");
+      // print("pc: onIceCandidate: ${candidate.candidate}");
     };
     // Handle what to do when tracks are added
     pc.onTrack = (evt) {
@@ -277,7 +291,6 @@ class _WebRTCScreenState extends State<WebRTCScreen> {
     }
     await _localStream?.dispose();
     setState(() {
-      // TODO these state changes should be set by callbacks from the webrtc implementation.
       if (micStatus == MicStatus.on) {
         micStatus = MicStatus.muted;
       }
