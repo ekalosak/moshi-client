@@ -6,11 +6,9 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:moshi_client/types.dart';
 import 'package:moshi_client/util.dart';
 import 'package:moshi_client/screens/auth/make_profile.dart';
+import 'info.dart';
 import 'profile.dart';
 import 'progress.dart';
-// import 'transcripts.dart';
-// import 'news.dart';  // updates, news, etc.
-// import 'feedback.dart';
 import 'settings.dart';
 import 'webrtc.dart';
 
@@ -66,6 +64,7 @@ class _MainScreenState extends State<MainScreen> {
           supportedLangs = snapshot['langs'].cast<String>();
         });
       } else {
+        // TODO show an error page. this is a fatal error.
         throw Exception("Supported languages don't exist or is empty.");
       }
     });
@@ -124,10 +123,12 @@ class _MainScreenState extends State<MainScreen> {
       case 0:
         return WebRTCScreen(profile: pro);
       case 1:
-        return ProfileScreen(profile: pro, supportedLangs: slans);
+        return InfoScreen(profile: pro);
       case 2:
-        return ProgressScreen(profile: pro, index: _progressIndex);
+        return ProfileScreen(profile: pro, supportedLangs: slans);
       case 3:
+        return ProgressScreen(profile: pro, index: _progressIndex);
+      case 4:
         return SettingsScreen();
       default:
         throw ("ERROR: invalid index");
@@ -225,23 +226,30 @@ class _MainScreenState extends State<MainScreen> {
             },
           ),
           ListTile(
-            title: Text('Profile'),
+            title: Text('Info'),
             onTap: () {
               _changeIndex(1);
               Navigator.pop(context);
             },
           ),
           ListTile(
-            title: Text('Progress'),
+            title: Text('Profile'),
             onTap: () {
               _changeIndex(2);
               Navigator.pop(context);
             },
           ),
           ListTile(
-            title: Text('Settings'),
+            title: Text('Progress'),
             onTap: () {
               _changeIndex(3);
+              Navigator.pop(context);
+            },
+          ),
+          ListTile(
+            title: Text('Settings'),
+            onTap: () {
+              _changeIndex(4);
               Navigator.pop(context);
             },
           ),
