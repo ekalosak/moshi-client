@@ -25,9 +25,15 @@ class _ProgressScreenState extends State<ProgressScreen> {
   Widget _buildBody(Profile pro, int index) {
     switch (index) {
       case 0:
-        return Text("TODO");
+        return Align(
+          alignment: Alignment.topCenter,
+          child: Text("Under construction..."),
+        );
       case 1:
-        return Text("TODO");
+        return Align(
+          alignment: Alignment.topCenter,
+          child: Text("Under construction..."),
+        );
       case 2:
         return TranscriptScreen(profile: pro);
       default:
