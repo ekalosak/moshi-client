@@ -22,7 +22,7 @@ class MainScreen extends StatefulWidget {
 
 class _MainScreenState extends State<MainScreen> {
   Profile? profile;
-  int _index = 2;
+  int _index = 1;
   int _progressIndex = 2;
   List<String> supportedLangs = [];
   late StreamSubscription _profileListener;
@@ -64,7 +64,6 @@ class _MainScreenState extends State<MainScreen> {
           supportedLangs = snapshot['langs'].cast<String>();
         });
       } else {
-        // TODO show an error page. this is a fatal error.
         throw Exception("Supported languages don't exist or is empty.");
       }
     });
@@ -226,7 +225,7 @@ class _MainScreenState extends State<MainScreen> {
             },
           ),
           ListTile(
-            title: Text('Info'),
+            title: Text('Feed'),
             onTap: () {
               _changeIndex(1);
               Navigator.pop(context);
@@ -263,7 +262,7 @@ class _MainScreenState extends State<MainScreen> {
       case 0:
         return "Chat";
       case 1:
-        return "Info";
+        return "Feed";
       case 2:
         return "Profile";
       case 3:

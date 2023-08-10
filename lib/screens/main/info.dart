@@ -51,11 +51,8 @@ class _InfoScreenState extends State<InfoScreen> {
     super.initState();
     // listen for info documents with this user's uid in the uid field.
     // the info documents have their own unique document id.
-    _infoListener = FirebaseFirestore.instance
-        .collection('info')
-        .where('uid', isEqualTo: widget.profile.uid)
-        .snapshots()
-        .listen((event) {
+    _infoListener = FirebaseFirestore.instance.collection('info').snapshots().listen((event) {
+      print("infoListener: ${event.docs.length} docs");
       final List<Info> info = [];
       for (var doc in event.docs) {
         info.add(Info.fromDocumentSnapshot(doc));
@@ -79,6 +76,7 @@ class _InfoScreenState extends State<InfoScreen> {
     setState(() {
       _info ??= [];
       for (var i in info) {
+        print("adding $i");
         if (!_info!.contains(i)) {
           _info!.add(i);
         }
@@ -142,10 +140,26 @@ class _InfoScreenState extends State<InfoScreen> {
 
   @override
   Widget build(BuildContext context) {
-    Widget body = _buildInfoList();
+    Widget body = _info == null ? Center(child: CircularProgressIndicator()) : _buildInfoList();
     return Padding(
       padding: EdgeInsets.all(16),
       child: body,
     );
+    // TODO only get the latest 3 docs for each type.
+    // return StreamBuilder<DocumentSnapshot>(
+    //   stream: FirebaseFirestore.instance.collection('info').doc().snapshots(),
+    //   builder:  (BuildContext context, AsyncSnapshot<DocumentSnapshot> snapshot) {
+    //     if (snapshot.hasError) {
+    //       return Text("We encountered an error. Please try again later.");
+    //     }
+    //     if (snapshot.connectionState == ConnectionState.waiting) {
+    //       return Center(child: CircularProgressIndicator());
+    //     }
+    //     if (!snapshot.hasData) {
+    //       return Center(child: Text("Nothing in the feed."));
+    //     }
+
+    //   }
+    // );
   }
 }
