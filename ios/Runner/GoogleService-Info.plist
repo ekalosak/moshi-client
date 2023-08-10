@@ -3,17 +3,17 @@
 <plist version="1.0">
 <dict>
 	<key>CLIENT_ID</key>
-	<string>462213871057-pb8qj1caal02cec7753s794m7co848h7.apps.googleusercontent.com</string>
+	<string>638882664430-lfvkpjv7j4t71s2pa533fth8aqg9iv2i.apps.googleusercontent.com</string>
 	<key>REVERSED_CLIENT_ID</key>
-	<string>com.googleusercontent.apps.462213871057-pb8qj1caal02cec7753s794m7co848h7</string>
+	<string>com.googleusercontent.apps.638882664430-lfvkpjv7j4t71s2pa533fth8aqg9iv2i</string>
 	<key>API_KEY</key>
-	<string>AIzaSyDN_5-v3W294atZ45-p9xjPBwR-kABDUsA</string>
+	<string>AIzaSyCyzCOWqgebFzNj6nO5lp3e53rXVaYjDf4</string>
 	<key>GCM_SENDER_ID</key>
-	<string>462213871057</string>
+	<string>638882664430</string>
 	<key>PLIST_VERSION</key>
 	<string>1</string>
 	<key>BUNDLE_ID</key>
-	<string>com.example.moshiClient</string>
+	<string>com.chatmoshi.moshi</string>
 	<key>PROJECT_ID</key>
 	<string>moshi-3</string>
 	<key>STORAGE_BUCKET</key>
@@ -29,6 +29,6 @@
 	<key>IS_SIGNIN_ENABLED</key>
 	<true></true>
 	<key>GOOGLE_APP_ID</key>
-	<string>1:462213871057:ios:f12eff6fc2ca8a23a19cf0</string>
+	<string>1:638882664430:ios:d90a16dec61c22a0ea88ff</string>
 </dict>
 </plist>
