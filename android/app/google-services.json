@@ -1,15 +1,15 @@
 {
   "project_info": {
     "project_number": "462213871057",
-    "project_id": "moshi-002",
-    "storage_bucket": "moshi-002.appspot.com"
+    "project_id": "moshi-3",
+    "storage_bucket": "moshi-3.appspot.com"
   },
   "client": [
     {
       "client_info": {
         "mobilesdk_app_id": "1:462213871057:android:45ace2746f6a1f8ca19cf0",
         "android_client_info": {
-          "package_name": "com.example.moshi_client"
+          "package_name": "com.chatmoshi.moshi"
         }
       },
       "oauth_client": [
@@ -34,7 +34,7 @@
               "client_id": "462213871057-fob3m0kof31gm1i5ld0p37a7ar2odrs8.apps.googleusercontent.com",
               "client_type": 2,
               "ios_info": {
-                "bundle_id": "com.example.moshiClient.RunnerTests"
+                "bundle_id": "com.chatmoshi.moshi.RunnerTests"
               }
             }
           ]
