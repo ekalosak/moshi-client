@@ -3,7 +3,13 @@ import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 
 import 'package:moshi_client/types.dart';
+import 'package:moshi_client/util.dart' as util;
 import 'package:moshi_client/widgets/chat.dart';
+
+class NullDataError implements Exception {
+  final String message;
+  NullDataError(this.message);
+}
 
 class Transcript {
   String tid;
@@ -12,6 +18,7 @@ class Transcript {
   String language;
   Timestamp timestamp;
   String activityType;
+  String? summary;
 
   Transcript(
       {required this.tid,
@@ -27,12 +34,16 @@ class Transcript {
       Message message = Message.fromMap(msg);
       msgs.add(message);
     }
+    Map<String, dynamic>? data = snapshot.data() as Map<String, dynamic>?;
+    if (data == null) {
+      throw NullDataError("Transcript.fromDocumentSnapshot: snapshot.data() is null");
+    }
+    String language = (data.containsKey('language')) ? snapshot['language'] : '';
     return Transcript(
         tid: snapshot.id,
         uid: snapshot['uid'],
         messages: msgs,
-        // language: snapshot['language'],  // this may be missing
-        language: 'en', // TODO remove this when language is in the transcript document
+        language: language,
         timestamp: snapshot['timestamp'],
         activityType: snapshot['activity_type']);
   }
@@ -107,10 +118,18 @@ class _TranscriptScreenState extends State<TranscriptScreen> {
     print("_buildTranscriptList");
     List<Transcript> transcripts = _transcripts!;
     itemBuilder(BuildContext context, int index) {
+      // Title is flag emoji + date + time to the minute
+      Transcript t = transcripts[index];
+      String emoji = util.getLangEmoji(t.language);
+      // Format the date to drop seconds and smaller
+      String date = t.timestamp.toDate().toString().substring(0, 16);
+      String title = "$emoji $date";
+      int nm = t.messages.where((element) => element.role != Role.sys).length;
+      String subtitle = t.summary ?? '$nm messages';
       return ListTile(
         // TODO summary of transcript instead of timestamp for title, put date in subtitle (only up to minute, no seconds)
-        title: Text(transcripts[index].timestamp.toDate().toString()),
-        subtitle: Text(transcripts[index].tid),
+        title: Text(title),
+        subtitle: Text(subtitle),
         onTap: () {
           Navigator.push(
             context,

@@ -36,6 +36,8 @@ String getLangEmoji(String lang) {
       return '🇹🇼';
     case 'cmn-HK':
       return '🇭🇰';
+    case '':
+      return '🌎';
     default:
       return lang;
   }
