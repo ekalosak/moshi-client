@@ -1,0 +1,39 @@
+{
+  "project_info": {
+    "project_number": "638882664430",
+    "project_id": "moshi-3",
+    "storage_bucket": "moshi-3.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:638882664430:android:ecae935915cf5f24ea88ff",
+        "android_client_info": {
+          "package_name": "com.chatmoshi.moshi"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "638882664430-p75u4ne4f5aqdncpqhctek0dhsmm737t.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyC8aV6P_FhLUfttgjjRacVS5HATDrVCsPQ"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "638882664430-p75u4ne4f5aqdncpqhctek0dhsmm737t.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
