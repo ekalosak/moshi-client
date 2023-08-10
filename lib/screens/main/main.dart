@@ -3,9 +3,9 @@ import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 
-import 'package:moshi_client/types.dart';
-import 'package:moshi_client/util.dart';
-import 'package:moshi_client/screens/auth/make_profile.dart';
+import 'package:moshi/types.dart';
+import 'package:moshi/util.dart';
+import 'package:moshi/screens/auth/make_profile.dart';
 import 'info.dart';
 import 'profile.dart';
 import 'progress.dart';

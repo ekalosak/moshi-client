@@ -10,12 +10,12 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter_webrtc/flutter_webrtc.dart';
 
-import 'package:moshi_client/types.dart';
-import 'package:moshi_client/screens/auth/login.dart' as login;
-import 'package:moshi_client/services/moshi.dart' as moshi;
-import 'package:moshi_client/util.dart' as util;
-import 'package:moshi_client/widgets/chat.dart';
-import 'package:moshi_client/widgets/status.dart';
+import 'package:moshi/types.dart';
+import 'package:moshi/screens/auth/login.dart' as login;
+import 'package:moshi/services/moshi.dart' as moshi;
+import 'package:moshi/util.dart' as util;
+import 'package:moshi/widgets/chat.dart';
+import 'package:moshi/widgets/status.dart';
 
 const iceServers = [
   {

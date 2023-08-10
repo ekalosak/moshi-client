@@ -2,9 +2,9 @@ import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 
-import 'package:moshi_client/storage.dart';
-import 'package:moshi_client/types.dart';
-import 'package:moshi_client/screens/home.dart';
+import 'package:moshi/storage.dart';
+import 'package:moshi/types.dart';
+import 'package:moshi/screens/home.dart';
 
 /// Ensure the user is authorized to view the page.
 Widget authorized(BuildContext context, Widget widg) {

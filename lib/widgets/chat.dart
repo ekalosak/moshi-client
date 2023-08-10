@@ -1,6 +1,6 @@
 /// Chat box with messages, looks like an SMS messenger app.
 import 'package:flutter/material.dart';
-import 'package:moshi_client/types.dart';
+import 'package:moshi/types.dart';
 
 import 'painters.dart';
 

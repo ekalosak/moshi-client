@@ -1,7 +1,7 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 
-import 'package:moshi_client/types.dart';
+import 'package:moshi/types.dart';
 
 Stream<DocumentSnapshot> profileStream(User user) {
   return FirebaseFirestore.instance.collection('profiles').doc(user.uid).snapshots(includeMetadataChanges: true);

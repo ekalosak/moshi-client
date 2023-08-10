@@ -2,9 +2,9 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 
-import 'package:moshi_client/types.dart';
-import 'package:moshi_client/util.dart' as util;
-import 'package:moshi_client/widgets/chat.dart';
+import 'package:moshi/types.dart';
+import 'package:moshi/util.dart' as util;
+import 'package:moshi/widgets/chat.dart';
 
 class NullDataError implements Exception {
   final String message;

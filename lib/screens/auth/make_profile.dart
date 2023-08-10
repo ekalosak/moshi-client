@@ -3,8 +3,8 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 
-import 'package:moshi_client/util.dart';
-import 'package:moshi_client/screens/home.dart';
+import 'package:moshi/util.dart';
+import 'package:moshi/screens/home.dart';
 
 class MakeProfileScreen extends StatefulWidget {
   final User user;

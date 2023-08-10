@@ -3,7 +3,7 @@
     <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
     <uses-permission android:name="android.permission.CHANGE_NETWORK_STATE" />
     <application
-        android:label="moshi_client"
+        android:label="moshi"
         android:name="${applicationName}"
         android:icon="@mipmap/ic_launcher">
         <activity

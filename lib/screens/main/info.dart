@@ -7,7 +7,7 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 
-import 'package:moshi_client/types.dart';
+import 'package:moshi/types.dart';
 
 class Info {
   final String title;
