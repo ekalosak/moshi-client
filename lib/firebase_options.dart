@@ -67,7 +67,7 @@ class DefaultFirebaseOptions {
     projectId: 'moshi-3',
     storageBucket: 'moshi-3.appspot.com',
     iosClientId: '462213871057-pb8qj1caal02cec7753s794m7co848h7.apps.googleusercontent.com',
-    iosBundleId: 'com.example.moshiClient',
+    iosBundleId: 'com.chatmoshi.moshiClient',
   );
 
   static const FirebaseOptions macos = FirebaseOptions(
@@ -77,6 +77,6 @@ class DefaultFirebaseOptions {
     projectId: 'moshi-3',
     storageBucket: 'moshi-3.appspot.com',
     iosClientId: '462213871057-fob3m0kof31gm1i5ld0p37a7ar2odrs8.apps.googleusercontent.com',
-    iosBundleId: 'com.example.moshiClient.RunnerTests',
+    iosBundleId: 'com.chatmoshi.moshiClient.RunnerTests',
   );
 }
