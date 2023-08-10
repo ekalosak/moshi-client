@@ -263,8 +263,10 @@ class _MainScreenState extends State<MainScreen> {
       case 0:
         return "Chat";
       case 1:
-        return "Profile";
+        return "Info";
       case 2:
+        return "Profile";
+      case 3:
         switch (_progressIndex) {
           case 0:
             return "Vocabulary";
@@ -275,7 +277,7 @@ class _MainScreenState extends State<MainScreen> {
           default:
             throw ("ERROR: invalid progress index");
         }
-      case 3:
+      case 4:
         return "Settings";
       default:
         throw ("ERROR: invalid index");
