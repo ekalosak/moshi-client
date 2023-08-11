@@ -110,13 +110,26 @@ class _FeedScreenState extends State<FeedScreen> {
   Color _getBkgdColor(String type) {
     switch (type) {
       case 'news':
-        return Colors.blue[500]!;
+        return Theme.of(context).colorScheme.secondary;
       case 'update':
-        return Colors.green[500]!;
+        return Theme.of(context).colorScheme.tertiary;
       case 'privacy_policy':
-        return Colors.purple[500]!;
+        return Theme.of(context).colorScheme.primary;
       default:
-        return Colors.cyan[800]!;
+        return Theme.of(context).colorScheme.background;
+    }
+  }
+
+  Color _getTextColor(String type) {
+    switch (type) {
+      case 'news':
+        return Theme.of(context).colorScheme.onSecondary;
+      case 'update':
+        return Theme.of(context).colorScheme.onTertiary;
+      case 'privacy_policy':
+        return Theme.of(context).colorScheme.onPrimary;
+      default:
+        return Theme.of(context).colorScheme.onBackground;
     }
   }
 
@@ -126,6 +139,7 @@ class _FeedScreenState extends State<FeedScreen> {
     itemBuilder(BuildContext context, int index) {
       Item i = feed[index];
       Color bkgdColor = _getBkgdColor(i.type);
+      Color textColor = _getTextColor(i.type);
       return Padding(
         padding: EdgeInsets.all(4),
         child: ClipRRect(
@@ -137,6 +151,7 @@ class _FeedScreenState extends State<FeedScreen> {
               child: ListTile(
                 title: Text(i.title),
                 subtitle: Text(i.subtitle),
+                textColor: textColor,
                 onTap: () {
                   showDialog(
                     context: context,
