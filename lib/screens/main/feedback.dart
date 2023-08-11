@@ -13,6 +13,8 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 
 import 'package:moshi/types.dart';
 
+int MAX_FEEDBACKS_PER_DAY = 3;
+
 class Feedback {
   final String uid;
   final String body;
@@ -61,6 +63,7 @@ class _FeedbackScreenState extends State<FeedbackScreen> {
         .where('timestamp', isGreaterThan: DateTime.now().subtract(Duration(days: 1)))
         .snapshots()
         .listen((QuerySnapshot snapshot) {
+      print("snapshot.docs.length = ${snapshot.docs.length}");
       setState(() {
         _numFeedbacks = snapshot.docs.length;
       });
@@ -96,27 +99,53 @@ class _FeedbackScreenState extends State<FeedbackScreen> {
     return feedbackTypes;
   }
 
+  Future<void> _submitFeedback(String fbk, String typ) async {
+    print("Submitting feedback...");
+    print("uid: ${widget.profile.uid}");
+    print("body: $fbk");
+    try {
+      await FirebaseFirestore.instance.collection('feedback').add({
+        'uid': widget.profile.uid,
+        'body': fbk,
+        'type': typ,
+        'timestamp': DateTime.now(),
+      });
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text("✅ Feedback submitted!"),
+          ),
+        );
+        setState(() {
+          _feedbackController.text = "";
+          _feedbackType = null;
+        });
+      }
+    } catch (e) {
+      print("Error submitting feedback: $e");
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text("❌ Error submitting feedback, please try again later."),
+          ),
+        );
+      }
+    }
+  }
+
   ElevatedButton _buildFeedbackButton() {
-    return _numFeedbacks != null && _numFeedbacks! >= 3
+    return _numFeedbacks != null && _numFeedbacks! >= MAX_FEEDBACKS_PER_DAY
         ? ElevatedButton(
             onPressed: null,
             child: Text("Submit"),
           )
         : ElevatedButton(
-            onPressed: () {
-              if (_feedbackType != null && _feedbackController.text != "") {
-                FirebaseFirestore.instance.collection('feedback').add({
-                  'uid': widget.profile.uid,
-                  'body': _feedbackController.text,
-                  'type': _feedbackType,
-                  'timestamp': DateTime.now(),
-                });
-                _feedbackController.clear();
-                setState(() {
-                  _feedbackType = null;
-                });
-              }
-            },
+            onPressed: (_feedbackType != null && _feedbackController.text != "" && _feedbackType != null)
+                ? () async {
+                    await _submitFeedback(_feedbackController.text, _feedbackType!);
+                    print("Feedback submitted!");
+                  }
+                : null,
             child: Text("Submit"),
           );
   }
@@ -131,15 +160,22 @@ class _FeedbackScreenState extends State<FeedbackScreen> {
       controller: _feedbackController,
     );
     ElevatedButton submitButton = _buildFeedbackButton();
-    Column body = Column(
-      children: [
-        feedbackField,
-        SizedBox(height: 16),
-        ...feedbackTypes,
-        SizedBox(height: 16),
-        submitButton,
-      ],
-    );
+    Column body = (_numFeedbacks! < MAX_FEEDBACKS_PER_DAY)
+        ? Column(
+            children: [
+              feedbackField,
+              SizedBox(height: 16),
+              ...feedbackTypes,
+              SizedBox(height: 16),
+              submitButton,
+            ],
+          )
+        : Column(
+            children: [
+              Text(
+                  "You have submitted $MAX_FEEDBACKS_PER_DAY feedbacks in the last 24 hours, which is our daily limit. Thank you for making Moshi better!"),
+            ],
+          );
     return Padding(
       padding: EdgeInsets.all(16),
       child: body,

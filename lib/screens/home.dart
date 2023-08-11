@@ -22,7 +22,12 @@ class _HomeScreenState extends State<HomeScreen> {
       if (user == null) {
         print('User is currently signed out.');
       } else {
-        print('User is signed in.');
+        print('User: ${user.uid}');
+        if (user.emailVerified) {
+          print('User is signed in.');
+        } else {
+          print('User is signed in but email is not verified.');
+        }
       }
       setState(() {
         this.user = user;

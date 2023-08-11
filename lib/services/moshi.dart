@@ -36,8 +36,11 @@ Future<RTCSessionDescription?> sendOfferGetAnswer(
   RTCSessionDescription offer,
 ) async {
   print("sendOfferGetAnswer [START]");
-  String token = await FirebaseAuth.instance.currentUser!.getIdToken();
-  // print("offer endpoint: ${offerEndpoint.toString()}");
+  String? token = await FirebaseAuth.instance.currentUser!.getIdToken();
+  if (token == null) {
+    print("sendOfferGetAnswer: Error: token is null");
+    throw AuthError("Auth token is null");
+  }
   final response = await http.post(
     offerEndpoint,
     body: jsonEncode(offer.toMap()),

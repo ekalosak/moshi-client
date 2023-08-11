@@ -123,12 +123,14 @@ class _MainScreenState extends State<MainScreen> {
       case 0:
         return WebRTCScreen(profile: pro);
       case 1:
-        return InfoScreen(profile: pro);
+        return FeedbackScreen(profile: pro);
       case 2:
-        return ProfileScreen(profile: pro, supportedLangs: slans);
+        return InfoScreen(profile: pro);
       case 3:
-        return ProgressScreen(profile: pro, index: _progressIndex);
+        return ProfileScreen(profile: pro, supportedLangs: slans);
       case 4:
+        return ProgressScreen(profile: pro, index: _progressIndex);
+      case 5:
         return SettingsScreen();
       default:
         throw ("ERROR: invalid index");
