@@ -155,10 +155,10 @@ class _WebRTCScreenState extends State<WebRTCScreen> {
         } else if (dcs == RTCDataChannelState.RTCDataChannelClosed) {
           print("dc: data channel closed");
           setState(() {
-            callStatus = CallStatus.idle; // TODO also handle channel closed for the peer connection
+            callStatus = CallStatus.idle;
           });
         } else {
-          throw "Unhanlded data channel state: $dcs";
+          print("Unhanlded data channel state: $dcs");
         }
       };
       dc.onMessage = (dcm) {
@@ -237,7 +237,7 @@ class _WebRTCScreenState extends State<WebRTCScreen> {
     await pc.setLocalDescription(offer);
     RTCSessionDescription? answer = await moshi.sendOfferGetAnswer(offer);
     if (answer == null) {
-      return "Failed to get SDP from Moshi server.";
+      return "😭 Moshi servers are having trouble.\nWe're working on it! 🏗";
     }
     print("answer:\n\ttype: ${answer.type}\n\tsdp:\n${answer.sdp}");
     await pc.setRemoteDescription(answer);

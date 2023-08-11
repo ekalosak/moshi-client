@@ -91,20 +91,19 @@ class _FeedScreenState extends State<FeedScreen> {
   }
 
   void _addToFeed(List<Item> items) {
-    setState(() {
-      _feed ??= [];
-      for (var i in items) {
-        print("adding $i");
-        int index = _feed!.indexWhere((element) => element.id == i.id);
-        if (index == -1) {
-          _feed!.add(i);
-        } else {
-          if (_feed![index].timestamp.isBefore(i.timestamp)) {
-            _feed![index] = i;
-          }
-        }
+    print("_addToFeed: ${items.length} items");
+    List<Item> feed = _feed ?? [];
+    for (var i in items) {
+      int index = feed.indexWhere((element) => element.id == i.id);
+      if (index == -1) {
+        feed.add(i);
+      } else {
+        feed[index] = i;
       }
-      _feed!.sort((a, b) => b.timestamp.compareTo(a.timestamp));
+    }
+    feed.sort((a, b) => b.timestamp.compareTo(a.timestamp));
+    setState(() {
+      _feed = feed;
     });
   }
 
