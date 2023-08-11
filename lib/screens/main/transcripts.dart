@@ -83,14 +83,20 @@ class _TranscriptScreenState extends State<TranscriptScreen> {
         .where('uid', isEqualTo: widget.profile.uid)
         .snapshots()
         .listen((event) {
-      final List<Transcript> ts = [];
-      for (var doc in event.docs) {
-        ts.add(Transcript.fromDocumentSnapshot(doc));
-      }
-      if (ts.isNotEmpty) {
-        if (mounted) {
-          _addTranscripts(ts);
+      if (event.size > 0) {
+        final List<Transcript> ts = [];
+        for (var doc in event.docs) {
+          ts.add(Transcript.fromDocumentSnapshot(doc));
         }
+        if (ts.isNotEmpty) {
+          if (mounted) {
+            _addTranscripts(ts);
+          }
+        }
+      } else {
+        setState(() {
+          _transcripts = [];
+        });
       }
     });
   }
@@ -118,16 +124,13 @@ class _TranscriptScreenState extends State<TranscriptScreen> {
     print("_buildTranscriptList");
     List<Transcript> transcripts = _transcripts!;
     itemBuilder(BuildContext context, int index) {
-      // Title is flag emoji + date + time to the minute
       Transcript t = transcripts[index];
       String emoji = util.getLangEmoji(t.language);
-      // Format the date to drop seconds and smaller
-      String date = t.timestamp.toDate().toString().substring(0, 16);
+      String date = t.timestamp.toDate().toString().substring(0, 16); // NOTE drops seconds and smaller
       String title = "$emoji $date";
       int nm = t.messages.where((element) => element.role != Role.sys).length;
       String subtitle = t.summary ?? '$nm messages';
       return ListTile(
-        // TODO summary of transcript instead of timestamp for title, put date in subtitle (only up to minute, no seconds)
         title: Text(title),
         subtitle: Text(subtitle),
         onTap: () {
@@ -141,7 +144,9 @@ class _TranscriptScreenState extends State<TranscriptScreen> {
       );
     }
 
-    return ListView.builder(itemBuilder: itemBuilder, itemCount: transcripts.length);
+    return (_transcripts != null && _transcripts!.isNotEmpty)
+        ? ListView.builder(itemBuilder: itemBuilder, itemCount: transcripts.length)
+        : Text("No transcripts yet, please have a Chat with Moshi!");
   }
 
   @override

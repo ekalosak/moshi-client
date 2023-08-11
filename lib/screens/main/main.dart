@@ -296,7 +296,7 @@ class _MainScreenState extends State<MainScreen> {
   }
 
   Widget? _bottomNavigationBar(int index) {
-    if (_index != 2) {
+    if (_index != 4) {
       return null;
     }
     return BottomNavigationBar(
