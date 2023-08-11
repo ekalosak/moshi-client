@@ -6,6 +6,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:moshi/types.dart';
 import 'package:moshi/util.dart';
 import 'package:moshi/screens/auth/make_profile.dart';
+import 'feedback.dart';
 import 'info.dart';
 import 'profile.dart';
 import 'progress.dart';
@@ -225,30 +226,37 @@ class _MainScreenState extends State<MainScreen> {
             },
           ),
           ListTile(
-            title: Text('Feed'),
+            title: Text('Feedback'),
             onTap: () {
               _changeIndex(1);
               Navigator.pop(context);
             },
           ),
           ListTile(
-            title: Text('Profile'),
+            title: Text('Home'),
             onTap: () {
               _changeIndex(2);
               Navigator.pop(context);
             },
           ),
           ListTile(
-            title: Text('Progress'),
+            title: Text('Profile'),
             onTap: () {
               _changeIndex(3);
               Navigator.pop(context);
             },
           ),
           ListTile(
-            title: Text('Settings'),
+            title: Text('Progress'),
             onTap: () {
               _changeIndex(4);
+              Navigator.pop(context);
+            },
+          ),
+          ListTile(
+            title: Text('Settings'),
+            onTap: () {
+              _changeIndex(5);
               Navigator.pop(context);
             },
           ),
@@ -262,10 +270,12 @@ class _MainScreenState extends State<MainScreen> {
       case 0:
         return "Chat";
       case 1:
-        return "Feed";
+        return "Feedback";
       case 2:
-        return "Profile";
+        return "Home";
       case 3:
+        return "Profile";
+      case 4:
         switch (_progressIndex) {
           case 0:
             return "Vocabulary";
@@ -276,7 +286,7 @@ class _MainScreenState extends State<MainScreen> {
           default:
             throw ("ERROR: invalid progress index");
         }
-      case 4:
+      case 5:
         return "Settings";
       default:
         throw ("ERROR: invalid index");
