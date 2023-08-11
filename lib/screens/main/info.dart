@@ -88,13 +88,13 @@ class _InfoScreenState extends State<InfoScreen> {
   Color _getBkgdColor(String type) {
     switch (type) {
       case 'news':
-        return Colors.blue[50]!;
+        return Colors.blue[500]!;
       case 'update':
-        return Colors.green[50]!;
-      case 'privacy':
-        return Colors.purple[50]!;
+        return Colors.green[500]!;
+      case 'privacy_policy':
+        return Colors.purple[500]!;
       default:
-        return Colors.white;
+        return Colors.black;
     }
   }
 
@@ -104,31 +104,42 @@ class _InfoScreenState extends State<InfoScreen> {
     itemBuilder(BuildContext context, int index) {
       Info i = info[index];
       Color bkgdColor = _getBkgdColor(i.type);
-      return ListTile(
-        tileColor: bkgdColor,
-        title: Text(i.title),
-        subtitle: Text(i.subtitle),
-        onTap: () {
-          showDialog(
-            context: context,
-            builder: (BuildContext context) {
-              return AlertDialog(
+      return Padding(
+        padding: EdgeInsets.all(4),
+        child: ClipRRect(
+          borderRadius: BorderRadius.circular(16),
+          child: Container(
+            color: bkgdColor,
+            child: Padding(
+              padding: EdgeInsets.all(8),
+              child: ListTile(
                 title: Text(i.title),
-                content: SingleChildScrollView(
-                  child: Text(i.body),
-                ),
-                actions: [
-                  TextButton(
-                    onPressed: () {
-                      Navigator.of(context).pop();
+                subtitle: Text(i.subtitle),
+                onTap: () {
+                  showDialog(
+                    context: context,
+                    builder: (BuildContext context) {
+                      return AlertDialog(
+                        title: Text(i.title),
+                        content: SingleChildScrollView(
+                          child: Text(i.body),
+                        ),
+                        actions: [
+                          TextButton(
+                            onPressed: () {
+                              Navigator.of(context).pop();
+                            },
+                            child: Text("Close"),
+                          ),
+                        ],
+                      );
                     },
-                    child: Text("Close"),
-                  ),
-                ],
-              );
-            },
-          );
-        },
+                  );
+                },
+              ),
+            ),
+          ),
+        ),
       );
     }
 
@@ -145,21 +156,5 @@ class _InfoScreenState extends State<InfoScreen> {
       padding: EdgeInsets.all(16),
       child: body,
     );
-    // TODO only get the latest 3 docs for each type.
-    // return StreamBuilder<DocumentSnapshot>(
-    //   stream: FirebaseFirestore.instance.collection('info').doc().snapshots(),
-    //   builder:  (BuildContext context, AsyncSnapshot<DocumentSnapshot> snapshot) {
-    //     if (snapshot.hasError) {
-    //       return Text("We encountered an error. Please try again later.");
-    //     }
-    //     if (snapshot.connectionState == ConnectionState.waiting) {
-    //       return Center(child: CircularProgressIndicator());
-    //     }
-    //     if (!snapshot.hasData) {
-    //       return Center(child: Text("Nothing in the feed."));
-    //     }
-
-    //   }
-    // );
   }
 }
