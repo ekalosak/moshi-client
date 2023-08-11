@@ -1,7 +1,4 @@
-// Stateful widget for the info screen, it shows the user a feed of news and updates along with the privacy policy etc.
-// It will get a list of news docs from the Firestore collection 'info'
-// Filter by 'type' doc attribute and only get the latest 3 docs for each type.
-
+// Stateful widget for the home feed screen, it shows the user a feed of news and updates along with the privacy policy etc.
 import 'dart:async';
 
 import 'package:flutter/material.dart';
@@ -9,13 +6,16 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 
 import 'package:moshi/types.dart';
 
-class Info {
+class Item {
+  final String id;
   final String title;
   final String subtitle;
   final String body;
   final String type;
   final DateTime timestamp;
-  Info({
+
+  Item({
+    required this.id,
     required this.title,
     required this.subtitle,
     required this.body,
@@ -23,43 +23,60 @@ class Info {
     required this.timestamp,
   });
 
-  factory Info.fromDocumentSnapshot(DocumentSnapshot doc) {
+  factory Item.fromDocumentSnapshot(DocumentSnapshot doc) {
     Map<String, dynamic> data = doc.data() as Map<String, dynamic>;
-    return Info(
-      title: data['title'],
-      subtitle: data['subtitle'],
-      body: data['body'],
-      type: data['type'],
+    print("data: ${data.entries.toList()}");
+    return Item(
+      id: doc.id,
+      title: data.containsKey('title') ? data['title'] : '',
+      subtitle: data.containsKey('subtitle') ? data['subtitle'] : '',
+      body: data.containsKey('body') ? data['body'] : '',
+      type: data.containsKey('type') ? data['type'] : '',
       timestamp: data['timestamp'].toDate(),
     );
   }
 }
 
-class InfoScreen extends StatefulWidget {
+class FeedScreen extends StatefulWidget {
   final Profile profile;
-  InfoScreen({required this.profile});
+  FeedScreen({required this.profile});
   @override
-  State<InfoScreen> createState() => _InfoScreenState();
+  State<FeedScreen> createState() => _FeedScreenState();
 }
 
-class _InfoScreenState extends State<InfoScreen> {
+class _FeedScreenState extends State<FeedScreen> {
   late StreamSubscription _infoListener;
-  List<Info>? _info; // info for this user
+  late StreamSubscription _feedListener;
+  List<Item>? _feed; // feed for this user
 
   @override
   void initState() {
     super.initState();
-    // listen for info documents with this user's uid in the uid field.
-    // the info documents have their own unique document id.
     _infoListener = FirebaseFirestore.instance.collection('info').snapshots().listen((event) {
       print("infoListener: ${event.docs.length} docs");
-      final List<Info> info = [];
+      final List<Item> info = [];
       for (var doc in event.docs) {
-        info.add(Info.fromDocumentSnapshot(doc));
+        info.add(Item.fromDocumentSnapshot(doc));
       }
       if (info.isNotEmpty) {
         if (mounted) {
-          _addInfo(info);
+          _addToFeed(info);
+        }
+      }
+    });
+    _feedListener = FirebaseFirestore.instance
+        .collection('feed')
+        .where('uid', isEqualTo: widget.profile.uid)
+        .snapshots()
+        .listen((event) {
+      print("feedListener: ${event.docs.length} docs");
+      final List<Item> feed = [];
+      for (var doc in event.docs) {
+        feed.add(Item.fromDocumentSnapshot(doc));
+      }
+      if (feed.isNotEmpty) {
+        if (mounted) {
+          _addToFeed(feed);
         }
       }
     });
@@ -68,20 +85,26 @@ class _InfoScreenState extends State<InfoScreen> {
   @override
   void dispose() {
     _infoListener.cancel();
-    _info?.clear();
+    _feedListener.cancel();
+    _feed?.clear();
     super.dispose();
   }
 
-  void _addInfo(List<Info> info) {
+  void _addToFeed(List<Item> items) {
     setState(() {
-      _info ??= [];
-      for (var i in info) {
+      _feed ??= [];
+      for (var i in items) {
         print("adding $i");
-        if (!_info!.contains(i)) {
-          _info!.add(i);
+        int index = _feed!.indexWhere((element) => element.id == i.id);
+        if (index == -1) {
+          _feed!.add(i);
+        } else {
+          if (_feed![index].timestamp.isBefore(i.timestamp)) {
+            _feed![index] = i;
+          }
         }
       }
-      _info!.sort((a, b) => b.timestamp.compareTo(a.timestamp));
+      _feed!.sort((a, b) => b.timestamp.compareTo(a.timestamp));
     });
   }
 
@@ -94,15 +117,15 @@ class _InfoScreenState extends State<InfoScreen> {
       case 'privacy_policy':
         return Colors.purple[500]!;
       default:
-        return Colors.black;
+        return Colors.cyan[800]!;
     }
   }
 
-  Widget _buildInfoList() {
-    print("_buildInfoList");
-    List<Info> info = _info!;
+  Widget _buildFeedList() {
+    print("_buildFeedList");
+    List<Item> feed = _feed!;
     itemBuilder(BuildContext context, int index) {
-      Info i = info[index];
+      Item i = feed[index];
       Color bkgdColor = _getBkgdColor(i.type);
       return Padding(
         padding: EdgeInsets.all(4),
@@ -144,14 +167,14 @@ class _InfoScreenState extends State<InfoScreen> {
     }
 
     return ListView.builder(
-      itemCount: info.length,
+      itemCount: feed.length,
       itemBuilder: itemBuilder,
     );
   }
 
   @override
   Widget build(BuildContext context) {
-    Widget body = _info == null ? Center(child: CircularProgressIndicator()) : _buildInfoList();
+    Widget body = _feed == null ? Center(child: CircularProgressIndicator()) : _buildFeedList();
     return Padding(
       padding: EdgeInsets.all(16),
       child: body,

@@ -23,7 +23,7 @@ class MainScreen extends StatefulWidget {
 
 class _MainScreenState extends State<MainScreen> {
   Profile? profile;
-  int _index = 1;
+  int _index = 2;
   int _progressIndex = 2;
   List<String> supportedLangs = [];
   late StreamSubscription _profileListener;
@@ -125,7 +125,7 @@ class _MainScreenState extends State<MainScreen> {
       case 1:
         return FeedbackScreen(profile: pro);
       case 2:
-        return InfoScreen(profile: pro);
+        return FeedScreen(profile: pro);
       case 3:
         return ProfileScreen(profile: pro, supportedLangs: slans);
       case 4:
