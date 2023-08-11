@@ -97,9 +97,13 @@ class _MainScreenState extends State<MainScreen> {
     Drawer menuDrawer = _drawer();
     Widget body = _body(pro, slans, _index);
     Widget? bottomNavigationBar = _bottomNavigationBar(_index);
+    Text title = Text(
+      _titleForIndex(_index),
+      style: Theme.of(context).textTheme.headlineMedium,
+    );
     return Scaffold(
       appBar: AppBar(
-        title: Text(_titleForIndex(_index)),
+        title: title,
         leading: Builder(
           builder: (BuildContext context) {
             return IconButton(
