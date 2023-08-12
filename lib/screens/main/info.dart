@@ -113,7 +113,7 @@ class _FeedScreenState extends State<FeedScreen> {
         return Theme.of(context).colorScheme.secondary;
       case 'update':
         return Theme.of(context).colorScheme.tertiary;
-      case 'privacy_policy':
+      case 'policy':
         return Theme.of(context).colorScheme.primary;
       default:
         return Theme.of(context).colorScheme.background;
@@ -126,7 +126,7 @@ class _FeedScreenState extends State<FeedScreen> {
         return Theme.of(context).colorScheme.onSecondary;
       case 'update':
         return Theme.of(context).colorScheme.onTertiary;
-      case 'privacy_policy':
+      case 'policy':
         return Theme.of(context).colorScheme.onPrimary;
       default:
         return Theme.of(context).colorScheme.onBackground;
