@@ -44,7 +44,7 @@ class _ProgressScreenState extends State<ProgressScreen> {
   @override
   Widget build(BuildContext context) {
     // this is the body of a scaffold, do not create another scaffold
-    // it needs a segmented button to switch between vocab, streak, and transcripts
+    // it needs a segmented button to switch between vocab, report, and transcripts
     Widget body = _buildBody(widget.profile, widget.index);
     return Padding(
       padding: EdgeInsets.all(16),

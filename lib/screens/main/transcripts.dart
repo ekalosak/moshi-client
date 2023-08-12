@@ -109,14 +109,16 @@ class _TranscriptScreenState extends State<TranscriptScreen> {
   }
 
   void _addTranscripts(List<Transcript> ts) {
-    setState(() {
-      _transcripts ??= [];
-      for (var t in ts) {
-        if (!_transcripts!.contains(t) && t.hasNonSysMessages()) {
-          _transcripts!.add(t);
-        }
+    List<Transcript> transcripts = _transcripts ?? [];
+    for (var t in ts) {
+      // add transcript only if the tid doesn't match any existing transcript and if it has non-sys messages
+      if (!transcripts.any((element) => element.tid == t.tid) && t.hasNonSysMessages()) {
+        transcripts.add(t);
       }
-      _transcripts!.sort((a, b) => b.timestamp.compareTo(a.timestamp));
+    }
+    transcripts.sort((a, b) => b.timestamp.compareTo(a.timestamp));
+    setState(() {
+      _transcripts = transcripts;
     });
   }
 
