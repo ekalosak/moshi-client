@@ -168,20 +168,7 @@ class _WebRTCScreenState extends State<WebRTCScreen> {
           print("TODO handle binary data channel messages");
         }
       };
-      try {
-        err = await negotiate();
-      } on moshi.AuthError catch (e) {
-        print(e.message);
-        if (mounted) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(content: Text("Please log in.")),
-          );
-          Navigator.of(context).pushAndRemoveUntil(
-            MaterialPageRoute(builder: (context) => login.LoginScreen()),
-            (Route<dynamic> route) => false,
-          );
-        }
-      }
+      err = await negotiate();
       if (err != null) {
         await hangUpMoshi();
         return err;
@@ -235,8 +222,15 @@ class _WebRTCScreenState extends State<WebRTCScreen> {
     print("negotiate: Got offer");
     // print("offer:\n\ttype: ${offer.type}\n\tsdp:\n${offer.sdp}");
     await pc.setLocalDescription(offer);
-    RTCSessionDescription? answer = await moshi.sendOfferGetAnswer(offer);
-    if (answer == null) {
+    final RTCSessionDescription? answer;
+    try {
+      answer = await moshi.sendOfferGetAnswer(offer);
+    } on moshi.AuthError {
+      return "🥸 Please log in.";
+    } on moshi.RateLimitError catch (e) {
+      return "🙅 ${e.message}";
+    } catch (e) {
+      print("negotiate: error: $e");
       return "😭 Moshi servers are having trouble.\nWe're working on it! 🏗";
     }
     print("answer:\n\ttype: ${answer.type}\n\tsdp:\n${answer.sdp}");
