@@ -11,7 +11,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter_webrtc/flutter_webrtc.dart';
 
 import 'package:moshi/types.dart';
-import 'package:moshi/screens/auth/login.dart' as login;
 import 'package:moshi/services/moshi.dart' as moshi;
 import 'package:moshi/util.dart' as util;
 import 'package:moshi/widgets/chat.dart';
@@ -46,7 +45,7 @@ class _WebRTCScreenState extends State<WebRTCScreen> {
 
   /// Initialize the messages list with some example messages.
   List<Message> _initMessages() {
-    // TODO get instructions from a serverless function that takes the user's language as a parameter
+    // TODO instructions from FS
     return [
       Message(Role.ast, "It's the big round one just below on the left."),
       Message(Role.usr, "Where is that?"),
@@ -320,7 +319,6 @@ class _WebRTCScreenState extends State<WebRTCScreen> {
 
   /// Insert a new message into the Chat widget
   void _addMsg(Message msg) {
-    print("_addMsg");
     setState(() {
       _messages.insert(0, msg);
     });
@@ -331,7 +329,6 @@ class _WebRTCScreenState extends State<WebRTCScreen> {
     final List<String> words = dcm.split(" ");
     final String msgtp = words[0];
     final String? body = (words.length > 1) ? words.sublist(1).join(' ') : null;
-    print("msgtp: $msgtp");
     switch (msgtp) {
       case "transcript":
         _handleTranscript(body!);
@@ -346,7 +343,7 @@ class _WebRTCScreenState extends State<WebRTCScreen> {
         _handleError(body);
         break;
       default:
-        print("TODO unhandled message type: $msgtp");
+        print("unhandled message type: $msgtp");
     }
   }
 
@@ -354,11 +351,13 @@ class _WebRTCScreenState extends State<WebRTCScreen> {
     print("_handleError");
     switch (errtype) {
       case "usrNotSpeaking":
-        util.showError(
-            context, "Moshi hung up after waiting for you to speak. Please feel free to start another conversation.");
+        util.showError(context,
+            "😪 Moshi hung up after waiting for you to speak.\nPlease feel free to start another conversation.");
         break;
       default:
-        print("TODO unhandled error type: $errtype");
+        print("unhandled error type: $errtype");
+        util.showError(context, "🙇 Moshi servers are having trouble.\nWe're working on it! 🏗");
+        break;
     }
     await stopPressed();
   }
@@ -378,7 +377,7 @@ class _WebRTCScreenState extends State<WebRTCScreen> {
         _handleHello();
         break;
       default:
-        print("TODO unhandled status type: $statusType");
+        print("unhandled status type: $statusType");
     }
   }
 
@@ -393,7 +392,7 @@ class _WebRTCScreenState extends State<WebRTCScreen> {
   void _enableMic() {
     for (var audioTrack in _localStream!.getAudioTracks()) {
       audioTrack.enabled = true;
-      print("audioTrack.enabled = true; $audioTrack");
+      // print("audioTrack.enabled = true; $audioTrack");
     }
   }
 
@@ -401,7 +400,7 @@ class _WebRTCScreenState extends State<WebRTCScreen> {
   void _disableMic() {
     for (var audioTrack in _localStream!.getAudioTracks()) {
       audioTrack.enabled = false;
-      print("audioTrack.enabled = false; $audioTrack");
+      // print("audioTrack.enabled = false; $audioTrack");
     }
   }
 
