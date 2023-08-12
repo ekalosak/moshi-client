@@ -46,9 +46,9 @@ class ConnectionStatus extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    print('micStatus: $micStatus');
-    print('serverStatus: $serverStatus');
-    print('callStatus: $callStatus');
+    // print('micStatus: $micStatus');
+    // print('serverStatus: $serverStatus');
+    // print('callStatus: $callStatus');
     return Row(
       mainAxisAlignment: MainAxisAlignment.spaceEvenly,
       children: [_micIcon(micStatus), _serverIcon(serverStatus), _callIcon(callStatus)],
