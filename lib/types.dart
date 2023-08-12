@@ -1,5 +1,7 @@
 import 'dart:core';
 
+import 'package:cloud_firestore/cloud_firestore.dart';
+
 enum Role {
   usr,
   ast,
@@ -36,4 +38,22 @@ class Profile {
 class Config {
   List<String> supportedLangs;
   Config({required this.supportedLangs});
+}
+
+class FeedbackMsg {
+  String uid;
+  String body;
+  String type;
+  String tid;
+  Timestamp timestamp = Timestamp.now();
+  FeedbackMsg({required this.uid, required this.body, required this.type, required this.tid});
+  Map<String, dynamic> toMap() {
+    return {
+      'uid': uid,
+      'body': body,
+      'type': type,
+      'tid': tid,
+      'timestamp': timestamp,
+    };
+  }
 }

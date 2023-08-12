@@ -7,6 +7,7 @@
 //  - keep connection alive between calls instead of tearing down and re-establishing
 import 'dart:async';
 
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_webrtc/flutter_webrtc.dart';
 
@@ -41,6 +42,7 @@ class _WebRTCScreenState extends State<WebRTCScreen> {
   ServerStatus serverStatus = ServerStatus.unknown;
   CallStatus callStatus = CallStatus.idle;
   bool _justStarted = true;
+  String? _transcriptId;
   late List<Message> _messages;
 
   /// Initialize the messages list with some example messages.
@@ -180,13 +182,69 @@ class _WebRTCScreenState extends State<WebRTCScreen> {
     return null;
   }
 
+  Future<void> _sendFeedback(String body) async {
+    print("Sending feedback: $body");
+    DocumentReference feedbackRef = FirebaseFirestore.instance.collection('feedback').doc();
+    FeedbackMsg fbk = FeedbackMsg(
+      uid: widget.profile.uid,
+      body: body,
+      type: "call",
+      tid: _transcriptId ?? "",
+    );
+    await feedbackRef.set(fbk.toMap());
+  }
+
+  void _afterFeedbackMessage() {
+    // Thank the user via snackbox, then nav.pop if mounted
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text("🙇 Thank you very much for helping us improve."),
+        duration: Duration(seconds: 2),
+      ),
+    );
+    if (mounted) {
+      Navigator.of(context).pop();
+    }
+  }
+
+  /// Pop up a dialog to ask for feedback.
+  Future<void> feedbackAfterCall() async {
+    print("feedbackPressed [START]");
+    await showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: Text("Feedback"),
+          content: Text("How was your call?"),
+          actions: [
+            TextButton(
+              child: Text("Good"),
+              onPressed: () async {
+                await _sendFeedback("good");
+                _afterFeedbackMessage();
+              },
+            ),
+            TextButton(
+              child: Text("Bad"),
+              onPressed: () async {
+                await _sendFeedback("bad");
+                _afterFeedbackMessage();
+              },
+            ),
+          ],
+        );
+      },
+    );
+    print("feedbackPressed [END]");
+  }
+
   /// Terminate the WebRTC session.
   Future<String?> stopPressed() async {
     print("stopPressed [START]");
-    // TODO return erros returned by hangUpMoshi or by stopMicrophoneStream
     await _dc?.send(RTCDataChannelMessage("status bye"));
     await hangUpMoshi();
     await stopMicrophoneStream();
+    await feedbackAfterCall();
     print("stopPressed [END]");
     return null;
   }
@@ -342,6 +400,11 @@ class _WebRTCScreenState extends State<WebRTCScreen> {
       case "error":
         _handleError(body);
         break;
+      case "info":
+        String varName = words[1];
+        String varValue = words[2];
+        _handleInfo(varName, varValue);
+        break;
       default:
         print("unhandled message type: $msgtp");
     }
@@ -378,6 +441,19 @@ class _WebRTCScreenState extends State<WebRTCScreen> {
         break;
       default:
         print("unhandled status type: $statusType");
+    }
+  }
+
+  void _handleInfo(String varName, String varValue) {
+    switch (varName) {
+      case "tid":
+        print("Got transcript id: $varValue");
+        setState(() {
+          _transcriptId = varValue;
+        });
+        break;
+      default:
+        print("unhandled info type: $varName");
     }
   }
 
