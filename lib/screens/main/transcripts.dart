@@ -29,14 +29,17 @@ class Transcript {
       required this.activityType});
 
   factory Transcript.fromDocumentSnapshot(DocumentSnapshot snapshot) {
-    List<Message> msgs = [];
-    for (var msg in snapshot['messages'].reversed) {
-      Message message = Message.fromMap(msg);
-      msgs.add(message);
-    }
     Map<String, dynamic>? data = snapshot.data() as Map<String, dynamic>?;
     if (data == null) {
       throw NullDataError("Transcript.fromDocumentSnapshot: snapshot.data() is null");
+    }
+    List<Message> msgs = [];
+    if (snapshot['messages'] == null) {
+      throw NullDataError("Transcript.fromDocumentSnapshot: snapshot['messages'] is null");
+    }
+    for (var msg in snapshot['messages'].reversed) {
+      Message message = Message.fromMap(msg);
+      msgs.add(message);
     }
     String language = (data.containsKey('language')) ? snapshot['language'] : '';
     return Transcript(
@@ -81,12 +84,20 @@ class _TranscriptScreenState extends State<TranscriptScreen> {
     _transcriptListener = FirebaseFirestore.instance
         .collection('transcripts')
         .where('uid', isEqualTo: widget.profile.uid)
+        .orderBy("timestamp", descending: true)
+        .limitToLast(30)
         .snapshots()
         .listen((event) {
       if (event.size > 0) {
         final List<Transcript> ts = [];
         for (var doc in event.docs) {
-          ts.add(Transcript.fromDocumentSnapshot(doc));
+          final Transcript t;
+          try {
+            t = Transcript.fromDocumentSnapshot(doc);
+          } on NullDataError {
+            continue;
+          }
+          ts.add(t);
         }
         if (ts.isNotEmpty) {
           if (mounted) {
