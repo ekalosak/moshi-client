@@ -31,8 +31,18 @@ class AuthError implements Exception {
   AuthError(this.message);
 }
 
+class RateLimitError implements Exception {
+  final String message;
+  RateLimitError(this.message);
+}
+
+class ServerError implements Exception {
+  final String message;
+  ServerError([this.message = ""]);
+}
+
 /// Send WebRTC SDP offer to Moshi server
-Future<RTCSessionDescription?> sendOfferGetAnswer(
+Future<RTCSessionDescription> sendOfferGetAnswer(
   RTCSessionDescription offer,
 ) async {
   print("sendOfferGetAnswer [START]");
@@ -57,10 +67,11 @@ Future<RTCSessionDescription?> sendOfferGetAnswer(
     print("sendOfferGetAnswer [END]");
     return RTCSessionDescription(data['sdp'], data['type']);
   } else if (response.statusCode == 401) {
-    print("401");
     throw AuthError("Auth token invalid");
+  } else if (response.statusCode == 429) {
+    Map<String, dynamic> data = jsonDecode(response.body);
+    throw RateLimitError(data['detail']);
   } else {
-    print("sendOfferGetAnswer: Error: failed to get answer from server");
-    return null;
+    throw ServerError("Server error: ${response.statusCode}");
   }
 }
