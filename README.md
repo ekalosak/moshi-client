@@ -57,6 +57,19 @@ flutter run
 
 # Dev
 
+## Environment variables
+Configure via command pallete -> launch.json in vscode.
+
+### configure access to moshi-srv host
+- MPROTOCOL default https
+- MSERVER default dev.chatmoshi.com
+- MPORT default 443
+
+### configure dev emulators
+If in debug (non-release) build mode,
+- MREMOTEAUTH default false i.e. use emulator
+- MREMOTEFIRESTORE default false i.e. use emulator
+
 ## On write in vim, hot reload flutter
 In vim,
 `:FlutterRun -d chrome`
