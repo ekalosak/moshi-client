@@ -4,4 +4,9 @@
          to allow setting breakpoints, to provide hot reload, etc.
     -->
     <uses-permission android:name="android.permission.INTERNET"/>
+    <!-- The network_security_config.xml file allows clear-text HTTP access to the FB emulator -->
+    <application
+        android:networkSecurityConfig="@xml/network_security_config_debug"
+    >
+    </application>
 </manifest>
