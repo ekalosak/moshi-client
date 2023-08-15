@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="utf-8"?>
+<network-security-config>
+    <domain-config cleartextTrafficPermitted="true">
+        <domain includeSubdomains="true">localhost</domain>
+        <!-- 10.0.2.2 is the emulator's default IP for connecting to the host machine -->
+        <domain includeSubdomains="true">10.0.2.2</domain>
+        <!-- Add more domains as needed for specific Firebase services -->
+    </domain-config>
+</network-security-config>
