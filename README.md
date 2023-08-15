@@ -1,3 +1,8 @@
+# Troubleshooting
+
+## Changing "system" files
+If you modify AndroidManifest.xml or Plist.info or something, you need to hard reboot the emulator; run flutter clean && flutter pub get; and then rebuild. There's tons of cache in tons of different places that gets replaced in tons of different ways.
+
 # Setup
 This client uses Flutter to support frontends on iOS, Android, and web.
 
