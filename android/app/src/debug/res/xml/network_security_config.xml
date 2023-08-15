@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <network-security-config>
+    <!-- Allows cleartext traffic to the Firebase emulator suite. -->
     <domain-config cleartextTrafficPermitted="true">
         <!-- 10.0.2.2 is the Firebase emulator's default IP on Android emuator's net. -->
         <domain includeSubdomains="true">10.0.2.2</domain>
