@@ -7,18 +7,34 @@ import 'package:flutter/material.dart';
 import 'theme.dart';
 import 'screens/home.dart';
 
+const useRemoteFirebaseAuth = false;
+const useRemoteFirestore = false;
+
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   await Firebase.initializeApp();
   if (kDebugMode) {
     print("DEBUG");
+    print("MREMOTEAUTH: $useRemoteFirebaseAuth");
+    print("MRMOTEFIRESTORE: $useRemoteFirestore");
+    String host = defaultTargetPlatform == TargetPlatform.iOS ? 'localhost' : '10.0.2.2';
+    print("EMULATOR HOST: $host");
     try {
-      await FirebaseAuth.instance.useAuthEmulator('localhost', 9099);
-      FirebaseFirestore.instance.useFirestoreEmulator('localhost', 8081);
+      if (!useRemoteFirebaseAuth) {
+        print("USING LOCAL EMULATED FIREBASE AUTH");
+        await FirebaseAuth.instance.useAuthEmulator(host, 9099);
+      } else {
+        print("USING REMOTE FIREBASE AUTH");
+      }
+      if (!useRemoteFirestore) {
+        print("USING LOCAL EMULATED FIRESTORE");
+        FirebaseFirestore.instance.useFirestoreEmulator(host, 8081);
+      } else {
+        print("USING REMOTE FIRESTORE");
+      }
     } catch (e) {
       print(e);
     }
-    print("USING EMULATORS");
   }
   runApp(MyApp());
 }
