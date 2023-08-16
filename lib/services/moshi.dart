@@ -1,14 +1,17 @@
 /// This module is responsible for communicating with the Moshi server.
 import 'dart:convert';
 import 'package:firebase_auth/firebase_auth.dart';
-import 'package:flutter/foundation.dart';
+// import 'package:flutter/foundation.dart';
 import 'package:flutter_webrtc/flutter_webrtc.dart';
 import 'package:http/http.dart' as http;
 
-const serverProtocol = "http";
-final String serverName = (defaultTargetPlatform == TargetPlatform.iOS) ? 'localhost' : '10.0.2.2';
-const serverPort = "8080";
-final String serverEndpoint = "$serverProtocol://$serverName:$serverPort";
+// const serverProtocol = "http";
+// final String serverName = (defaultTargetPlatform == TargetPlatform.iOS) ? 'localhost' : '10.0.2.2';
+// const serverPort = "8080";
+const serverProtocol = "https";
+const serverName = "dev.chatmoshi.com";
+const serverPort = "443";
+const serverEndpoint = "$serverProtocol://$serverName:$serverPort";
 final healthzEndpoint = Uri.parse("$serverEndpoint/healthz");
 final offerEndpoint = Uri.parse("$serverEndpoint/call/unstructured");
 

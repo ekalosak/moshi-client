@@ -7,8 +7,8 @@ import 'package:flutter/material.dart';
 import 'theme.dart';
 import 'screens/home.dart';
 
-const useRemoteFirebaseAuth = false;
-const useRemoteFirestore = false;
+const useRemoteFirebaseAuth = true;
+const useRemoteFirestore = true;
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -18,7 +18,9 @@ void main() async {
     print("MREMOTEAUTH: $useRemoteFirebaseAuth");
     print("MRMOTEFIRESTORE: $useRemoteFirestore");
     String host = defaultTargetPlatform == TargetPlatform.iOS ? 'localhost' : '10.0.2.2';
-    print("EMULATOR HOST: $host");
+    if (!useRemoteFirebaseAuth || !useRemoteFirestore) {
+      print("EMULATOR HOST: $host");
+    }
     try {
       if (!useRemoteFirebaseAuth) {
         print("USING LOCAL EMULATED FIREBASE AUTH");
