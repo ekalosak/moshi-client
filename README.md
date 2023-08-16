@@ -75,6 +75,9 @@ If in debug (non-release) build mode,
 - MREMOTEAUTH default false i.e. use emulator
 - MREMOTEFIRESTORE default false i.e. use emulator
 
+#### Android emulator
+- Enable virtual microphone uses host audio input in the 'Microphone' submenu of the '...' expandable in the emulator toolbar. Otherwise the emulator mic will pick up only silence (static).
+
 ## On write in vim, hot reload flutter
 In vim,
 `:FlutterRun -d chrome`
