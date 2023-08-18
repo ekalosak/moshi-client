@@ -29,14 +29,14 @@ class _LoginScreenState extends State<LoginScreen> {
       );
       print(credentials.user!.getIdToken());
     } on FirebaseAuthException catch (e) {
-      print("FirebaseAuthException");
-      print(e);
-      print("FirebaseAuthException.code");
-      print(e.code);
+      print("FirebaseAuthException: $e");
+      print("FirebaseAuthException.code: ${e.code}");
       if (e.code == 'user-not-found') {
         err = 'No user found for that email.';
       } else if (e.code == 'wrong-password') {
         err = 'Wrong password provided for that user.';
+      } else if (e.code == 'too-many-requests') {
+        err = 'Please slow down! Too many requests. Try again later.';
       } else if (e.code == 'unknown') {
         if (e.toString().contains('auth/invalid-email')) {
           err = 'Email invalid.';
