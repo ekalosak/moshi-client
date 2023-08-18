@@ -137,16 +137,13 @@ class _WebRTCScreenState extends State<WebRTCScreen> {
         } else if (pcs == RTCPeerConnectionState.RTCPeerConnectionStateFailed) {
           print("pc: failed");
           setState(() {
-            callStatus = CallStatus.idle;
+            callStatus = CallStatus.error;
           });
         } else {
           print("TODO pc: connection state change unhandled: $pcs");
         }
       };
       print("created pc: $pc");
-      setState(() {
-        _pc = pc;
-      });
       // Create data channel
       RTCDataChannelInit dataChannelDict = RTCDataChannelInit()..maxRetransmits = 30;
       RTCDataChannel dc = await pc.createDataChannel('data', dataChannelDict);
@@ -169,6 +166,11 @@ class _WebRTCScreenState extends State<WebRTCScreen> {
           print("TODO handle binary data channel messages");
         }
       };
+      print("created dc: $dc");
+      setState(() {
+        _pc = pc;
+        _dc = dc;
+      });
       err = await negotiate();
       if (err != null) {
         await hangUpMoshi();
@@ -276,8 +278,8 @@ class _WebRTCScreenState extends State<WebRTCScreen> {
     RTCPeerConnection pc = _pc!;
     // NOTE createOffer collects the available codecs from the audio tracks added to the stream
     RTCSessionDescription offer = await pc.createOffer();
-    print("negotiate: Got offer");
-    // print("offer:\n\ttype: ${offer.type}\n\tsdp:\n${offer.sdp}");
+    print("negotiate: created offer");
+    print("offer:\n\ttype: ${offer.type}\n\tsdp:\n${offer.sdp}");
     await pc.setLocalDescription(offer);
     final RTCSessionDescription? answer;
     try {
@@ -315,7 +317,7 @@ class _WebRTCScreenState extends State<WebRTCScreen> {
       print("pc: onIceSignalingState: $ss");
     };
     pc.onIceCandidate = (candidate) async {
-      // print("pc: onIceCandidate: ${candidate.candidate}");
+      print("pc: onIceCandidate: ${candidate.candidate}");
     };
     // Handle what to do when tracks are added
     pc.onTrack = (evt) {
@@ -527,6 +529,9 @@ class _WebRTCScreenState extends State<WebRTCScreen> {
                       case CallStatus.idle:
                         err = await startPressed();
                         break;
+                      case CallStatus.error:
+                        err = await startPressed();
+                        break;
                       default:
                         err = null;
                         break;
@@ -543,12 +548,14 @@ class _WebRTCScreenState extends State<WebRTCScreen> {
                     CallStatus.idle: Theme.of(context).colorScheme.primary,
                     CallStatus.ringing: Colors.grey,
                     CallStatus.inCall: Theme.of(context).colorScheme.secondary,
+                    CallStatus.error: Theme.of(context).colorScheme.primary,
                   }[callStatus],
                   child: Icon(
                     {
                       CallStatus.idle: Icons.wifi_calling_3,
                       CallStatus.ringing: Icons.call_made,
                       CallStatus.inCall: Icons.call_end,
+                      CallStatus.error: Icons.wifi_calling_3,
                     }[callStatus],
                   ),
                 ),
