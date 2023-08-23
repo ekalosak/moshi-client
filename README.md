@@ -95,3 +95,10 @@ Clear the Xcode build files so the new permissions get propagated:
 ```
 flutter clean
 ```
+
+# Release
+
+## Android
+
+## iPhone
+`SKU: 1BB43674-A8CF-40DF-8EF0-2732C514EBD4`
