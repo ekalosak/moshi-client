@@ -26,6 +26,7 @@ const pcConfig = {
   'sdpSemantics': 'unified-plan',
   'iceServers': iceServers,
 };
+const pcConstraints = {'audio': true, 'video': false};
 
 class WebRTCScreen extends StatefulWidget {
   final Profile profile;
@@ -123,8 +124,10 @@ class _WebRTCScreenState extends State<WebRTCScreen> {
     }
     try {
       // Create peer connection
-      print("creating peer connection with config: $pcConfig");
-      RTCPeerConnection pc = await setupPeerConnection(pcConfig);
+      print("creating peer connection");
+      print("with config: $pcConfig");
+      print("with constraints: $pcConstraints");
+      RTCPeerConnection pc = await setupPeerConnection(pcConfig, pcConstraints);
       pc.onConnectionState = (pcs) {
         print("pc: onConnectionState: $pcs");
         if (pcs == RTCPeerConnectionState.RTCPeerConnectionStateConnected) {
@@ -299,8 +302,8 @@ class _WebRTCScreenState extends State<WebRTCScreen> {
   }
 
   /// Create the peer connection and set up event handlers.
-  Future<RTCPeerConnection> setupPeerConnection(Map<String, dynamic> config) async {
-    _pc = await createPeerConnection(config);
+  Future<RTCPeerConnection> setupPeerConnection(Map<String, dynamic> config, Map<String, dynamic> constraints) async {
+    _pc = await createPeerConnection(config, constraints);
     if (_pc == null) {
       throw 'Failed to create peer connection';
     }
