@@ -6,27 +6,20 @@ final moshiTheme = ThemeData(
   colorScheme: moshiColorScheme,
 );
 
-const Color pink = Color.fromARGB(255, 229, 183, 232);
-const Color lightblue = Color.fromRGBO(149, 201, 237, 1);
-const Color deepindigo = Color.fromARGB(255, 16, 24, 40);
-const Color angryorange = Color.fromARGB(255, 248, 106, 11);
-const Color eggshell = Color.fromRGBO(245, 244, 223, 1);
-const Color warmyellow = Color.fromRGBO(248, 235, 85, 1);
-
 final moshiColorScheme = ColorScheme(
   brightness: Brightness.dark,
-  primary: pink,
-  onPrimary: deepindigo,
-  secondary: lightblue,
-  onSecondary: deepindigo,
-  error: angryorange,
-  onError: deepindigo,
-  background: deepindigo,
-  onBackground: eggshell,
-  surface: deepindigo,
-  onSurface: eggshell,
-  tertiary: warmyellow,
-  onTertiary: deepindigo,
+  primary: Color(0xFF087E8B),
+  onPrimary: Color(0xFFF5F5F5),
+  secondary: Color(0xFFD2E04B),
+  onSecondary: Color(0xFF3C3C3C),
+  tertiary: Color(0xFFFF8689),
+  onTertiary: Color(0xFFF5F5F5),
+  background: Color.fromARGB(255, 28, 28, 28),
+  onBackground: Color(0xFFF5F5F5),
+  error: Color(0xFFFF5A5F),
+  onError: Color(0xFFF5F5F5),
+  surface: Color(0xFF3C3C3C),
+  onSurface: Color(0xFFF5F5F5),
 );
 
 final moshiTextTheme = TextTheme(

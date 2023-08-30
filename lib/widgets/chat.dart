@@ -23,7 +23,7 @@ class _ChatState extends State<Chat> {
   @override
   Widget build(BuildContext context) {
     final Color boxColor = Theme.of(context).colorScheme.surface;
-    final Color iconColor = Theme.of(context).colorScheme.primary;
+    final Color iconColor = Theme.of(context).colorScheme.secondary;
     return ListView.builder(
       reverse: true,
       shrinkWrap: true,

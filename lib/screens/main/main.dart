@@ -103,12 +103,7 @@ class _MainScreenState extends State<MainScreen> {
 
   Widget _buildScaffold(Profile pro, List<String> slans) {
     TextButton flagButton = _flagButton(pro, supportedLangs);
-    IconButton profileButton = IconButton(
-      icon: Icon(Icons.person),
-      onPressed: () {
-        _changeIndex(PROFILE_INDEX);
-      },
-    );
+    IconButton profileButton = _profileButton(pro);
     Drawer menuDrawer = _drawer();
     Widget body = _body(pro, slans, _index);
     Widget? bottomNavigationBar = _bottomNavigationBar(_index);
@@ -134,6 +129,7 @@ class _MainScreenState extends State<MainScreen> {
       drawer: menuDrawer,
       body: body,
       bottomNavigationBar: bottomNavigationBar,
+      backgroundColor: Theme.of(context).colorScheme.background,
     );
   }
 
@@ -152,13 +148,34 @@ class _MainScreenState extends State<MainScreen> {
     }
   }
 
+  /// Returns an IconButton that opens the user's profile page.
+  IconButton _profileButton(Profile profile) {
+    return IconButton(
+      icon: Icon(
+        Icons.person,
+        color: Theme.of(context).colorScheme.primary,
+        size: 32.0,
+        shadows: [
+          Shadow(
+            color: Theme.of(context).colorScheme.primary,
+            blurRadius: 2.0,
+            offset: Offset(1.0, 1.0),
+          ),
+        ],
+      ),
+      onPressed: () {
+        _changeIndex(PROFILE_INDEX);
+      },
+    );
+  }
+
   /// Returns a TextButton that shows the user's language and opens a modal bottom sheet to change it.
   TextButton _flagButton(Profile profile, List<String> supportedLangs) {
     return TextButton(
       child: Text(
         getLangEmoji(profile.lang),
         style: TextStyle(
-          fontSize: 36.0,
+          fontSize: 32.0,
         ),
       ),
       onPressed: () {
@@ -232,6 +249,7 @@ class _MainScreenState extends State<MainScreen> {
   ListTile _listTile(String text, int index) {
     return ListTile(
       title: Text(text),
+      visualDensity: VisualDensity.standard,
       onTap: () {
         _changeIndex(index);
         Navigator.pop(context);
@@ -290,7 +308,7 @@ class _MainScreenState extends State<MainScreen> {
                     },
                     icon: Icon(
                       Icons.logout,
-                      color: Theme.of(context).colorScheme.secondary,
+                      color: Theme.of(context).colorScheme.tertiary,
                     ),
                     label: Text(
                       'Log out',
@@ -298,7 +316,7 @@ class _MainScreenState extends State<MainScreen> {
                         fontWeight: FontWeight.w500,
                         fontSize: 30.0,
                         fontFamily: Theme.of(context).textTheme.bodyMedium!.fontFamily,
-                        color: Theme.of(context).colorScheme.secondary,
+                        color: Theme.of(context).colorScheme.primary,
                       ),
                     ),
                     style: ElevatedButton.styleFrom(

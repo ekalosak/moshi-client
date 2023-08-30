@@ -107,39 +107,13 @@ class _FeedScreenState extends State<FeedScreen> {
     });
   }
 
-  Color _getBkgdColor(String type) {
-    switch (type) {
-      case 'news':
-        return Theme.of(context).colorScheme.secondary;
-      case 'update':
-        return Theme.of(context).colorScheme.tertiary;
-      case 'policy':
-        return Theme.of(context).colorScheme.primary;
-      default:
-        return Theme.of(context).colorScheme.background;
-    }
-  }
-
-  Color _getTextColor(String type) {
-    switch (type) {
-      case 'news':
-        return Theme.of(context).colorScheme.onSecondary;
-      case 'update':
-        return Theme.of(context).colorScheme.onTertiary;
-      case 'policy':
-        return Theme.of(context).colorScheme.onPrimary;
-      default:
-        return Theme.of(context).colorScheme.onBackground;
-    }
-  }
-
   Widget _buildFeedList() {
     print("_buildFeedList");
     List<Item> feed = _feed!;
     itemBuilder(BuildContext context, int index) {
       Item i = feed[index];
-      Color bkgdColor = _getBkgdColor(i.type);
-      Color textColor = _getTextColor(i.type);
+      Color bkgdColor = Theme.of(context).colorScheme.surface;
+      Color textColor = Theme.of(context).colorScheme.onSurface;
       return Padding(
         padding: EdgeInsets.all(4),
         child: ClipRRect(
@@ -149,8 +123,11 @@ class _FeedScreenState extends State<FeedScreen> {
             child: Padding(
               padding: EdgeInsets.all(8),
               child: ListTile(
-                title: Text(i.title),
-                subtitle: Text(i.subtitle),
+                title: Text(i.subtitle,
+                    style: TextStyle(
+                      color: Theme.of(context).colorScheme.secondary,
+                    )),
+                subtitle: Text(i.title),
                 textColor: textColor,
                 onTap: () {
                   showDialog(
