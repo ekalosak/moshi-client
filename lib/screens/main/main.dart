@@ -9,7 +9,6 @@ import 'package:moshi/screens/auth/make_profile.dart';
 import 'info.dart';
 import 'profile.dart';
 import 'progress.dart';
-import 'settings.dart';
 import 'webrtc.dart';
 
 class MainScreen extends StatefulWidget {
@@ -25,7 +24,6 @@ const int CHAT_INDEX = 0;
 const int HOME_INDEX = 1;
 const int PROFILE_INDEX = 2;
 const int PROGRESS_INDEX = 3;
-const int LOGOUT_INDEX = 4;
 
 // Progress page bottom navbar indices
 const int PROG_VOCAB_INDEX = 0;
@@ -143,8 +141,6 @@ class _MainScreenState extends State<MainScreen> {
         return ProfileScreen(profile: pro, supportedLangs: slans);
       case PROGRESS_INDEX:
         return ProgressScreen(profile: pro, index: _progressIndex);
-      case LOGOUT_INDEX:
-        return SettingsScreen();
       default:
         throw ("ERROR: invalid index");
     }
@@ -222,52 +218,75 @@ class _MainScreenState extends State<MainScreen> {
     });
   }
 
+  ListTile _listTile(String text, int index) {
+    return ListTile(
+      title: Text(text),
+      onTap: () {
+        _changeIndex(index);
+        Navigator.pop(context);
+      },
+    );
+  }
+
   /// Returns a Drawer with links to the other screens (the hamburger menu).
   Drawer _drawer() {
     return Drawer(
-      child: ListView(
+      backgroundColor: Theme.of(context).colorScheme.background,
+      child: Column(
         children: [
-          DrawerHeader(
-            decoration: BoxDecoration(
-              color: Theme.of(context).colorScheme.background,
-            ),
-            child: Text('Moshi'),
+          Expanded(
+              flex: 9,
+              child: ListView(
+                padding: EdgeInsets.zero,
+                children: [
+                  DrawerHeader(
+                    decoration: BoxDecoration(
+                      color: Theme.of(context).colorScheme.background,
+                      shape: BoxShape.rectangle,
+                      gradient: LinearGradient(
+                        begin: Alignment.topCenter,
+                        end: Alignment.bottomCenter,
+                        colors: [
+                          Theme.of(context).colorScheme.secondary,
+                          Theme.of(context).colorScheme.primary,
+                        ],
+                      ),
+                    ),
+                    child: Text(
+                      'ChatMoshi',
+                      style: TextStyle(
+                        color: Theme.of(context).colorScheme.background,
+                        letterSpacing: 2.0,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                  ),
+                  _listTile('Chat', CHAT_INDEX),
+                  _listTile('Home', HOME_INDEX),
+                  _listTile('Profile', PROFILE_INDEX),
+                  _listTile('Progress', PROGRESS_INDEX),
+                ],
+              )),
+          Expanded(flex: 1, child: Container()),
+          Expanded(
+            flex: 1,
+            child: ElevatedButton.icon(
+                onPressed: () async {
+                  await FirebaseAuth.instance.signOut();
+                },
+                icon: Icon(Icons.lock),
+                label: Text('Log out'),
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: Theme.of(context).colorScheme.secondary,
+                  textStyle: TextStyle(
+                    fontWeight: FontWeight.w500,
+                    fontSize: 24.0,
+                    fontFamily: Theme.of(context).textTheme.bodyMedium!.fontFamily,
+                    color: Theme.of(context).colorScheme.background,
+                  ),
+                )),
           ),
-          ListTile(
-            title: Text('Chat'),
-            onTap: () {
-              _changeIndex(CHAT_INDEX);
-              Navigator.pop(context);
-            },
-          ),
-          ListTile(
-            title: Text('Home'),
-            onTap: () {
-              _changeIndex(HOME_INDEX);
-              Navigator.pop(context);
-            },
-          ),
-          ListTile(
-            title: Text('Profile'),
-            onTap: () {
-              _changeIndex(PROFILE_INDEX);
-              Navigator.pop(context);
-            },
-          ),
-          ListTile(
-            title: Text('Progress'),
-            onTap: () {
-              _changeIndex(PROGRESS_INDEX);
-              Navigator.pop(context);
-            },
-          ),
-          ListTile(
-            title: Text('Log out'),
-            onTap: () {
-              _changeIndex(LOGOUT_INDEX);
-              Navigator.pop(context);
-            },
-          ),
+          Expanded(flex: 1, child: Container()),
         ],
       ),
     );
@@ -292,8 +311,6 @@ class _MainScreenState extends State<MainScreen> {
           default:
             throw ("ERROR: invalid progress index");
         }
-      case LOGOUT_INDEX:
-        return "Log out";
       default:
         throw ("ERROR: invalid index");
     }
