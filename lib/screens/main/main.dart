@@ -6,7 +6,6 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:moshi/types.dart';
 import 'package:moshi/util.dart';
 import 'package:moshi/screens/auth/make_profile.dart';
-import 'feedback.dart';
 import 'info.dart';
 import 'profile.dart';
 import 'progress.dart';
@@ -23,7 +22,7 @@ class MainScreen extends StatefulWidget {
 
 class _MainScreenState extends State<MainScreen> {
   Profile? profile;
-  int _index = 2;
+  int _index = 1;
   int _progressIndex = 2;
   List<String> supportedLangs = [];
   late StreamSubscription _profileListener;
@@ -127,14 +126,12 @@ class _MainScreenState extends State<MainScreen> {
       case 0:
         return WebRTCScreen(profile: pro);
       case 1:
-        return FeedbackScreen(profile: pro);
-      case 2:
         return FeedScreen(profile: pro);
-      case 3:
+      case 2:
         return ProfileScreen(profile: pro, supportedLangs: slans);
-      case 4:
+      case 3:
         return ProgressScreen(profile: pro, index: _progressIndex);
-      case 5:
+      case 4:
         return SettingsScreen();
       default:
         throw ("ERROR: invalid index");
@@ -232,13 +229,6 @@ class _MainScreenState extends State<MainScreen> {
             },
           ),
           ListTile(
-            title: Text('Feedback'),
-            onTap: () {
-              _changeIndex(1);
-              Navigator.pop(context);
-            },
-          ),
-          ListTile(
             title: Text('Home'),
             onTap: () {
               _changeIndex(2);
@@ -276,12 +266,10 @@ class _MainScreenState extends State<MainScreen> {
       case 0:
         return "Chat";
       case 1:
-        return "Feedback";
-      case 2:
         return "Home";
-      case 3:
+      case 2:
         return "Profile";
-      case 4:
+      case 3:
         switch (_progressIndex) {
           case 0:
             return "Vocabulary";
@@ -292,7 +280,7 @@ class _MainScreenState extends State<MainScreen> {
           default:
             throw ("ERROR: invalid progress index");
         }
-      case 5:
+      case 4:
         return "Settings";
       default:
         throw ("ERROR: invalid index");
