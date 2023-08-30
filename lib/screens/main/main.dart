@@ -124,7 +124,7 @@ class _MainScreenState extends State<MainScreen> {
             );
           },
         ),
-        actions: [profileButton, flagButton],
+        actions: [flagButton, profileButton],
       ),
       drawer: menuDrawer,
       body: body,
