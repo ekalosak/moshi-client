@@ -149,7 +149,12 @@ class _MainScreenState extends State<MainScreen> {
   /// Returns a TextButton that shows the user's language and opens a modal bottom sheet to change it.
   TextButton _flagButton(Profile profile, List<String> supportedLangs) {
     return TextButton(
-      child: Text(getLangEmoji(profile.lang)),
+      child: Text(
+        getLangEmoji(profile.lang),
+        style: TextStyle(
+          fontSize: 36.0,
+        ),
+      ),
       onPressed: () {
         showModalBottomSheet(
           context: context,
