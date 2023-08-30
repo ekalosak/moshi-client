@@ -103,6 +103,12 @@ class _MainScreenState extends State<MainScreen> {
 
   Widget _buildScaffold(Profile pro, List<String> slans) {
     TextButton flagButton = _flagButton(pro, supportedLangs);
+    IconButton profileButton = IconButton(
+      icon: Icon(Icons.person),
+      onPressed: () {
+        _changeIndex(PROFILE_INDEX);
+      },
+    );
     Drawer menuDrawer = _drawer();
     Widget body = _body(pro, slans, _index);
     Widget? bottomNavigationBar = _bottomNavigationBar(_index);
@@ -123,7 +129,7 @@ class _MainScreenState extends State<MainScreen> {
             );
           },
         ),
-        actions: [flagButton],
+        actions: [profileButton, flagButton],
       ),
       drawer: menuDrawer,
       body: body,
@@ -240,7 +246,7 @@ class _MainScreenState extends State<MainScreen> {
       child: Column(
         children: [
           Expanded(
-              flex: 9,
+              flex: 13,
               child: ListView(
                 padding: EdgeInsets.zero,
                 children: [
@@ -275,21 +281,39 @@ class _MainScreenState extends State<MainScreen> {
           Expanded(flex: 1, child: Container()),
           Expanded(
             flex: 1,
-            child: ElevatedButton.icon(
-                onPressed: () async {
-                  await FirebaseAuth.instance.signOut();
-                },
-                icon: Icon(Icons.lock),
-                label: Text('Log out'),
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: Theme.of(context).colorScheme.secondary,
-                  textStyle: TextStyle(
-                    fontWeight: FontWeight.w500,
-                    fontSize: 24.0,
-                    fontFamily: Theme.of(context).textTheme.bodyMedium!.fontFamily,
-                    color: Theme.of(context).colorScheme.background,
-                  ),
-                )),
+            child: Align(
+              alignment: Alignment.centerLeft,
+              child: Padding(
+                padding: const EdgeInsets.only(left: 8.0),
+                child: ElevatedButton.icon(
+                    onPressed: () async {
+                      await FirebaseAuth.instance.signOut();
+                    },
+                    icon: Icon(
+                      Icons.logout,
+                      color: Theme.of(context).colorScheme.secondary,
+                    ),
+                    label: Text(
+                      'Log out',
+                      style: TextStyle(
+                        fontWeight: FontWeight.w500,
+                        fontSize: 30.0,
+                        fontFamily: Theme.of(context).textTheme.bodyMedium!.fontFamily,
+                        color: Theme.of(context).colorScheme.secondary,
+                      ),
+                    ),
+                    style: ElevatedButton.styleFrom(
+                      // backgroundColor: Theme.of(context).colorScheme.secondary,
+                      backgroundColor: Colors.transparent,
+                      textStyle: TextStyle(
+                        fontWeight: FontWeight.w500,
+                        fontSize: 24.0,
+                        fontFamily: Theme.of(context).textTheme.bodyMedium!.fontFamily,
+                        color: Theme.of(context).colorScheme.secondary,
+                      ),
+                    )),
+              ),
+            ),
           ),
           Expanded(flex: 1, child: Container()),
         ],
@@ -300,11 +324,11 @@ class _MainScreenState extends State<MainScreen> {
   String _titleForIndex(int index) {
     switch (index) {
       case CHAT_INDEX:
-        return "Chat";
+        return "";
       case HOME_INDEX:
-        return "Home";
+        return "";
       case PROFILE_INDEX:
-        return "Profile";
+        return "";
       case PROGRESS_INDEX:
         switch (_progressIndex) {
           case PROG_VOCAB_INDEX:
