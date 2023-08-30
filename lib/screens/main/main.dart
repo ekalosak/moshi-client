@@ -20,10 +20,22 @@ class MainScreen extends StatefulWidget {
   _MainScreenState createState() => _MainScreenState();
 }
 
+// Main sidebar indices
+const int CHAT_INDEX = 0;
+const int HOME_INDEX = 1;
+const int PROFILE_INDEX = 2;
+const int PROGRESS_INDEX = 3;
+const int LOGOUT_INDEX = 4;
+
+// Progress page bottom navbar indices
+const int PROG_VOCAB_INDEX = 0;
+const int PROG_REPORT_INDEX = 1;
+const int PROG_TRANSCRIPTS_INDEX = 2;
+
 class _MainScreenState extends State<MainScreen> {
   Profile? profile;
-  int _index = 1;
-  int _progressIndex = 2;
+  int _index = HOME_INDEX;
+  int _progressIndex = PROG_TRANSCRIPTS_INDEX;
   List<String> supportedLangs = [];
   late StreamSubscription _profileListener;
   late StreamSubscription _supportedLangsListener;
@@ -123,15 +135,15 @@ class _MainScreenState extends State<MainScreen> {
 
   Widget _body(Profile pro, List<String> slans, int index) {
     switch (index) {
-      case 0:
+      case CHAT_INDEX:
         return WebRTCScreen(profile: pro);
-      case 1:
+      case HOME_INDEX:
         return FeedScreen(profile: pro);
-      case 2:
+      case PROFILE_INDEX:
         return ProfileScreen(profile: pro, supportedLangs: slans);
-      case 3:
+      case PROGRESS_INDEX:
         return ProgressScreen(profile: pro, index: _progressIndex);
-      case 4:
+      case LOGOUT_INDEX:
         return SettingsScreen();
       default:
         throw ("ERROR: invalid index");
@@ -224,35 +236,35 @@ class _MainScreenState extends State<MainScreen> {
           ListTile(
             title: Text('Chat'),
             onTap: () {
-              _changeIndex(0);
+              _changeIndex(CHAT_INDEX);
               Navigator.pop(context);
             },
           ),
           ListTile(
             title: Text('Home'),
             onTap: () {
-              _changeIndex(2);
+              _changeIndex(HOME_INDEX);
               Navigator.pop(context);
             },
           ),
           ListTile(
             title: Text('Profile'),
             onTap: () {
-              _changeIndex(3);
+              _changeIndex(PROFILE_INDEX);
               Navigator.pop(context);
             },
           ),
           ListTile(
             title: Text('Progress'),
             onTap: () {
-              _changeIndex(4);
+              _changeIndex(PROGRESS_INDEX);
               Navigator.pop(context);
             },
           ),
           ListTile(
-            title: Text('Settings'),
+            title: Text('Log out'),
             onTap: () {
-              _changeIndex(5);
+              _changeIndex(LOGOUT_INDEX);
               Navigator.pop(context);
             },
           ),
@@ -263,32 +275,32 @@ class _MainScreenState extends State<MainScreen> {
 
   String _titleForIndex(int index) {
     switch (index) {
-      case 0:
+      case CHAT_INDEX:
         return "Chat";
-      case 1:
+      case HOME_INDEX:
         return "Home";
-      case 2:
+      case PROFILE_INDEX:
         return "Profile";
-      case 3:
+      case PROGRESS_INDEX:
         switch (_progressIndex) {
-          case 0:
+          case PROG_VOCAB_INDEX:
             return "Vocabulary";
-          case 1:
+          case PROG_REPORT_INDEX:
             return "Report Card";
-          case 2:
+          case PROG_TRANSCRIPTS_INDEX:
             return "Transcripts";
           default:
             throw ("ERROR: invalid progress index");
         }
-      case 4:
-        return "Settings";
+      case LOGOUT_INDEX:
+        return "Log out";
       default:
         throw ("ERROR: invalid index");
     }
   }
 
   Widget? _bottomNavigationBar(int index) {
-    if (_index != 4) {
+    if (_index != PROGRESS_INDEX) {
       return null;
     }
     return BottomNavigationBar(
