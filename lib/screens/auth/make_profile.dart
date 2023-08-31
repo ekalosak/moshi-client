@@ -17,7 +17,7 @@ class MakeProfileScreen extends StatefulWidget {
 class _MakeProfileScreenState extends State<MakeProfileScreen> {
   final TextEditingController _nameController = TextEditingController();
   late Stream<DocumentSnapshot> _supportedLangsStream;
-  List<String> supportedLangs = [];
+  List<Map<String, dynamic>> supportedLangs = [];
   bool isLoading = false;
   String? firstLang;
   String? secondLang;
@@ -25,7 +25,7 @@ class _MakeProfileScreenState extends State<MakeProfileScreen> {
   @override
   void initState() {
     super.initState();
-    _supportedLangsStream = FirebaseFirestore.instance.collection('config').doc('supported_langs').snapshots();
+    _supportedLangsStream = FirebaseFirestore.instance.collection('config').doc('languages').snapshots();
   }
 
   @override
@@ -61,7 +61,8 @@ class _MakeProfileScreenState extends State<MakeProfileScreen> {
                   } else if (snapshot.hasError) {
                     throw ("ERROR make_profile supported_langs snapshot: ${snapshot.error.toString()}");
                   } else {
-                    supportedLangs = snapshot.data!['langs'].cast<String>();
+                    // supportedLangs = snapshot.data.cast<Map<String, dynamic>>();
+                    print(snapshot.data.toString());
                     return _makeProfileForm();
                   }
                 },
@@ -73,12 +74,14 @@ class _MakeProfileScreenState extends State<MakeProfileScreen> {
   }
 
   Widget _makeProfileForm() {
-    firstLang = firstLang ?? supportedLangs[0];
+    // firstLang = firstLang ?? supportedLangs[0];
+    firstLang = "foo";
     // secondLang = secondLang ?? supportedLangs[0];
     // random language that isn't the first one
     // random int
-    int rint = Random().nextInt(supportedLangs.length - 1);
-    secondLang = secondLang ?? supportedLangs[rint];
+    // int rint = Random().nextInt(supportedLangs.length - 1);
+    // secondLang = secondLang ?? supportedLangs[rint];
+    secondLang = "bar";
     return Stack(
       children: [
         if (isLoading) CircularProgressIndicator(),
@@ -96,8 +99,8 @@ class _MakeProfileScreenState extends State<MakeProfileScreen> {
                 ),
               ),
             ),
-            _firstDropdown(supportedLangs),
-            _secondDropdown(supportedLangs),
+            _firstDropdown(['foo', 'bar']),
+            _secondDropdown(['foo', 'bar']),
             _makeProfileButton(),
           ]
               .map((e) => Padding(

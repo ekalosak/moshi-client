@@ -1,14 +1,16 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_core/firebase_core.dart';
+import 'package:firebase_storage/firebase_storage.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 
 import 'theme.dart';
 import 'screens/home.dart';
 
-const useRemoteFirebaseAuth = true;
-const useRemoteFirestore = true;
+const useRemoteFirebaseAuth = false;
+const useRemoteFirestore = false;
+const useRemoteStorage = false;
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -30,9 +32,15 @@ void main() async {
       }
       if (!useRemoteFirestore) {
         print("USING LOCAL EMULATED FIRESTORE");
-        FirebaseFirestore.instance.useFirestoreEmulator(host, 8081);
+        FirebaseFirestore.instance.useFirestoreEmulator(host, 8080);
       } else {
         print("USING REMOTE FIRESTORE");
+      }
+      if (!useRemoteStorage) {
+        print("USING LOCAL EMULATED STORAGE");
+        FirebaseStorage.instance.useStorageEmulator(host, 9199);
+      } else {
+        print("USING REMOTE STORAGE");
       }
     } catch (e) {
       print(e);

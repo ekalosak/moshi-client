@@ -8,16 +8,7 @@ Stream<DocumentSnapshot> profileStream(User user) {
 }
 
 Stream<DocumentSnapshot> supportedLangsStream() {
-  return FirebaseFirestore.instance.collection('config').doc('supported_langs').snapshots();
-}
-
-/// Get the supported languages from Firestore.
-Future<List<String>> getSupportedLangs() async {
-  DocumentReference<Map<String, dynamic>> documentReference =
-      FirebaseFirestore.instance.collection('config').doc('supported_langs');
-  DocumentSnapshot<Map<String, dynamic>> documentSnapshot = await documentReference.get();
-  Map<String, dynamic> data = documentSnapshot.data()!;
-  return data['langs'].cast<String>();
+  return FirebaseFirestore.instance.collection('config').doc('languages').snapshots();
 }
 
 /// Get the user's profile document from Firestore.

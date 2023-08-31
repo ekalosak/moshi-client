@@ -65,7 +65,7 @@ class _MainScreenState extends State<MainScreen> {
     });
     _supportedLangsListener = FirebaseFirestore.instance
         .collection('config')
-        .doc('supported_langs')
+        .doc('languages')
         .snapshots()
         .listen((DocumentSnapshot snapshot) {
       if (snapshot.exists && snapshot.data() != null) {
