@@ -62,7 +62,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
             "${getLangEmoji(value)} ${value.toUpperCase()}",
             style: TextStyle(
               fontSize: Theme.of(context).textTheme.bodyMedium?.fontSize,
-              fontFamily: Theme.of(context).textTheme.bodyMedium?.fontFamily,
+              fontFamily: Theme.of(context).textTheme.headlineMedium?.fontFamily,
             ),
           ),
         );

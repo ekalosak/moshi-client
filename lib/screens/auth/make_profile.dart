@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:math';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
@@ -36,28 +37,48 @@ class _MakeProfileScreenState extends State<MakeProfileScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-        appBar: AppBar(title: Text('Set up your profile')),
-        body: Padding(
-          padding: EdgeInsets.all(16.0),
-          child: StreamBuilder(
-            stream: _supportedLangsStream,
-            builder: (BuildContext context, AsyncSnapshot<DocumentSnapshot> snapshot) {
-              if (snapshot.connectionState == ConnectionState.waiting) {
-                return Center(child: CircularProgressIndicator());
-              } else if (snapshot.hasError) {
-                throw ("ERROR make_profile supported_langs snapshot: ${snapshot.error.toString()}");
-              } else {
-                supportedLangs = snapshot.data!['langs'].cast<String>();
-                return _makeProfileForm();
-              }
-            },
-          ),
-        ));
+      appBar: AppBar(
+          title: Text(
+        'Set up your profile',
+        style: TextStyle(
+          color: Theme.of(context).colorScheme.secondary,
+          fontSize: Theme.of(context).textTheme.displaySmall!.fontSize,
+          fontFamily: Theme.of(context).textTheme.displaySmall!.fontFamily,
+        ),
+      )),
+      body: Column(children: [
+        Flexible(flex: 2, child: Container()),
+        Flexible(flex: 2, child: Padding(padding: EdgeInsets.all(16.0), child: Text("You can change these later."))),
+        Flexible(
+            flex: 8,
+            child: Padding(
+              padding: EdgeInsets.all(16.0),
+              child: StreamBuilder(
+                stream: _supportedLangsStream,
+                builder: (BuildContext context, AsyncSnapshot<DocumentSnapshot> snapshot) {
+                  if (snapshot.connectionState == ConnectionState.waiting) {
+                    return Center(child: CircularProgressIndicator());
+                  } else if (snapshot.hasError) {
+                    throw ("ERROR make_profile supported_langs snapshot: ${snapshot.error.toString()}");
+                  } else {
+                    supportedLangs = snapshot.data!['langs'].cast<String>();
+                    return _makeProfileForm();
+                  }
+                },
+              ),
+            )),
+        Flexible(flex: 2, child: Container()),
+      ]),
+    );
   }
 
   Widget _makeProfileForm() {
     firstLang = firstLang ?? supportedLangs[0];
-    secondLang = secondLang ?? supportedLangs[0];
+    // secondLang = secondLang ?? supportedLangs[0];
+    // random language that isn't the first one
+    // random int
+    int rint = Random().nextInt(supportedLangs.length - 1);
+    secondLang = secondLang ?? supportedLangs[rint];
     return Stack(
       children: [
         if (isLoading) CircularProgressIndicator(),
@@ -68,6 +89,11 @@ class _MakeProfileScreenState extends State<MakeProfileScreen> {
               controller: _nameController,
               decoration: InputDecoration(
                 labelText: 'What should Moshi call you?',
+                labelStyle: TextStyle(
+                  color: Theme.of(context).colorScheme.onBackground,
+                  fontSize: Theme.of(context).textTheme.bodyLarge!.fontSize,
+                  fontFamily: Theme.of(context).textTheme.headlineSmall!.fontFamily,
+                ),
               ),
             ),
             _firstDropdown(supportedLangs),
@@ -87,8 +113,19 @@ class _MakeProfileScreenState extends State<MakeProfileScreen> {
   Widget _makeProfileButton() {
     return FloatingActionButton.extended(
       heroTag: "save_profile",
-      label: Text('Save'),
-      icon: Icon(Icons.person_add),
+      label: Text(
+        'Save',
+        style: TextStyle(
+          color: Theme.of(context).colorScheme.onPrimary,
+          fontSize: Theme.of(context).textTheme.headlineSmall!.fontSize,
+          fontFamily: Theme.of(context).textTheme.headlineSmall!.fontFamily,
+        ),
+      ),
+      icon: Icon(
+        Icons.person_add,
+        size: Theme.of(context).textTheme.headlineSmall!.fontSize,
+        color: Theme.of(context).colorScheme.onPrimary,
+      ),
       backgroundColor: (isLoading) ? Colors.grey : Theme.of(context).colorScheme.primary,
       onPressed: () async {
         if (isLoading) {
@@ -111,14 +148,27 @@ class _MakeProfileScreenState extends State<MakeProfileScreen> {
 
   Widget _firstDropdown(List<String> supportedLangs) {
     return DropdownButtonFormField<String>(
+      menuMaxHeight: 300.0,
       decoration: InputDecoration(
         labelText: "Native language",
+        labelStyle: TextStyle(
+          color: Theme.of(context).colorScheme.onBackground,
+          fontSize: Theme.of(context).textTheme.headlineSmall!.fontSize,
+          fontFamily: Theme.of(context).textTheme.headlineSmall!.fontFamily,
+        ),
       ),
       value: firstLang,
       items: supportedLangs.map((String value) {
         return DropdownMenuItem<String>(
           value: value,
-          child: Text("${getLangEmoji(value)} ${value.toUpperCase()}"),
+          child: Text(
+            "${getLangEmoji(value)} ${value.toUpperCase()}",
+            style: TextStyle(
+              color: Theme.of(context).colorScheme.onBackground,
+              fontSize: Theme.of(context).textTheme.bodyMedium!.fontSize,
+              fontFamily: Theme.of(context).textTheme.headlineSmall!.fontFamily,
+            ),
+          ),
         );
       }).toList(),
       onChanged: (String? newValue) {
@@ -131,14 +181,27 @@ class _MakeProfileScreenState extends State<MakeProfileScreen> {
 
   Widget _secondDropdown(List<String> supportedLangs) {
     return DropdownButtonFormField<String>(
+      menuMaxHeight: 300.0,
       decoration: InputDecoration(
         labelText: "Target language",
+        labelStyle: TextStyle(
+          color: Theme.of(context).colorScheme.onBackground,
+          fontSize: Theme.of(context).textTheme.headlineSmall!.fontSize,
+          fontFamily: Theme.of(context).textTheme.headlineSmall!.fontFamily,
+        ),
       ),
       value: secondLang,
       items: supportedLangs.map((String value) {
         return DropdownMenuItem<String>(
           value: value,
-          child: Text("${getLangEmoji(value)} ${value.toUpperCase()}"),
+          child: Text(
+            "${getLangEmoji(value)} ${value.toUpperCase()}",
+            style: TextStyle(
+              color: Theme.of(context).colorScheme.onBackground,
+              fontSize: Theme.of(context).textTheme.bodyMedium!.fontSize,
+              fontFamily: Theme.of(context).textTheme.headlineSmall!.fontFamily,
+            ),
+          ),
         );
       }).toList(),
       onChanged: (String? newValue) {

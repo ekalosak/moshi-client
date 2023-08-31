@@ -71,9 +71,11 @@ class _SignUpScreenState extends State<SignUpScreen> {
       isLoading = true;
     });
     err = await _signUpWithEmailAndPassword(email, password);
-    setState(() {
-      isLoading = false;
-    });
+    if (mounted) {
+      setState(() {
+        isLoading = false;
+      });
+    }
     return err;
   }
 
@@ -81,7 +83,14 @@ class _SignUpScreenState extends State<SignUpScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
         appBar: AppBar(
-          title: Text('Create an account'),
+          title: Text(
+            'Create an account',
+            style: TextStyle(
+              color: Theme.of(context).colorScheme.onSurface,
+              fontSize: Theme.of(context).textTheme.displaySmall!.fontSize,
+              fontFamily: Theme.of(context).textTheme.displaySmall!.fontFamily,
+            ),
+          ),
         ),
         body: Padding(
             padding: EdgeInsets.all(16.0),
@@ -99,12 +108,22 @@ class _SignUpScreenState extends State<SignUpScreen> {
                       controller: emailController,
                       decoration: InputDecoration(
                         labelText: 'Email',
+                        labelStyle: TextStyle(
+                          color: Theme.of(context).colorScheme.onBackground,
+                          fontSize: Theme.of(context).textTheme.headlineSmall!.fontSize,
+                          fontFamily: Theme.of(context).textTheme.headlineSmall!.fontFamily,
+                        ),
                       ),
                     ),
                     TextField(
                       controller: passwordController,
                       decoration: InputDecoration(
                         labelText: 'Password',
+                        labelStyle: TextStyle(
+                          color: Theme.of(context).colorScheme.onBackground,
+                          fontSize: Theme.of(context).textTheme.headlineSmall!.fontSize,
+                          fontFamily: Theme.of(context).textTheme.headlineSmall!.fontFamily,
+                        ),
                       ),
                       obscureText: true,
                     ),
@@ -122,22 +141,30 @@ class _SignUpScreenState extends State<SignUpScreen> {
   // Button that calls _signUp() and then navigates to the profile creation page.
   FloatingActionButton _signUpButton() => FloatingActionButton.extended(
       heroTag: "signup",
-      label: Text('Sign up'),
-      icon: Icon(Icons.person_add),
+      label: Text(
+        'Sign up',
+        style: TextStyle(
+          color: Theme.of(context).colorScheme.onPrimary,
+          fontSize: Theme.of(context).textTheme.headlineSmall!.fontSize,
+          fontFamily: Theme.of(context).textTheme.headlineSmall!.fontFamily,
+        ),
+      ),
+      icon: Icon(
+        Icons.person_add,
+        size: Theme.of(context).textTheme.headlineSmall!.fontSize,
+        color: Theme.of(context).colorScheme.onPrimary,
+      ),
       backgroundColor: Theme.of(context).colorScheme.primary,
       onPressed: () async {
         final String? err = await _signUp();
         if (err == null) {
-          WidgetsBinding.instance.addPostFrameCallback((_) {
+          if (mounted) {
             ScaffoldMessenger.of(context).showSnackBar(
               SnackBar(
-                // add the green check emoji
                 content: Text("✅ Account created!\n📧 Please check your email to verify your account."),
                 backgroundColor: Theme.of(context).colorScheme.primary,
               ),
             );
-          });
-          if (mounted) {
             Navigator.of(context).pushAndRemoveUntil(
                 MaterialPageRoute(builder: (context) => MakeProfileScreen(user: FirebaseAuth.instance.currentUser!)),
                 (route) => false);

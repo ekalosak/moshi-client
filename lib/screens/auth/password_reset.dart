@@ -32,7 +32,14 @@ class _PasswordResetScreenState extends State<PasswordResetScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text('Reset Password'),
+        title: Text(
+          'Reset Password',
+          style: TextStyle(
+            color: Theme.of(context).colorScheme.onSurface,
+            fontSize: Theme.of(context).textTheme.displaySmall!.fontSize,
+            fontFamily: Theme.of(context).textTheme.displaySmall!.fontFamily,
+          ),
+        ),
       ),
       body: Padding(
         padding: EdgeInsets.all(16.0),
@@ -43,13 +50,29 @@ class _PasswordResetScreenState extends State<PasswordResetScreen> {
               controller: emailController,
               decoration: InputDecoration(
                 labelText: 'Email',
+                labelStyle: TextStyle(
+                  color: Theme.of(context).colorScheme.onBackground,
+                  fontSize: Theme.of(context).textTheme.headlineSmall!.fontSize,
+                  fontFamily: Theme.of(context).textTheme.headlineSmall!.fontFamily,
+                ),
               ),
             ),
             SizedBox(height: 16),
             FloatingActionButton.extended(
               heroTag: "password_reset",
-              label: Text('Reset password'),
-              icon: Icon(Icons.login),
+              label: Text(
+                'Send reset',
+                style: TextStyle(
+                  color: Theme.of(context).colorScheme.onPrimary,
+                  fontSize: Theme.of(context).textTheme.headlineSmall!.fontSize,
+                  fontFamily: Theme.of(context).textTheme.headlineSmall!.fontFamily,
+                ),
+              ),
+              icon: Icon(
+                Icons.lock_reset,
+                size: Theme.of(context).textTheme.headlineSmall!.fontSize,
+                color: Theme.of(context).colorScheme.onPrimary,
+              ),
               backgroundColor: Theme.of(context).colorScheme.primary,
               onPressed: () async {
                 final String? err = await _resetPassword(context);

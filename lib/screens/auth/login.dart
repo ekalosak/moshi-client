@@ -62,7 +62,12 @@ class _LoginScreenState extends State<LoginScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text('Login'),
+        title: Text('Login',
+            style: TextStyle(
+              color: Theme.of(context).colorScheme.onSurface,
+              fontSize: Theme.of(context).textTheme.displayMedium!.fontSize,
+              fontFamily: Theme.of(context).textTheme.displayMedium!.fontFamily,
+            )),
       ),
       body: Padding(
         padding: EdgeInsets.all(16.0),
@@ -83,6 +88,11 @@ class _LoginScreenState extends State<LoginScreen> {
                       controller: emailController,
                       decoration: InputDecoration(
                         labelText: 'Email',
+                        labelStyle: TextStyle(
+                          color: Theme.of(context).colorScheme.onBackground,
+                          fontSize: Theme.of(context).textTheme.headlineSmall!.fontSize,
+                          fontFamily: Theme.of(context).textTheme.headlineSmall!.fontFamily,
+                        ),
                       ),
                       autofillHints: [AutofillHints.email],
                     ),
@@ -90,6 +100,11 @@ class _LoginScreenState extends State<LoginScreen> {
                       controller: passwordController,
                       decoration: InputDecoration(
                         labelText: 'Password',
+                        labelStyle: TextStyle(
+                          color: Theme.of(context).colorScheme.onBackground,
+                          fontSize: Theme.of(context).textTheme.headlineSmall!.fontSize,
+                          fontFamily: Theme.of(context).textTheme.headlineSmall!.fontFamily,
+                        ),
                       ),
                       obscureText: true,
                       autofillHints: [AutofillHints.password],
@@ -98,8 +113,17 @@ class _LoginScreenState extends State<LoginScreen> {
                       padding: EdgeInsets.all(24),
                       child: FloatingActionButton.extended(
                         heroTag: "login",
-                        label: Text('Log in'),
-                        icon: Icon(Icons.login),
+                        label: Text('Log in',
+                            style: TextStyle(
+                              fontSize: Theme.of(context).textTheme.headlineSmall!.fontSize,
+                              fontFamily: Theme.of(context).textTheme.headlineSmall!.fontFamily,
+                              color: Theme.of(context).colorScheme.onPrimary,
+                            )),
+                        icon: Icon(
+                          Icons.login,
+                          color: Theme.of(context).colorScheme.onPrimary,
+                          size: Theme.of(context).textTheme.headlineSmall!.fontSize,
+                        ),
                         backgroundColor: Theme.of(context).colorScheme.primary,
                         onPressed: () async {
                           String? err = await loginWithEmailPassword();
@@ -132,8 +156,19 @@ class _LoginScreenState extends State<LoginScreen> {
                     children: [
                       FloatingActionButton.extended(
                         heroTag: "reset",
-                        label: Text('Reset password'),
-                        icon: Icon(Icons.lock),
+                        label: Text(
+                          'Reset password',
+                          style: TextStyle(
+                            color: Theme.of(context).colorScheme.onSecondary,
+                            fontSize: Theme.of(context).textTheme.headlineSmall!.fontSize,
+                            fontFamily: Theme.of(context).textTheme.headlineSmall!.fontFamily,
+                          ),
+                        ),
+                        icon: Icon(
+                          Icons.lock_reset,
+                          size: Theme.of(context).textTheme.headlineSmall!.fontSize,
+                          color: Theme.of(context).colorScheme.onSecondary,
+                        ),
                         onPressed: () {
                           Navigator.of(context).push(
                             MaterialPageRoute(
@@ -142,21 +177,31 @@ class _LoginScreenState extends State<LoginScreen> {
                           );
                         },
                       ),
-                      Padding(
-                        padding: EdgeInsets.all(8),
-                        child: FloatingActionButton.extended(
-                          heroTag: "signup",
-                          label: Text('Sign up'),
-                          icon: Icon(Icons.person_add),
-                          onPressed: () {
-                            Navigator.of(context).push(
-                              MaterialPageRoute(
-                                builder: (context) => SignUpScreen(),
-                              ),
-                            );
-                          },
+                      // space by 16 px
+                      SizedBox(height: 16),
+                      FloatingActionButton.extended(
+                        heroTag: "signup",
+                        label: Text(
+                          'Sign up',
+                          style: TextStyle(
+                            color: Theme.of(context).colorScheme.onSecondary,
+                            fontSize: Theme.of(context).textTheme.headlineSmall!.fontSize,
+                            fontFamily: Theme.of(context).textTheme.headlineSmall!.fontFamily,
+                          ),
                         ),
-                      )
+                        icon: Icon(
+                          Icons.person_add,
+                          size: Theme.of(context).textTheme.headlineSmall!.fontSize,
+                          color: Theme.of(context).colorScheme.onSecondary,
+                        ),
+                        onPressed: () {
+                          Navigator.of(context).push(
+                            MaterialPageRoute(
+                              builder: (context) => SignUpScreen(),
+                            ),
+                          );
+                        },
+                      ),
                     ],
                   ),
                 ),
