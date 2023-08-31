@@ -1,14 +1,8 @@
-// TODO change state variables using listeners instead of setState
-// TODO refactor the calling into services/webrtc.dart
-// TODO add session management into services/webrtc.dart
-//  - create a session object that holds the peer connection, data channel, and local stream
-//  - create a session manager that holds the session and handles the signaling
-//  - keep connection alive by sending pings every 10 seconds
-//  - keep connection alive between calls instead of tearing down and re-establishing
 import 'dart:async';
 
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_webrtc/flutter_webrtc.dart';
 
 import 'package:moshi/types.dart';
@@ -648,6 +642,7 @@ class _WebRTCScreenState extends State<WebRTCScreen> {
     return GestureDetector(
       onLongPressStart: (_) {
         _enableMic();
+        HapticFeedback.lightImpact();
       },
       onLongPressEnd: (_) {
         _disableMic();
