@@ -48,13 +48,16 @@ class _WebRTCScreenState extends State<WebRTCScreen> {
 
   /// Initialize the messages list with some example messages.
   List<Message> _initMessages() {
-    // TODO instructions from FS
     return [
-      Message(Role.ast, "It's the big round one just below on the left."),
+      Message(Role.ast, "Exactly."),
+      Message(Role.usr, "Like a walkie-talkie?"),
+      Message(Role.ast, "Hold the chat button that appears to talk."),
+      Message(Role.usr, "Then what?"),
+      Message(Role.ast, "It's the round one below on the left."),
       Message(Role.usr, "Where is that?"),
-      Message(Role.ast, "Click the call button and start a conversation."),
+      Message(Role.ast, "Click the call button to start a call."),
       Message(Role.usr, "Cool - how?"),
-      Message(Role.ast, "I'm here to help you learn a second language!"),
+      Message(Role.ast, "I'm here to help you speak a second language!"),
       Message(Role.usr, "Hey Moshi, what's up?"),
       Message(Role.ast, "Moshi moshi, ${widget.profile.name}"),
     ];
@@ -219,18 +222,41 @@ class _WebRTCScreenState extends State<WebRTCScreen> {
       context: context,
       builder: (BuildContext context) {
         return AlertDialog(
-          title: Text("Feedback"),
-          content: Text("How was your call?"),
+          title: Text(
+            "Feedback",
+            style: TextStyle(
+              fontSize: Theme.of(context).textTheme.headlineSmall?.fontSize,
+              fontFamily: Theme.of(context).textTheme.headlineSmall?.fontFamily,
+              color: Theme.of(context).colorScheme.secondary,
+            ),
+          ),
+          content: Text(
+            "How was your call?",
+          ),
           actions: [
             TextButton(
-              child: Text("Good"),
+              child: Text(
+                "👍",
+                style: TextStyle(
+                  fontFamily: Theme.of(context).textTheme.headlineMedium?.fontFamily,
+                  fontSize: Theme.of(context).textTheme.headlineMedium?.fontSize,
+                  color: Theme.of(context).colorScheme.secondary,
+                ),
+              ),
               onPressed: () async {
                 await _sendFeedback("good");
                 _afterFeedbackMessage();
               },
             ),
             TextButton(
-              child: Text("Bad"),
+              child: Text(
+                "👎",
+                style: TextStyle(
+                  fontFamily: Theme.of(context).textTheme.headlineMedium?.fontFamily,
+                  fontSize: Theme.of(context).textTheme.headlineMedium?.fontSize,
+                  color: Theme.of(context).colorScheme.secondary,
+                ),
+              ),
               onPressed: () async {
                 await _sendFeedback("bad");
                 _afterFeedbackMessage();
@@ -475,6 +501,9 @@ class _WebRTCScreenState extends State<WebRTCScreen> {
       audioTrack.enabled = true;
       // print("audioTrack.enabled = true; $audioTrack");
     }
+    setState(() {
+      micStatus = MicStatus.on;
+    });
   }
 
   /// Whenever the user's finger leaves the button, mute the track and update the status.
@@ -483,6 +512,9 @@ class _WebRTCScreenState extends State<WebRTCScreen> {
       audioTrack.enabled = false;
       // print("audioTrack.enabled = false; $audioTrack");
     }
+    setState(() {
+      micStatus = MicStatus.muted;
+    });
   }
 
   @override
@@ -548,19 +580,25 @@ class _WebRTCScreenState extends State<WebRTCScreen> {
                     }
                   },
                   backgroundColor: {
-                    CallStatus.idle: Theme.of(context).colorScheme.primary,
-                    CallStatus.ringing: Colors.grey,
-                    CallStatus.inCall: Theme.of(context).colorScheme.secondary,
-                    CallStatus.error: Theme.of(context).colorScheme.primary,
+                    CallStatus.idle: Theme.of(context).colorScheme.tertiary,
+                    CallStatus.ringing: Theme.of(context).colorScheme.onSurface,
+                    CallStatus.inCall: Theme.of(context).colorScheme.primary,
+                    CallStatus.error: Theme.of(context).colorScheme.tertiary,
                   }[callStatus],
                   child: Icon(
-                    {
-                      CallStatus.idle: Icons.wifi_calling_3,
-                      CallStatus.ringing: Icons.call_made,
-                      CallStatus.inCall: Icons.call_end,
-                      CallStatus.error: Icons.wifi_calling_3,
-                    }[callStatus],
-                  ),
+                      {
+                        CallStatus.idle: Icons.call,
+                        CallStatus.ringing: Icons.call_made,
+                        CallStatus.inCall: Icons.call_end,
+                        CallStatus.error: Icons.wifi_calling_3,
+                      }[callStatus],
+                      size: Theme.of(context).textTheme.headlineLarge?.fontSize,
+                      color: {
+                        CallStatus.idle: Theme.of(context).colorScheme.onTertiary,
+                        CallStatus.ringing: Theme.of(context).colorScheme.surface,
+                        CallStatus.inCall: Theme.of(context).colorScheme.onTertiary,
+                        CallStatus.error: Theme.of(context).colorScheme.onTertiary,
+                      }[callStatus]),
                 ),
               ))),
       Flexible(
@@ -569,7 +607,7 @@ class _WebRTCScreenState extends State<WebRTCScreen> {
           alignment: Alignment.center,
           child: (callStatus == CallStatus.inCall)
               ? FractionallySizedBox(
-                  widthFactor: 0.65,
+                  widthFactor: 0.8,
                   heightFactor: 0.65,
                   child: holdToChatButton,
                 )
@@ -619,9 +657,18 @@ class _WebRTCScreenState extends State<WebRTCScreen> {
       },
       child: FloatingActionButton.extended(
         onPressed: () async {},
-        backgroundColor: Theme.of(context).colorScheme.primary,
-        label: Text("Hold to speak"),
-        icon: Icon(Icons.mic),
+        backgroundColor: Theme.of(context).colorScheme.tertiary,
+        label: Text("Hold to\nspeak",
+            style: TextStyle(
+              fontSize: Theme.of(context).textTheme.headlineSmall?.fontSize,
+              fontFamily: Theme.of(context).textTheme.headlineSmall?.fontFamily,
+              color: Theme.of(context).colorScheme.onSurface,
+            )),
+        icon: Icon(
+          Icons.mic,
+          size: Theme.of(context).textTheme.headlineLarge?.fontSize,
+          color: Theme.of(context).colorScheme.onSurface,
+        ),
       ),
     );
   }

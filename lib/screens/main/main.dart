@@ -250,8 +250,8 @@ class _MainScreenState extends State<MainScreen> {
     return ListTile(
       title: Text(text,
           style: TextStyle(
-            fontFamily: Theme.of(context).textTheme.bodyLarge!.fontFamily,
-            fontSize: Theme.of(context).textTheme.bodyLarge!.fontSize,
+            fontFamily: Theme.of(context).textTheme.displayMedium!.fontFamily,
+            fontSize: Theme.of(context).textTheme.displayMedium!.fontSize,
           )),
       visualDensity: VisualDensity.standard,
       onTap: () {
@@ -318,8 +318,8 @@ class _MainScreenState extends State<MainScreen> {
                     label: Text(
                       'Log out',
                       style: TextStyle(
-                        fontFamily: Theme.of(context).textTheme.displayMedium!.fontFamily,
-                        fontSize: Theme.of(context).textTheme.displayMedium!.fontSize,
+                        fontFamily: Theme.of(context).textTheme.headlineMedium!.fontFamily,
+                        fontSize: Theme.of(context).textTheme.headlineMedium!.fontSize,
                         color: Theme.of(context).colorScheme.primary,
                       ),
                     ),

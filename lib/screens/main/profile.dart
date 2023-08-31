@@ -49,7 +49,10 @@ class _ProfileScreenState extends State<ProfileScreen> {
       menuMaxHeight: 300.0,
       decoration: InputDecoration(
         labelText: "Native language",
-        labelStyle: TextStyle(fontSize: 32.0),
+        labelStyle: TextStyle(
+          fontSize: Theme.of(context).textTheme.headlineMedium?.fontSize,
+          fontFamily: Theme.of(context).textTheme.headlineMedium?.fontFamily,
+        ),
       ),
       value: widget.profile.primaryLang,
       items: widget.supportedLangs.map((String value) {
@@ -57,7 +60,10 @@ class _ProfileScreenState extends State<ProfileScreen> {
           value: value,
           child: Text(
             "${getLangEmoji(value)} ${value.toUpperCase()}",
-            style: TextStyle(fontSize: 24.0),
+            style: TextStyle(
+              fontSize: Theme.of(context).textTheme.bodyMedium?.fontSize,
+              fontFamily: Theme.of(context).textTheme.bodyMedium?.fontFamily,
+            ),
           ),
         );
       }).toList(),
@@ -73,19 +79,18 @@ class _ProfileScreenState extends State<ProfileScreen> {
       label: Text(
         'Save',
         style: TextStyle(
-          fontSize: 24.0,
+          fontSize: Theme.of(context).textTheme.headlineSmall?.fontSize,
+          fontFamily: Theme.of(context).textTheme.headlineSmall?.fontFamily,
           color: Theme.of(context).colorScheme.onPrimary,
         ),
       ),
       icon: Icon(
         Icons.save,
         color: Theme.of(context).colorScheme.onPrimary,
+        size: Theme.of(context).textTheme.headlineSmall?.fontSize,
       ),
       backgroundColor: Theme.of(context).colorScheme.primary,
       onPressed: () async {
-        print("uid: ${widget.profile.uid}");
-        print("name: ${nameCont.text}");
-        print("primaryLang: $primaryLang");
         String? err = await updateProfile(
           uid: widget.profile.uid,
           name: nameCont.text,
@@ -111,9 +116,15 @@ class _ProfileScreenState extends State<ProfileScreen> {
       controller: nameCont,
       decoration: InputDecoration(
         labelText: 'Name',
-        labelStyle: TextStyle(fontSize: 32.0),
+        labelStyle: TextStyle(
+          fontSize: Theme.of(context).textTheme.headlineMedium?.fontSize,
+          fontFamily: Theme.of(context).textTheme.headlineMedium?.fontFamily,
+        ),
       ),
-      style: TextStyle(fontSize: 32.0),
+      style: TextStyle(
+        fontSize: Theme.of(context).textTheme.bodyLarge?.fontSize,
+        fontFamily: Theme.of(context).textTheme.bodyLarge?.fontFamily,
+      ),
     );
   }
 }

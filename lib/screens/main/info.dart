@@ -113,7 +113,6 @@ class _FeedScreenState extends State<FeedScreen> {
     itemBuilder(BuildContext context, int index) {
       Item i = feed[index];
       Color bkgdColor = Theme.of(context).colorScheme.surface;
-      Color textColor = Theme.of(context).colorScheme.onSurface;
       return Padding(
         padding: EdgeInsets.all(4),
         child: ClipRRect(
@@ -123,20 +122,36 @@ class _FeedScreenState extends State<FeedScreen> {
             child: Padding(
               padding: EdgeInsets.all(8),
               child: ListTile(
-                title: Text(i.subtitle,
+                title: Text(i.title,
+                    style: TextStyle(
+                      color: Theme.of(context).colorScheme.onSurface,
+                      fontFamily: Theme.of(context).textTheme.headlineSmall?.fontFamily,
+                      fontSize: Theme.of(context).textTheme.headlineSmall?.fontSize,
+                    )),
+                subtitle: Text(i.subtitle,
                     style: TextStyle(
                       color: Theme.of(context).colorScheme.secondary,
+                      fontFamily: Theme.of(context).textTheme.bodyLarge?.fontFamily,
+                      fontSize: Theme.of(context).textTheme.bodyLarge?.fontSize,
                     )),
-                subtitle: Text(i.title),
-                textColor: textColor,
                 onTap: () {
                   showDialog(
                     context: context,
                     builder: (BuildContext context) {
                       return AlertDialog(
-                        title: Text(i.title),
+                        title: Text(i.title,
+                            style: TextStyle(
+                              color: Theme.of(context).colorScheme.secondary,
+                              fontFamily: Theme.of(context).textTheme.headlineSmall?.fontFamily,
+                              fontSize: Theme.of(context).textTheme.headlineSmall?.fontSize,
+                            )),
                         content: SingleChildScrollView(
-                          child: Text(i.body),
+                          child: Text(i.body,
+                              style: TextStyle(
+                                color: Theme.of(context).colorScheme.onSurface,
+                                fontFamily: Theme.of(context).textTheme.bodySmall?.fontFamily,
+                                fontSize: Theme.of(context).textTheme.bodySmall?.fontSize,
+                              )),
                         ),
                         actions: [
                           TextButton(
