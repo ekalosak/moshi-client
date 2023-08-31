@@ -248,7 +248,11 @@ class _MainScreenState extends State<MainScreen> {
 
   ListTile _listTile(String text, int index) {
     return ListTile(
-      title: Text(text),
+      title: Text(text,
+          style: TextStyle(
+            fontFamily: Theme.of(context).textTheme.bodyLarge!.fontFamily,
+            fontSize: Theme.of(context).textTheme.bodyLarge!.fontSize,
+          )),
       visualDensity: VisualDensity.standard,
       onTap: () {
         _changeIndex(index);
@@ -285,8 +289,8 @@ class _MainScreenState extends State<MainScreen> {
                       'ChatMoshi',
                       style: TextStyle(
                         color: Theme.of(context).colorScheme.background,
-                        letterSpacing: 2.0,
-                        fontWeight: FontWeight.bold,
+                        fontSize: Theme.of(context).textTheme.displayLarge!.fontSize,
+                        fontFamily: Theme.of(context).textTheme.displayLarge!.fontFamily,
                       ),
                     ),
                   ),
@@ -309,25 +313,18 @@ class _MainScreenState extends State<MainScreen> {
                     icon: Icon(
                       Icons.logout,
                       color: Theme.of(context).colorScheme.tertiary,
+                      size: Theme.of(context).textTheme.displayMedium!.fontSize,
                     ),
                     label: Text(
                       'Log out',
                       style: TextStyle(
-                        fontWeight: FontWeight.w500,
-                        fontSize: 30.0,
-                        fontFamily: Theme.of(context).textTheme.bodyMedium!.fontFamily,
+                        fontFamily: Theme.of(context).textTheme.displayMedium!.fontFamily,
+                        fontSize: Theme.of(context).textTheme.displayMedium!.fontSize,
                         color: Theme.of(context).colorScheme.primary,
                       ),
                     ),
                     style: ElevatedButton.styleFrom(
-                      // backgroundColor: Theme.of(context).colorScheme.secondary,
                       backgroundColor: Colors.transparent,
-                      textStyle: TextStyle(
-                        fontWeight: FontWeight.w500,
-                        fontSize: 24.0,
-                        fontFamily: Theme.of(context).textTheme.bodyMedium!.fontFamily,
-                        color: Theme.of(context).colorScheme.secondary,
-                      ),
                     )),
               ),
             ),

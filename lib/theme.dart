@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 
 final moshiTheme = ThemeData(
-  fontFamily: 'Raleway',
+  fontFamily: 'Plex',
   textTheme: moshiTextTheme,
   colorScheme: moshiColorScheme,
 );
@@ -24,33 +24,33 @@ final moshiColorScheme = ColorScheme(
 
 final moshiTextTheme = TextTheme(
   displayLarge: TextStyle(
-    fontSize: 48,
+    fontSize: 44,
     fontWeight: FontWeight.bold,
-    fontFamily: 'Raleway',
+    fontFamily: 'Rubik',
   ),
   displayMedium: TextStyle(
-    fontSize: 32,
+    fontSize: 38,
     fontWeight: FontWeight.bold,
-    fontFamily: 'Raleway',
+    fontFamily: 'Rubik',
   ),
   displaySmall: TextStyle(
-    fontSize: 24,
+    fontSize: 32,
     fontWeight: FontWeight.bold,
-    fontFamily: 'Raleway',
+    fontFamily: 'Rubik',
   ),
   bodyLarge: TextStyle(
-    fontSize: 32,
+    fontSize: 36,
     fontWeight: FontWeight.normal,
-    fontFamily: 'Raleway',
+    fontFamily: 'Plex',
   ),
   bodyMedium: TextStyle(
     fontSize: 24,
     fontWeight: FontWeight.normal,
-    fontFamily: 'Raleway',
+    fontFamily: 'Plex',
   ),
   bodySmall: TextStyle(
-    fontSize: 16,
+    fontSize: 18,
     fontWeight: FontWeight.normal,
-    fontFamily: 'Raleway',
+    fontFamily: 'Plex',
   ),
 );

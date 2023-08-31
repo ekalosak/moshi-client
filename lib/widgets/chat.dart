@@ -125,10 +125,14 @@ class MsgBox extends StatelessWidget {
   }
 
   // Build the text box, including the text and underneath the filled rounded rectangle, for the message.
-  Widget _msg(Message msg, Color textColor) {
+  Widget _msg(Message msg, BuildContext context) {
     final Text msgText = Text(
       msg.msg,
-      style: TextStyle(color: textColor),
+      style: TextStyle(
+        color: Theme.of(context).colorScheme.onSurface,
+        fontFamily: Theme.of(context).textTheme.bodyMedium?.fontFamily,
+        fontSize: Theme.of(context).textTheme.bodyMedium?.fontSize,
+      ),
     );
     return Flexible(
       flex: boxIconRatio,
@@ -147,7 +151,7 @@ class MsgBox extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final Widget icon = _ico(msg.role);
-    final Widget msgBox = _msg(msg, Theme.of(context).colorScheme.onSurface);
+    final Widget msgBox = _msg(msg, context);
     final Widget row = Row(
       children: [
         (msg.role == Role.ast) ? icon : msgBox,
