@@ -4,7 +4,6 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 
 import 'package:moshi/types.dart';
-import 'package:moshi/util.dart';
 import 'package:moshi/screens/auth/make_profile.dart';
 import 'info.dart';
 import 'profile.dart';
@@ -34,7 +33,7 @@ class _MainScreenState extends State<MainScreen> {
   Profile? profile;
   int _index = HOME_INDEX;
   int _progressIndex = PROG_TRANSCRIPTS_INDEX;
-  List<String> supportedLangs = [];
+  Map<String, dynamic> languages = {};
   late StreamSubscription _profileListener;
   late StreamSubscription _supportedLangsListener;
 
@@ -42,7 +41,7 @@ class _MainScreenState extends State<MainScreen> {
   void initState() {
     super.initState();
     _profileListener = FirebaseFirestore.instance
-        .collection('profiles')
+        .collection('users')
         .doc(widget.user.uid)
         .snapshots()
         .listen((DocumentSnapshot snapshot) {
@@ -51,13 +50,13 @@ class _MainScreenState extends State<MainScreen> {
         setState(() {
           profile = Profile(
             uid: snapshot.id,
-            lang: snapshot['lang'],
+            lang: snapshot['target_language'],
             name: snapshot['name'],
-            primaryLang: snapshot['primary_lang'],
+            primaryLang: snapshot['native_language'],
           );
         });
       } else {
-        print("Profile doesn't exist or is empty.");
+        print("User profile doesn't exist or is empty.");
         print("snapshot: $snapshot");
         Navigator.pushAndRemoveUntil(
             context, MaterialPageRoute(builder: (context) => MakeProfileScreen(user: widget.user)), (route) => false);
@@ -71,7 +70,7 @@ class _MainScreenState extends State<MainScreen> {
       if (snapshot.exists && snapshot.data() != null) {
         print("Supported langs exist and aren't empty: $snapshot");
         setState(() {
-          supportedLangs = snapshot['langs'].cast<String>();
+          languages = snapshot.data() as Map<String, dynamic>;
         });
       } else {
         throw Exception("Supported languages don't exist or is empty.");
@@ -86,26 +85,25 @@ class _MainScreenState extends State<MainScreen> {
     super.dispose();
   }
 
-  // TODO show a loading screen, not just a spinner
   @override
   Widget build(BuildContext context) {
     print("MainScreen.build");
     print("profile: $profile");
-    print("supportedLangs: $supportedLangs");
-    if (profile == null || supportedLangs.isEmpty) {
+    print("languages: $languages");
+    if (profile == null || languages.isEmpty) {
       return Center(
         child: CircularProgressIndicator(),
       );
     } else {
-      return _buildScaffold(profile!, supportedLangs);
+      return _buildScaffold(profile!, languages);
     }
   }
 
-  Widget _buildScaffold(Profile pro, List<String> slans) {
-    TextButton flagButton = _flagButton(pro, supportedLangs);
+  Widget _buildScaffold(Profile pro, Map<String, dynamic> languages) {
+    TextButton flagButton = _flagButton(pro, languages);
     IconButton profileButton = _profileButton(pro);
     Drawer menuDrawer = _drawer();
-    Widget body = _body(pro, slans, _index);
+    Widget body = _body(pro, languages, _index);
     Widget? bottomNavigationBar = _bottomNavigationBar(_index);
     Text title = Text(
       _titleForIndex(_index),
@@ -138,14 +136,14 @@ class _MainScreenState extends State<MainScreen> {
     );
   }
 
-  Widget _body(Profile pro, List<String> slans, int index) {
+  Widget _body(Profile pro, Map<String, dynamic> languages, int index) {
     switch (index) {
       case CHAT_INDEX:
         return WebRTCScreen(profile: pro);
       case HOME_INDEX:
         return FeedScreen(profile: pro);
       case PROFILE_INDEX:
-        return ProfileScreen(profile: pro, supportedLangs: slans);
+        return ProfileScreen(profile: pro, languages: languages);
       case PROGRESS_INDEX:
         return ProgressScreen(profile: pro, index: _progressIndex);
       default:
@@ -175,10 +173,11 @@ class _MainScreenState extends State<MainScreen> {
   }
 
   /// Returns a TextButton that shows the user's language and opens a modal bottom sheet to change it.
-  TextButton _flagButton(Profile profile, List<String> supportedLangs) {
+  TextButton _flagButton(Profile profile, Map<String, dynamic> languages) {
     return TextButton(
       child: Text(
-        getLangEmoji(profile.lang),
+        // getLangEmoji(profile.lang),
+        profile.lang,
         style: TextStyle(
           fontSize: 32.0,
         ),
@@ -188,14 +187,14 @@ class _MainScreenState extends State<MainScreen> {
           context: context,
           builder: (BuildContext context) {
             return GridView.builder(
-              itemCount: supportedLangs.length,
+              itemCount: languages.length,
               gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
                 crossAxisCount: 6,
                 crossAxisSpacing: 4.0,
                 mainAxisSpacing: 4.0,
               ),
               itemBuilder: (BuildContext context, int index) {
-                String lang = supportedLangs[index];
+                String lang = languages.keys.toList()[index];
                 return GestureDetector(
                   onTap: () async {
                     String? err = await updateProfile(uid: profile.uid, lang: lang);
@@ -222,7 +221,8 @@ class _MainScreenState extends State<MainScreen> {
                     ),
                     child: Center(
                       child: Text(
-                        getLangEmoji(lang),
+                        // getLangEmoji(lang),
+                        lang,
                         style: TextStyle(
                           color: Theme.of(context).colorScheme.primary,
                           fontSize: 24.0,

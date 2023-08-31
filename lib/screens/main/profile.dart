@@ -2,12 +2,11 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 
 import 'package:moshi/types.dart';
-import 'package:moshi/util.dart';
 
 class ProfileScreen extends StatefulWidget {
   final Profile profile;
-  final List<String> supportedLangs;
-  ProfileScreen({required this.profile, required this.supportedLangs});
+  final Map<String, dynamic> languages;
+  ProfileScreen({required this.profile, required this.languages});
   @override
   _ProfileScreenState createState() => _ProfileScreenState();
 }
@@ -55,11 +54,12 @@ class _ProfileScreenState extends State<ProfileScreen> {
         ),
       ),
       value: widget.profile.primaryLang,
-      items: widget.supportedLangs.map((String value) {
+      items: widget.languages.keys.map<DropdownMenuItem<String>>((String value) {
         return DropdownMenuItem<String>(
           value: value,
           child: Text(
-            "${getLangEmoji(value)} ${value.toUpperCase()}",
+            // "${getLangEmoji(value)} ${value.toUpperCase()}",
+            value,
             style: TextStyle(
               fontSize: Theme.of(context).textTheme.bodyMedium?.fontSize,
               fontFamily: Theme.of(context).textTheme.headlineMedium?.fontFamily,

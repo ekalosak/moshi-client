@@ -155,26 +155,23 @@ class _SignUpScreenState extends State<SignUpScreen> {
         color: Theme.of(context).colorScheme.onPrimary,
       ),
       backgroundColor: Theme.of(context).colorScheme.primary,
-      onPressed: () async {
-        final String? err = await _signUp();
-        if (err == null) {
-          if (mounted) {
+      onPressed: () {
+        _signUp().then((err) {
+          if (err == null) {
             ScaffoldMessenger.of(context).showSnackBar(
               SnackBar(
                 content: Text("✅ Account created!\n📧 Please check your email to verify your account."),
                 backgroundColor: Theme.of(context).colorScheme.primary,
               ),
             );
-            Navigator.of(context).pushAndRemoveUntil(
-                MaterialPageRoute(builder: (context) => MakeProfileScreen(user: FirebaseAuth.instance.currentUser!)),
-                (route) => false);
+            // magically here, we go the top which filters to main and then to profile creation.
+          } else {
+            WidgetsBinding.instance.addPostFrameCallback((_) {
+              ScaffoldMessenger.of(context).showSnackBar(
+                SnackBar(content: Text(err)),
+              );
+            });
           }
-        } else {
-          WidgetsBinding.instance.addPostFrameCallback((_) {
-            ScaffoldMessenger.of(context).showSnackBar(
-              SnackBar(content: Text(err)),
-            );
-          });
-        }
+        });
       });
 }

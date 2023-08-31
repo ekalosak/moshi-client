@@ -138,7 +138,8 @@ class _TranscriptScreenState extends State<TranscriptScreen> {
     List<Transcript> transcripts = _transcripts!;
     itemBuilder(BuildContext context, int index) {
       Transcript t = transcripts[index];
-      String emoji = util.getLangEmoji(t.language);
+      // String emoji = util.getLangEmoji(t.language);
+      String emoji = t.language;
       String date = t.timestamp.toDate().toString().substring(0, 16); // NOTE drops seconds and smaller
       String title = "$emoji $date";
       int nm = t.messages.where((element) => element.role != Role.sys).length;

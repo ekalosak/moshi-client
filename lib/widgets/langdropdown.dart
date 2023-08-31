@@ -18,7 +18,8 @@ DropdownButtonFormField<String> languageDropdown(
     items: slans.map((String value) {
       return DropdownMenuItem<String>(
         value: value,
-        child: Text("${getLangEmoji(value)} ${value.toUpperCase()}"),
+        // child: Text("${getLangEmoji(value)} ${value.toUpperCase()}"),
+        child: Text("$value"),
       );
     }).toList(),
     onChanged: (String? newValue) {
