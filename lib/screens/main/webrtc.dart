@@ -646,13 +646,10 @@ class _WebRTCScreenState extends State<WebRTCScreen> {
 
   GestureDetector _holdToChatButton(BuildContext context) {
     return GestureDetector(
-      onTapDown: (_) {
+      onLongPressStart: (_) {
         _enableMic();
       },
-      onTapUp: (_) {
-        _disableMic();
-      },
-      onTapCancel: () {
+      onLongPressEnd: (_) {
         _disableMic();
       },
       child: FloatingActionButton.extended(
