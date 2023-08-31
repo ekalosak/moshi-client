@@ -567,7 +567,7 @@ class _WebRTCScreenState extends State<WebRTCScreen> {
                       case CallStatus.error:
                         err = await startPressed();
                         break;
-                      default:
+                      case CallStatus.ringing:
                         err = null;
                         break;
                     }
@@ -626,7 +626,7 @@ class _WebRTCScreenState extends State<WebRTCScreen> {
             ? Align(
                 alignment: Alignment.topLeft,
                 child: Padding(
-                  padding: const EdgeInsets.all(8.0),
+                  padding: const EdgeInsets.all(16.0),
                   child: CircularProgressIndicator(),
                 ),
               )

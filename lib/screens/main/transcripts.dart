@@ -144,13 +144,17 @@ class _TranscriptScreenState extends State<TranscriptScreen> {
       int nm = t.messages.where((element) => element.role != Role.sys).length;
       String subtitle = t.summary ?? '$nm messages';
       return ListTile(
-        title: Text(title),
+        title: Text(title,
+            style: TextStyle(
+              fontFamily: Theme.of(context).textTheme.headlineMedium?.fontFamily,
+              fontSize: Theme.of(context).textTheme.headlineMedium?.fontSize,
+            )),
         subtitle: Text(subtitle),
         onTap: () {
           Navigator.push(
             context,
             MaterialPageRoute(
-              builder: (context) => _chatScaffold(transcripts[index].messages),
+              builder: (context) => _chatScaffold(transcripts[index]),
             ),
           );
         },
@@ -172,16 +176,21 @@ class _TranscriptScreenState extends State<TranscriptScreen> {
     }
   }
 
-  Scaffold _chatScaffold(List<Message> messages) {
+  Scaffold _chatScaffold(Transcript transcript) {
     List<Message> msgs = [];
-    for (var msg in messages) {
+    for (var msg in transcript.messages) {
       if (msg.role != Role.sys) {
         msgs.add(msg);
       }
     }
     return Scaffold(
       appBar: AppBar(
-        title: Text("Transcript"),
+        title: Text(transcript.timestamp.toDate().toString().substring(0, 16),
+            style: TextStyle(
+              color: Theme.of(context).colorScheme.secondary,
+              fontFamily: Theme.of(context).textTheme.headlineMedium?.fontFamily,
+              fontSize: Theme.of(context).textTheme.headlineMedium?.fontSize,
+            )),
       ),
       body: Chat(messages: msgs),
     );

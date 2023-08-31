@@ -109,7 +109,12 @@ class _MainScreenState extends State<MainScreen> {
     Widget? bottomNavigationBar = _bottomNavigationBar(_index);
     Text title = Text(
       _titleForIndex(_index),
-      style: Theme.of(context).textTheme.headlineMedium,
+      // style: Theme.of(context).textTheme.headlineMedium,
+      style: TextStyle(
+        fontFamily: Theme.of(context).textTheme.headlineMedium!.fontFamily,
+        fontSize: Theme.of(context).textTheme.headlineMedium!.fontSize,
+        color: Theme.of(context).colorScheme.secondary,
+      ),
     );
     return Scaffold(
       appBar: AppBar(
@@ -280,8 +285,8 @@ class _MainScreenState extends State<MainScreen> {
                         begin: Alignment.topCenter,
                         end: Alignment.bottomCenter,
                         colors: [
-                          Theme.of(context).colorScheme.secondary,
                           Theme.of(context).colorScheme.primary,
+                          Theme.of(context).colorScheme.secondary,
                         ],
                       ),
                     ),
@@ -312,7 +317,7 @@ class _MainScreenState extends State<MainScreen> {
                     },
                     icon: Icon(
                       Icons.logout,
-                      color: Theme.of(context).colorScheme.tertiary,
+                      color: Theme.of(context).colorScheme.secondary,
                       size: Theme.of(context).textTheme.displayMedium!.fontSize,
                     ),
                     label: Text(
@@ -366,18 +371,24 @@ class _MainScreenState extends State<MainScreen> {
     return BottomNavigationBar(
       currentIndex: _progressIndex,
       onTap: _changeProgressIndex,
+      iconSize: 32.0,
+      showSelectedLabels: false,
+      showUnselectedLabels: false,
       items: [
         BottomNavigationBarItem(
           icon: Icon(Icons.book),
-          label: 'Vocabulary',
+          label: "",
+          // label: 'Vocabulary',
         ),
         BottomNavigationBarItem(
           icon: Icon(Icons.bar_chart),
-          label: 'Report Card',
+          label: "",
+          // label: 'Report Card',
         ),
         BottomNavigationBarItem(
           icon: Icon(Icons.chat_rounded),
-          label: 'Transcripts',
+          label: "",
+          // label: 'Transcripts',
         ),
       ],
     );
