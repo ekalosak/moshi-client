@@ -42,6 +42,19 @@ class _MakeProfileScreenState extends State<MakeProfileScreen> {
     }
   }
 
+  String getLangName(String lang) {
+    try {
+      return languages[lang]['language']['full_name'];
+    } catch (e) {
+      print(e);
+      return '';
+    }
+  }
+
+  String langString(String lang) {
+    return "${getLangEmoji(lang)} ${getLangName(lang)}";
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -173,7 +186,7 @@ class _MakeProfileScreenState extends State<MakeProfileScreen> {
         return DropdownMenuItem<String>(
           value: value,
           child: Text(
-            "${getLangEmoji(value)} ${value.toUpperCase()}",
+            "${langString(value)}",
             style: TextStyle(
               color: Theme.of(context).colorScheme.onBackground,
               fontSize: Theme.of(context).textTheme.bodyMedium!.fontSize,
@@ -206,8 +219,7 @@ class _MakeProfileScreenState extends State<MakeProfileScreen> {
         return DropdownMenuItem<String>(
           value: value,
           child: Text(
-            "${value.toUpperCase()}",
-            // "${getLangEmoji(value)} ${value.toUpperCase()}",
+            "${langString(value)}",
             style: TextStyle(
               color: Theme.of(context).colorScheme.onBackground,
               fontSize: Theme.of(context).textTheme.bodyMedium!.fontSize,
