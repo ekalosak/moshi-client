@@ -3,8 +3,6 @@
 import 'package:firebase_auth/firebase_auth.dart' show FirebaseAuth, FirebaseAuthException, UserCredential;
 import 'package:flutter/material.dart';
 
-import 'package:moshi/screens/auth/make_profile.dart';
-
 class SignUpScreen extends StatefulWidget {
   @override
   _SignUpScreenState createState() => _SignUpScreenState();
@@ -164,7 +162,7 @@ class _SignUpScreenState extends State<SignUpScreen> {
                 backgroundColor: Theme.of(context).colorScheme.primary,
               ),
             );
-            // magically here, we go the top which filters to main and then to profile creation.
+            // Once this exits and the user is logged in, they will be redirected to the profile creation page via home -> main -> profile doesn't exist -> profile creation
           } else {
             WidgetsBinding.instance.addPostFrameCallback((_) {
               ScaffoldMessenger.of(context).showSnackBar(
