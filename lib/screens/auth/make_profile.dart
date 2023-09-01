@@ -1,6 +1,7 @@
 import 'dart:async';
 import 'dart:math';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:cloud_functions/cloud_functions.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 
@@ -58,50 +59,54 @@ class _MakeProfileScreenState extends State<MakeProfileScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-          title: Text(
-        'Set up your profile',
-        style: TextStyle(
-          color: Theme.of(context).colorScheme.secondary,
-          fontSize: Theme.of(context).textTheme.displaySmall!.fontSize,
-          fontFamily: Theme.of(context).textTheme.displaySmall!.fontFamily,
-        ),
-      )),
-      body: Column(children: [
-        Flexible(flex: 2, child: Container()),
-        Flexible(flex: 2, child: Padding(padding: EdgeInsets.all(16.0), child: Text("You can change these later."))),
-        Flexible(
-            flex: 8,
-            child: Padding(
-              padding: EdgeInsets.all(16.0),
-              child: StreamBuilder(
-                stream: _languageStream,
-                builder: (BuildContext context, AsyncSnapshot<DocumentSnapshot> snapshot) {
-                  print("snapshot: ${snapshot.connectionState}");
-                  if (snapshot.connectionState == ConnectionState.waiting) {
-                    return Center(child: CircularProgressIndicator());
-                  } else if (snapshot.hasError) {
-                    throw ("make_profile languages snapshot: ${snapshot.error.toString()}");
-                  } else {
-                    // The doc is a map from e.g. "en-US" to the details about the language (name, emoji, etc.); Convert the doc into a map.
-                    languages = snapshot.data!.data() as Map<String, dynamic>;
-                    return _makeUserForm();
-                  }
-                },
-              ),
-            )),
-        Flexible(flex: 2, child: Container()),
-      ]),
-    );
+        appBar: AppBar(
+            title: Text(
+          'Set up your profile',
+          style: TextStyle(
+            color: Theme.of(context).colorScheme.secondary,
+            fontSize: Theme.of(context).textTheme.displaySmall!.fontSize,
+            fontFamily: Theme.of(context).textTheme.displaySmall!.fontFamily,
+          ),
+        )),
+        body: Padding(
+          padding: EdgeInsets.fromLTRB(16, 0, 16, 0),
+          child: Column(children: [
+            Flexible(flex: 2, child: Container()),
+            Flexible(
+                flex: 2, child: Padding(padding: EdgeInsets.all(16.0), child: Text("You can change these later."))),
+            Flexible(
+                flex: 8,
+                child: Padding(
+                  padding: EdgeInsets.all(16.0),
+                  child: StreamBuilder(
+                    stream: _languageStream,
+                    builder: (BuildContext context, AsyncSnapshot<DocumentSnapshot> snapshot) {
+                      if (snapshot.connectionState == ConnectionState.waiting) {
+                        return Center(child: CircularProgressIndicator());
+                      } else if (snapshot.hasError) {
+                        throw ("make_profile languages snapshot: ${snapshot.error.toString()}");
+                      } else {
+                        // The doc is a map from e.g. "en-US" to the details about the language (name, emoji, etc.); Convert the doc into a map.
+                        languages = snapshot.data!.data() as Map<String, dynamic>;
+                        return _makeUserForm();
+                      }
+                    },
+                  ),
+                )),
+            Flexible(flex: 2, child: Container()),
+          ]),
+        ));
   }
 
   Widget _makeUserForm() {
     List<String> languageCodes = languages.keys.toList();
+    // sort the language codes
+    languageCodes.sort((a, b) => getLangName(a).compareTo(getLangName(b)));
     print("make_profile languageCodes.length: ${languageCodes.length}");
     print("make_profile unique languageCodes.length: ${languageCodes.toSet().toList().length}");
-    int rand1 = Random().nextInt(languageCodes.length);
+    // int rand1 = Random().nextInt(languageCodes.length);
     int rand2 = Random().nextInt(languageCodes.length);
-    firstLang = firstLang ?? languageCodes[rand1];
+    firstLang = firstLang ?? "en-US";
     secondLang = secondLang ?? languageCodes[rand2];
     return Stack(
       children: [
@@ -111,10 +116,15 @@ class _MakeProfileScreenState extends State<MakeProfileScreen> {
           children: [
             TextField(
               controller: _nameController,
+              style: TextStyle(
+                color: Theme.of(context).colorScheme.onBackground,
+                fontSize: Theme.of(context).textTheme.bodyLarge!.fontSize,
+                fontFamily: Theme.of(context).textTheme.bodyLarge!.fontFamily,
+              ),
               decoration: InputDecoration(
                 labelText: 'What should Moshi call you?',
                 labelStyle: TextStyle(
-                  color: Theme.of(context).colorScheme.onBackground,
+                  color: Theme.of(context).colorScheme.secondary,
                   fontSize: Theme.of(context).textTheme.bodyLarge!.fontSize,
                   fontFamily: Theme.of(context).textTheme.headlineSmall!.fontFamily,
                 ),
@@ -122,6 +132,7 @@ class _MakeProfileScreenState extends State<MakeProfileScreen> {
             ),
             _firstDropdown(languageCodes),
             _secondDropdown(languageCodes),
+            Container(height: 16.0),
             _makeProfileButton(),
           ]
               .map((e) => Padding(
@@ -176,7 +187,7 @@ class _MakeProfileScreenState extends State<MakeProfileScreen> {
       decoration: InputDecoration(
         labelText: "Native language",
         labelStyle: TextStyle(
-          color: Theme.of(context).colorScheme.onBackground,
+          color: Theme.of(context).colorScheme.secondary,
           fontSize: Theme.of(context).textTheme.headlineSmall!.fontSize,
           fontFamily: Theme.of(context).textTheme.headlineSmall!.fontFamily,
         ),
@@ -186,7 +197,7 @@ class _MakeProfileScreenState extends State<MakeProfileScreen> {
         return DropdownMenuItem<String>(
           value: value,
           child: Text(
-            "${langString(value)}",
+            langString(value),
             style: TextStyle(
               color: Theme.of(context).colorScheme.onBackground,
               fontSize: Theme.of(context).textTheme.bodyMedium!.fontSize,
@@ -209,7 +220,7 @@ class _MakeProfileScreenState extends State<MakeProfileScreen> {
       decoration: InputDecoration(
         labelText: "Target language",
         labelStyle: TextStyle(
-          color: Theme.of(context).colorScheme.onBackground,
+          color: Theme.of(context).colorScheme.secondary,
           fontSize: Theme.of(context).textTheme.headlineSmall!.fontSize,
           fontFamily: Theme.of(context).textTheme.headlineSmall!.fontFamily,
         ),
@@ -219,7 +230,7 @@ class _MakeProfileScreenState extends State<MakeProfileScreen> {
         return DropdownMenuItem<String>(
           value: value,
           child: Text(
-            "${langString(value)}",
+            langString(value),
             style: TextStyle(
               color: Theme.of(context).colorScheme.onBackground,
               fontSize: Theme.of(context).textTheme.bodyMedium!.fontSize,
@@ -248,7 +259,7 @@ class _MakeProfileScreenState extends State<MakeProfileScreen> {
     setState(() {
       isLoading = true;
     });
-    err = await _createProfileFirestore(widget.user.uid, name, firstLang!, secondLang!);
+    err = await _createUserFirestore(widget.user.uid, name, firstLang!, secondLang!);
     setState(() {
       isLoading = false;
     });
@@ -257,22 +268,25 @@ class _MakeProfileScreenState extends State<MakeProfileScreen> {
 }
 
 // Create a new profile for the user in Firestore.
-Future<String?> _createProfileFirestore(String uid, String name, String lang1, String lang2) async {
-  print("_createProfileFirestore");
+Future<String?> _createUserFirestore(String uid, String name, String lang1, String lang2) async {
   String? err;
-  DocumentReference<Map<String, dynamic>> documentReference =
-      FirebaseFirestore.instance.collection('profiles').doc(uid);
-  Map<String, dynamic> data = {
-    'name': name,
-    'lang': lang2,
-    'primary_lang': lang1,
-  };
+  print("CALLING FUNCTION CREATE USER");
   try {
-    await documentReference.set(data);
+    final result = await FirebaseFunctions.instance
+        .httpsCallable('create_user')
+        .call({'uid': uid, 'name': name, 'language': lang2, 'native_language': lang1});
+    print("CALLED FUNCTION CREATE USER");
+    print(result);
   } catch (e) {
-    print("Unknown error");
+    print("ERROR CALLING FUNCTION CREATE USER");
     print(e);
-    err = 'An error occurred. Please try again later.';
+    if (e is FirebaseFunctionsException) {
+      print(e.message);
+      if (e.code != 'already-exists') {
+        // Pass because it doesn't matter, the main page will load as long as there's a user.
+        err = e.message;
+      }
+    }
   }
   return err;
 }
