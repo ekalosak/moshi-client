@@ -7,32 +7,32 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:moshi/types.dart';
 
 class Item {
-  final String id;
   final String title;
   final String subtitle;
   final String body;
   final String type;
   final DateTime timestamp;
+  bool read;
 
   Item({
-    required this.id,
     required this.title,
     required this.subtitle,
     required this.body,
     required this.type,
     required this.timestamp,
+    required this.read,
   });
 
   factory Item.fromDocumentSnapshot(DocumentSnapshot doc) {
     Map<String, dynamic> data = doc.data() as Map<String, dynamic>;
     print("feed: Item.fromDocumentSnapshot: data: ${data.entries.toList()}");
     return Item(
-      id: doc.id,
       title: data.containsKey('title') ? data['title'] : '',
       subtitle: data.containsKey('subtitle') ? data['subtitle'] : '',
       body: data.containsKey('body') ? data['body'] : '',
       type: data.containsKey('type') ? data['type'] : '',
-      timestamp: data['timestamp'].toDate(),
+      timestamp: data.containsKey('timestamp') ? data['timestamp'].toDate() : '',
+      read: data.containsKey('read') ? (data['read'] == 'true') : true,
     );
   }
 }
@@ -45,23 +45,24 @@ class FeedScreen extends StatefulWidget {
 }
 
 class _FeedScreenState extends State<FeedScreen> {
-  late StreamSubscription _infoListener;
+  late StreamSubscription _globalFeedListener;
   late StreamSubscription _feedListener;
-  List<Item> _feed = []; // feed for this user
+  Map<String, Item> _userFeed = {}; // feed for this user
+  Map<String, Item> _globalFeed = {}; // global feed records
+  Map<String, bool> _globalRead = {}; // whether the user has read the global feed item
 
   @override
   void initState() {
     super.initState();
-    _infoListener = FirebaseFirestore.instance.collection('info').snapshots().listen((event) {
-      print("info: infoListener: ${event.docs.length} docs");
-      final List<Item> info = [];
+    _globalFeedListener = FirebaseFirestore.instance.collection('feed').snapshots().listen((event) {
+      print("feed: _globalFeedListener: ${event.docs.length} docs");
+      final Map<String, Item> globalFeed = {};
       for (var doc in event.docs) {
-        info.add(Item.fromDocumentSnapshot(doc));
+        globalFeed[doc.id] = Item.fromDocumentSnapshot(doc);
+        print('HELLO doc: ${doc.data()}');
       }
-      if (info.isNotEmpty) {
-        if (mounted) {
-          _addToFeed(info);
-        }
+      if (globalFeed.isNotEmpty) {
+        _addToGlobalFeed(globalFeed);
       }
     });
     _feedListener = FirebaseFirestore.instance
@@ -70,47 +71,73 @@ class _FeedScreenState extends State<FeedScreen> {
         .collection('feed')
         .snapshots()
         .listen((event) {
-      print("info: feedListener: ${event.docs.length} docs");
-      final List<Item> feed = [];
+      print("feed: feedListener: ${event.docs.length} docs");
+      final Map<String, Item> userFeed = {};
+      final Map<String, bool> globalRead = {};
       for (var doc in event.docs) {
-        feed.add(Item.fromDocumentSnapshot(doc));
-      }
-      if (feed.isNotEmpty) {
-        if (mounted) {
-          _addToFeed(feed);
+        Map<String, dynamic> data = doc.data();
+        if (data.containsKey('global')) {
+          // stub for global feed item, holds read status
+          globalRead[doc.id] = (data['read'] == 'true');
+        } else {
+          // actual item
+          final Item item = Item.fromDocumentSnapshot(doc);
+          userFeed[doc.id] = item;
         }
+      }
+      if (userFeed.isNotEmpty) {
+        _addToUserFeed(userFeed, globalRead);
       }
     });
   }
 
   @override
   void dispose() {
-    _infoListener.cancel();
+    _globalFeedListener.cancel();
     _feedListener.cancel();
-    _feed?.clear();
+    _userFeed.clear();
     super.dispose();
   }
 
-  void _addToFeed(List<Item> items) {
-    print("_addToFeed: ${items.length} items");
-    List<Item> feed = _feed ?? [];
-    for (var i in items) {
-      int index = feed.indexWhere((element) => element.id == i.id);
-      if (index == -1) {
-        feed.add(i);
-      } else {
-        feed[index] = i;
-      }
+  void _addToUserFeed(Map<String, Item> userFeed, Map<String, bool> globalRead) {
+    print("feed: _addToUserFeed: ${userFeed.length} user feed items");
+    print("feed: _addToUserFeed: ${globalRead.length} global read items");
+    Map<String, Item> feed = _userFeed;
+    Map<String, bool> read = _globalRead;
+    for (var item in userFeed.entries) {
+      feed[item.key] = item.value;
     }
-    feed.sort((a, b) => b.timestamp.compareTo(a.timestamp));
+    for (var item in globalRead.entries) {
+      read[item.key] = item.value;
+    }
     setState(() {
-      _feed = feed;
+      _userFeed = feed;
+      _globalRead = read;
+    });
+  }
+
+  void _addToGlobalFeed(Map<String, Item> globalFeed) {
+    print("feed: _addToGlobalFeed: ${globalFeed.length} global feed items");
+    Map<String, Item> feed = _globalFeed;
+    for (var item in globalFeed.entries) {
+      feed[item.key] = item.value;
+    }
+    setState(() {
+      _globalFeed = feed;
     });
   }
 
   Widget _buildFeedList() {
     print("feed: _buildFeedList");
-    List<Item> feed = _feed!;
+    Map<String, Item> feedMap = _userFeed;
+    for (var item in _globalFeed.entries) {
+      if (_globalRead.containsKey(item.key)) {
+        item.value.read = _globalRead[item.key] ?? true;
+      }
+      feedMap[item.key] = item.value;
+    }
+    List<Item> feed = feedMap.values.toList();
+    feed.sort((a, b) => b.timestamp.compareTo(a.timestamp));
     itemBuilder(BuildContext context, int index) {
       Item i = feed[index];
       Color bkgdColor = Theme.of(context).colorScheme.surface;
@@ -123,29 +150,23 @@ class _FeedScreenState extends State<FeedScreen> {
             child: Padding(
               padding: EdgeInsets.all(8),
               child: ListTile(
-                title: Text(i.title,
-                    style: TextStyle(
-                      color: Theme.of(context).colorScheme.secondary,
-                      fontFamily: Theme.of(context).textTheme.headlineSmall?.fontFamily,
-                      fontSize: Theme.of(context).textTheme.headlineSmall?.fontSize,
-                    )),
-                subtitle: Text(i.subtitle,
-                    style: TextStyle(
-                      color: Theme.of(context).colorScheme.onSurface,
-                      fontFamily: Theme.of(context).textTheme.bodyLarge?.fontFamily,
-                      fontSize: Theme.of(context).textTheme.bodyLarge?.fontSize,
-                    )),
+                title: Text(
+                  i.title,
+                  style: Theme.of(context).textTheme.headlineSmall,
+                ),
+                subtitle: Text(
+                  i.subtitle,
+                  style: Theme.of(context).textTheme.bodyLarge,
+                ),
                 onTap: () {
                   showDialog(
                     context: context,
                     builder: (BuildContext context) {
                       return AlertDialog(
-                        title: Text(i.title,
-                            style: TextStyle(
-                              color: Theme.of(context).colorScheme.secondary,
-                              fontFamily: Theme.of(context).textTheme.headlineSmall?.fontFamily,
-                              fontSize: Theme.of(context).textTheme.headlineSmall?.fontSize,
-                            )),
+                        title: Text(
+                          i.title,
+                          style: Theme.of(context).textTheme.headlineSmall,
+                        ),
                         content: SingleChildScrollView(
                           child: Text(i.body,
                               style: TextStyle(
