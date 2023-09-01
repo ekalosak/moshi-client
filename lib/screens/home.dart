@@ -20,14 +20,14 @@ class _HomeScreenState extends State<HomeScreen> {
     super.initState();
     _userListener = FirebaseAuth.instance.authStateChanges().listen((User? user) {
       if (user == null) {
-        print('User is currently signed out.');
+        print('home: User is currently signed out.');
       } else {
-        print('User: ${user.uid}');
         if (user.emailVerified) {
-          print('User is signed in.');
+          print('home: User is signed in.');
         } else {
-          print('User is signed in but email is not verified.');
+          print('home: User is signed in but email is not verified.');
         }
+        print('home: User: ${user.uid}');
       }
       setState(() {
         this.user = user;
@@ -43,7 +43,7 @@ class _HomeScreenState extends State<HomeScreen> {
 
   @override
   Widget build(BuildContext context) {
-    print("HomeScreen.build");
+    print("home: HomeScreen.build");
     return (user == null) ? LoginScreen() : MainScreen(user: user!);
   }
 }

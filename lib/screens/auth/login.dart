@@ -62,7 +62,7 @@ class _LoginScreenState extends State<LoginScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text('Login',
+        title: Text('Log in',
             style: TextStyle(
               color: Theme.of(context).colorScheme.onSurface,
               fontSize: Theme.of(context).textTheme.displayMedium!.fontSize,
@@ -93,6 +93,11 @@ class _LoginScreenState extends State<LoginScreen> {
                           fontSize: Theme.of(context).textTheme.headlineSmall!.fontSize,
                           fontFamily: Theme.of(context).textTheme.headlineSmall!.fontFamily,
                         ),
+                      ),
+                      style: TextStyle(
+                        color: Theme.of(context).colorScheme.onBackground,
+                        fontSize: Theme.of(context).textTheme.headlineSmall!.fontSize,
+                        fontFamily: Theme.of(context).textTheme.headlineSmall!.fontFamily,
                       ),
                       autofillHints: [AutofillHints.email],
                     ),

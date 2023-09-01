@@ -25,7 +25,7 @@ class Item {
 
   factory Item.fromDocumentSnapshot(DocumentSnapshot doc) {
     Map<String, dynamic> data = doc.data() as Map<String, dynamic>;
-    // print("data: ${data.entries.toList()}");
+    print("feed: Item.fromDocumentSnapshot: data: ${data.entries.toList()}");
     return Item(
       id: doc.id,
       title: data.containsKey('title') ? data['title'] : '',
@@ -47,13 +47,13 @@ class FeedScreen extends StatefulWidget {
 class _FeedScreenState extends State<FeedScreen> {
   late StreamSubscription _infoListener;
   late StreamSubscription _feedListener;
-  List<Item>? _feed; // feed for this user
+  List<Item> _feed = []; // feed for this user
 
   @override
   void initState() {
     super.initState();
     _infoListener = FirebaseFirestore.instance.collection('info').snapshots().listen((event) {
-      print("infoListener: ${event.docs.length} docs");
+      print("info: infoListener: ${event.docs.length} docs");
       final List<Item> info = [];
       for (var doc in event.docs) {
         info.add(Item.fromDocumentSnapshot(doc));
@@ -65,11 +65,12 @@ class _FeedScreenState extends State<FeedScreen> {
       }
     });
     _feedListener = FirebaseFirestore.instance
+        .collection('users')
+        .doc(widget.profile.uid)
         .collection('feed')
-        .where('uid', isEqualTo: widget.profile.uid)
         .snapshots()
         .listen((event) {
-      print("feedListener: ${event.docs.length} docs");
+      print("info: feedListener: ${event.docs.length} docs");
       final List<Item> feed = [];
       for (var doc in event.docs) {
         feed.add(Item.fromDocumentSnapshot(doc));
@@ -108,7 +109,7 @@ class _FeedScreenState extends State<FeedScreen> {
   }
 
   Widget _buildFeedList() {
-    print("_buildFeedList");
+    print("feed: _buildFeedList");
     List<Item> feed = _feed!;
     itemBuilder(BuildContext context, int index) {
       Item i = feed[index];
@@ -124,13 +125,13 @@ class _FeedScreenState extends State<FeedScreen> {
               child: ListTile(
                 title: Text(i.title,
                     style: TextStyle(
-                      color: Theme.of(context).colorScheme.onSurface,
+                      color: Theme.of(context).colorScheme.secondary,
                       fontFamily: Theme.of(context).textTheme.headlineSmall?.fontFamily,
                       fontSize: Theme.of(context).textTheme.headlineSmall?.fontSize,
                     )),
                 subtitle: Text(i.subtitle,
                     style: TextStyle(
-                      color: Theme.of(context).colorScheme.secondary,
+                      color: Theme.of(context).colorScheme.onSurface,
                       fontFamily: Theme.of(context).textTheme.bodyLarge?.fontFamily,
                       fontSize: Theme.of(context).textTheme.bodyLarge?.fontSize,
                     )),
@@ -158,7 +159,14 @@ class _FeedScreenState extends State<FeedScreen> {
                             onPressed: () {
                               Navigator.of(context).pop();
                             },
-                            child: Text("Close"),
+                            child: Text(
+                              "x",
+                              style: TextStyle(
+                                color: Theme.of(context).colorScheme.tertiary,
+                                fontFamily: Theme.of(context).textTheme.headlineSmall?.fontFamily,
+                                fontSize: Theme.of(context).textTheme.headlineSmall?.fontSize,
+                              ),
+                            ),
                           ),
                         ],
                       );
@@ -180,7 +188,7 @@ class _FeedScreenState extends State<FeedScreen> {
 
   @override
   Widget build(BuildContext context) {
-    Widget body = _feed == null ? Center(child: CircularProgressIndicator()) : _buildFeedList();
+    Widget body = _buildFeedList();
     return Padding(
       padding: EdgeInsets.all(16),
       child: body,

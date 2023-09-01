@@ -43,11 +43,17 @@ class _ProfileScreenState extends State<ProfileScreen> {
         ));
   }
 
+  String getLangRepr(String lang) {
+    String flag = widget.languages[lang]['country']['flag'];
+    String name = widget.languages[lang]['language']['full_name'];
+    return "$flag $name";
+  }
+
   DropdownButtonFormField<String> _languageDropdown() {
     return DropdownButtonFormField<String>(
       menuMaxHeight: 300.0,
       decoration: InputDecoration(
-        labelText: "Native language",
+        labelText: "Native Language",
         labelStyle: TextStyle(
           fontSize: Theme.of(context).textTheme.headlineMedium?.fontSize,
           fontFamily: Theme.of(context).textTheme.headlineMedium?.fontFamily,
@@ -58,8 +64,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
         return DropdownMenuItem<String>(
           value: value,
           child: Text(
-            // "${getLangEmoji(value)} ${value.toUpperCase()}",
-            value,
+            getLangRepr(value),
             style: TextStyle(
               fontSize: Theme.of(context).textTheme.bodyMedium?.fontSize,
               fontFamily: Theme.of(context).textTheme.headlineMedium?.fontFamily,
@@ -123,7 +128,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
       ),
       style: TextStyle(
         fontSize: Theme.of(context).textTheme.bodyLarge?.fontSize,
-        fontFamily: Theme.of(context).textTheme.bodyLarge?.fontFamily,
+        fontFamily: Theme.of(context).textTheme.headlineMedium?.fontFamily,
       ),
     );
   }

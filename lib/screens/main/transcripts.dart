@@ -164,7 +164,7 @@ class _TranscriptScreenState extends State<TranscriptScreen> {
 
     return (_transcripts != null && _transcripts!.isNotEmpty)
         ? ListView.builder(itemBuilder: itemBuilder, itemCount: transcripts.length)
-        : Text("No transcripts yet, please have a Chat with Moshi!");
+        : Text("No transcripts yet. Click 'Chat' in the menu to get started.");
   }
 
   @override

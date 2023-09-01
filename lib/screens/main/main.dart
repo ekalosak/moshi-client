@@ -46,18 +46,17 @@ class _MainScreenState extends State<MainScreen> {
         .snapshots()
         .listen((DocumentSnapshot snapshot) {
       if (snapshot.exists && snapshot.data() != null) {
-        print("Profile exists and is not empty: $snapshot");
+        print("main: User profile exists and is not empty.");
         setState(() {
           profile = Profile(
             uid: snapshot.id,
-            lang: snapshot['target_language'],
+            lang: snapshot['language'],
             name: snapshot['name'],
             primaryLang: snapshot['native_language'],
           );
         });
       } else {
-        print("User profile doesn't exist or is empty.");
-        print("snapshot: $snapshot");
+        print("main: User profile doesn't exist or is empty.");
         Navigator.pushAndRemoveUntil(
             context, MaterialPageRoute(builder: (context) => MakeProfileScreen(user: widget.user)), (route) => false);
       }
@@ -68,12 +67,12 @@ class _MainScreenState extends State<MainScreen> {
         .snapshots()
         .listen((DocumentSnapshot snapshot) {
       if (snapshot.exists && snapshot.data() != null) {
-        print("Supported langs exist and aren't empty: $snapshot");
+        print("main: config/languages exists and isn't empty.");
         setState(() {
           languages = snapshot.data() as Map<String, dynamic>;
         });
       } else {
-        throw Exception("Supported languages don't exist or is empty.");
+        throw Exception("main: config/languages doesn't exist or is empty.");
       }
     });
   }
@@ -87,15 +86,26 @@ class _MainScreenState extends State<MainScreen> {
 
   @override
   Widget build(BuildContext context) {
-    print("MainScreen.build");
-    print("profile: $profile");
-    print("languages: $languages");
+    print("main: MainScreen.build");
     if (profile == null || languages.isEmpty) {
+      print("main: profile == null: ${profile == null}");
+      print("main: languages.isEmpty: ${languages.isEmpty}");
       return Center(
         child: CircularProgressIndicator(),
       );
     } else {
+      print("main: profile: ${profile?.name} ${profile?.uid}");
+      print("main: languages: ${languages.keys.toList().sublist(0, 5)}...");
       return _buildScaffold(profile!, languages);
+    }
+  }
+
+  String getLangRepr(String lang) {
+    try {
+      return languages[lang]['country']['flag'];
+    } catch (e) {
+      print("main: getLangEmoji: $e");
+      return lang;
     }
   }
 
@@ -107,7 +117,6 @@ class _MainScreenState extends State<MainScreen> {
     Widget? bottomNavigationBar = _bottomNavigationBar(_index);
     Text title = Text(
       _titleForIndex(_index),
-      // style: Theme.of(context).textTheme.headlineMedium,
       style: TextStyle(
         fontFamily: Theme.of(context).textTheme.headlineMedium!.fontFamily,
         fontSize: Theme.of(context).textTheme.headlineMedium!.fontSize,
@@ -176,8 +185,7 @@ class _MainScreenState extends State<MainScreen> {
   TextButton _flagButton(Profile profile, Map<String, dynamic> languages) {
     return TextButton(
       child: Text(
-        // getLangEmoji(profile.lang),
-        profile.lang,
+        getLangRepr(profile.lang),
         style: TextStyle(
           fontSize: 32.0,
         ),
