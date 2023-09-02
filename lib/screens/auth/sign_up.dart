@@ -4,6 +4,9 @@ import 'package:firebase_auth/firebase_auth.dart' show FirebaseAuth, FirebaseAut
 import 'package:flutter/material.dart';
 
 class SignUpScreen extends StatefulWidget {
+  final String initEmail;
+  final String initPassword;
+  SignUpScreen({required this.initEmail, required this.initPassword});
   @override
   _SignUpScreenState createState() => _SignUpScreenState();
 }
@@ -52,6 +55,13 @@ class _SignUpScreenState extends State<SignUpScreen> {
   final TextEditingController emailController = TextEditingController();
   final TextEditingController passwordController = TextEditingController();
   bool isLoading = false;
+
+  @override
+  void initState() {
+    super.initState();
+    emailController.text = widget.initEmail;
+    passwordController.text = widget.initPassword;
+  }
 
   @override
   void dispose() {
@@ -106,23 +116,17 @@ class _SignUpScreenState extends State<SignUpScreen> {
                       controller: emailController,
                       decoration: InputDecoration(
                         labelText: 'Email',
-                        labelStyle: TextStyle(
-                          color: Theme.of(context).colorScheme.onBackground,
-                          fontSize: Theme.of(context).textTheme.headlineSmall!.fontSize,
-                          fontFamily: Theme.of(context).textTheme.headlineSmall!.fontFamily,
-                        ),
+                        labelStyle: Theme.of(context).textTheme.headlineSmall,
                       ),
+                      style: Theme.of(context).textTheme.headlineSmall,
                     ),
                     TextField(
                       controller: passwordController,
                       decoration: InputDecoration(
                         labelText: 'Password',
-                        labelStyle: TextStyle(
-                          color: Theme.of(context).colorScheme.onBackground,
-                          fontSize: Theme.of(context).textTheme.headlineSmall!.fontSize,
-                          fontFamily: Theme.of(context).textTheme.headlineSmall!.fontFamily,
-                        ),
+                        labelStyle: Theme.of(context).textTheme.headlineSmall,
                       ),
+                      style: Theme.of(context).textTheme.headlineSmall,
                       obscureText: true,
                     ),
                     SizedBox(height: 24),

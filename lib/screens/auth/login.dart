@@ -88,29 +88,18 @@ class _LoginScreenState extends State<LoginScreen> {
                       controller: emailController,
                       decoration: InputDecoration(
                         labelText: 'Email',
-                        labelStyle: TextStyle(
-                          color: Theme.of(context).colorScheme.onBackground,
-                          fontSize: Theme.of(context).textTheme.headlineSmall!.fontSize,
-                          fontFamily: Theme.of(context).textTheme.headlineSmall!.fontFamily,
-                        ),
+                        labelStyle: Theme.of(context).textTheme.headlineSmall,
                       ),
-                      style: TextStyle(
-                        color: Theme.of(context).colorScheme.onBackground,
-                        fontSize: Theme.of(context).textTheme.headlineSmall!.fontSize,
-                        fontFamily: Theme.of(context).textTheme.headlineSmall!.fontFamily,
-                      ),
+                      style: Theme.of(context).textTheme.headlineSmall,
                       autofillHints: [AutofillHints.email],
                     ),
                     TextField(
                       controller: passwordController,
                       decoration: InputDecoration(
                         labelText: 'Password',
-                        labelStyle: TextStyle(
-                          color: Theme.of(context).colorScheme.onBackground,
-                          fontSize: Theme.of(context).textTheme.headlineSmall!.fontSize,
-                          fontFamily: Theme.of(context).textTheme.headlineSmall!.fontFamily,
-                        ),
+                        labelStyle: Theme.of(context).textTheme.headlineSmall,
                       ),
+                      style: Theme.of(context).textTheme.headlineSmall,
                       obscureText: true,
                       autofillHints: [AutofillHints.password],
                     ),
@@ -203,7 +192,10 @@ class _LoginScreenState extends State<LoginScreen> {
                         onPressed: () {
                           Navigator.of(context).push(
                             MaterialPageRoute(
-                              builder: (context) => SignUpScreen(),
+                              builder: (context) => SignUpScreen(
+                                initEmail: emailController.text,
+                                initPassword: passwordController.text,
+                              ),
                             ),
                           );
                         },
