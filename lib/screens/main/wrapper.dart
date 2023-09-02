@@ -189,6 +189,8 @@ class _WrapperScreenState extends State<WrapperScreen> {
 
   /// Returns a TextButton that shows the user's language and opens a modal bottom sheet to change it.
   TextButton _flagButton(Profile profile, Map<String, dynamic> languages) {
+    List<String> sortedLanguages = languages.keys.toList();
+    sortedLanguages.sort();
     return TextButton(
       child: Text(
         getLangRepr(profile.lang),
@@ -203,12 +205,13 @@ class _WrapperScreenState extends State<WrapperScreen> {
             return GridView.builder(
               itemCount: languages.length,
               gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
-                crossAxisCount: 6,
+                crossAxisCount: 3,
+                childAspectRatio: 2.0,
                 crossAxisSpacing: 4.0,
                 mainAxisSpacing: 4.0,
               ),
               itemBuilder: (BuildContext context, int index) {
-                String lang = languages.keys.toList()[index];
+                String lang = sortedLanguages[index];
                 return GestureDetector(
                   onTap: () async {
                     String? err = await updateProfile(uid: profile.uid, targetLang: lang);
@@ -233,15 +236,10 @@ class _WrapperScreenState extends State<WrapperScreen> {
                       ),
                       borderRadius: BorderRadius.circular(8.0),
                     ),
-                    child: Center(
-                      child: Text(
-                        // getLangEmoji(lang),
-                        lang,
-                        style: TextStyle(
-                          color: Theme.of(context).colorScheme.primary,
-                          fontSize: 24.0,
-                        ),
-                      ),
+                    child: Text(
+                      "${languages[lang]['country']['flag']} ${languages[lang]['country']['ISO-3166-1-alpha-2']}\n${languages[lang]['language']['name']}",
+                      style: Theme.of(context).textTheme.bodyMedium,
+                      textAlign: TextAlign.left,
                     ),
                   ),
                 );
