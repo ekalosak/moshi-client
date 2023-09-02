@@ -34,7 +34,7 @@ class Item {
       body: data.containsKey('body') ? data['body'] : '',
       type: data.containsKey('type') ? data['type'] : '',
       timestamp: data.containsKey('timestamp') ? data['timestamp'].toDate() : '',
-      read: data.containsKey('read') ? (data['read'] == 'true') : true,
+      read: data.containsKey('read') ? data['read'] : true,
       id: doc.id,
     );
   }
@@ -79,12 +79,11 @@ class _FeedScreenState extends State<FeedScreen> {
       for (var doc in event.docs) {
         Map<String, dynamic> data = doc.data();
         if (data.containsKey('global')) {
-          // stub for global feed item, holds read status
           globalRead[doc.id] = data['read'];
         } else {
-          // actual item
           final Item item = Item.fromDocumentSnapshot(doc);
-          userFeed[doc.id] = item;
+          print("feed: feedListener: item: ${item.id} ${item.read}");
+          userFeed[item.id] = item;
         }
       }
       if (userFeed.isNotEmpty) {
@@ -107,9 +106,11 @@ class _FeedScreenState extends State<FeedScreen> {
     Map<String, Item> feed = _userFeed;
     Map<String, bool> read = _globalRead;
     for (var item in userFeed.entries) {
+      print("feed: _addToUserFeed: user: ${item.key} ${item.value.read}");
       feed[item.key] = item.value;
     }
     for (var item in globalRead.entries) {
+      print("feed: _addToUserFeed: global: ${item.key} ${item.value}");
       read[item.key] = item.value;
     }
     setState(() {
@@ -155,7 +156,7 @@ class _FeedScreenState extends State<FeedScreen> {
                   elevation: 8,
                   margin: EdgeInsets.all(0),
                   color: Theme.of(context).colorScheme.background,
-                  shadowColor: i.read ? Colors.transparent : Theme.of(context).colorScheme.primary,
+                  shadowColor: i.read ? Colors.transparent : Theme.of(context).colorScheme.secondary,
                   child: ListTile(
                     title: Text(
                       i.title,
@@ -175,16 +176,15 @@ class _FeedScreenState extends State<FeedScreen> {
                               style: Theme.of(context).textTheme.headlineSmall,
                             ),
                             content: SingleChildScrollView(
-                              child: Text(i.body,
-                                  style: TextStyle(
-                                    color: Theme.of(context).colorScheme.onSurface,
-                                    fontFamily: Theme.of(context).textTheme.bodySmall?.fontFamily,
-                                    fontSize: Theme.of(context).textTheme.bodySmall?.fontSize,
-                                  )),
+                              child: Text(
+                                i.body,
+                                style: Theme.of(context).textTheme.bodySmall,
+                              ),
                             ),
                             actions: [
                               TextButton(
                                 onPressed: () async {
+                                  print("feed: _buildFeedList: onTap: ${i.id}");
                                   await FirebaseFirestore.instance
                                       .collection('users')
                                       .doc(widget.profile.uid)
@@ -195,14 +195,10 @@ class _FeedScreenState extends State<FeedScreen> {
                                     Navigator.of(context).pop();
                                   }
                                 },
-                                child: Text(
-                                  "x",
-                                  style: TextStyle(
-                                    color: Theme.of(context).colorScheme.tertiary,
-                                    fontFamily: Theme.of(context).textTheme.headlineSmall?.fontFamily,
-                                    fontSize: Theme.of(context).textTheme.headlineSmall?.fontSize,
-                                  ),
-                                ),
+                                child: Text("x",
+                                    style: Theme.of(context).textTheme.headlineSmall?.copyWith(
+                                          color: Theme.of(context).colorScheme.tertiary,
+                                        )),
                               ),
                             ],
                           );

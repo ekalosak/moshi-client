@@ -40,8 +40,8 @@ void main() async {
     } catch (e) {
       print(e);
     }
-    // log out user
-    await FirebaseAuth.instance.signOut();
+    // // log out user
+    // await FirebaseAuth.instance.signOut();
   } else {
     print("RELEASE");
   }

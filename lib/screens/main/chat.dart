@@ -1,18 +1,19 @@
 import 'dart:async';
 
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:cloud_functions/cloud_functions.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:record/record.dart';
 
 import 'package:moshi/types.dart';
-import 'package:moshi/services/moshi.dart' as moshi;
-import 'package:moshi/util.dart' as util;
 import 'package:moshi/widgets/chat.dart';
 import 'package:moshi/widgets/status.dart';
 
 class ChatScreen extends StatefulWidget {
   final Profile profile;
-  ChatScreen({required this.profile});
+  final Map<String, dynamic> languages;
+  ChatScreen({required this.profile, required this.languages});
   @override
   _ChatScreenState createState() => _ChatScreenState();
 }
@@ -21,487 +22,179 @@ class _ChatScreenState extends State<ChatScreen> {
   MicStatus micStatus = MicStatus.off;
   ServerStatus serverStatus = ServerStatus.unknown;
   CallStatus callStatus = CallStatus.idle;
-  bool _justStarted = true;
-  String? _transcriptId;
-  late List<Message> _messages;
-  // TODO make a transcript listener, and once the call is started, start listening to the transcript
-
-  /// Initialize the messages list with some example messages.
-  List<Message> _initMessages() {
-    return [
-      Message(Role.ast, "Exactly."),
-      Message(Role.usr, "Like a walkie-talkie?"),
-      Message(Role.ast, "Hold the chat button that appears to talk."),
-      Message(Role.usr, "Then what?"),
-      Message(Role.ast, "It's the round one below on the left."),
-      Message(Role.usr, "Where is that?"),
-      Message(Role.ast, "Click the call button to start a call."),
-      Message(Role.usr, "Cool - how?"),
-      Message(Role.ast, "I'm here to help you speak a second language!"),
-      Message(Role.usr, "Hey Moshi, what's up?"),
-      Message(Role.ast, "Moshi moshi, ${widget.profile.name}"),
-    ];
-  }
+  String _activityType = "unstructured";
+  final record = Record();
+  StreamSubscription<DocumentSnapshot<Map<String, dynamic>>?>? _transcriptListener;
+  Transcript? _transcript; // rendered state
 
   @override
   void initState() {
     super.initState();
   }
 
-  /// Clean up the mic stream when the widget is disposed
   @override
-  void dispose() async {
+  void dispose() {
     super.dispose();
+    _transcriptListener?.cancel();
+  }
+
+  /// This gets shown to users on page load.
+  List<Message> _initMessages() {
+    return [
+      Message(Role.ast, "Press the call button (📞) to get started."),
+      Message(Role.ast, "Would you like to practice ${widget.languages[widget.profile.lang]['language']['name']}?"),
+      Message(Role.ast, "Hello, ${widget.profile.name}."),
+    ];
+  }
+
+  /// Start listening to the transcript document.
+  void _initTranscriptListener(String tid) {
+    _transcriptListener = FirebaseFirestore.instance
+        .collection('users')
+        .doc(widget.profile.uid)
+        .collection('transcripts')
+        .doc(tid)
+        .snapshots()
+        .listen((doc) {
+      Transcript? t;
+      print("chat: _initTranscriptListener: ${doc.data()}");
+      try {
+        t = Transcript.fromDocumentSnapshot(doc);
+        print("chat: _initTranscriptListener: ${t.messages.length} messages}");
+      } on NullDataError {
+        print("chat: _initTranscriptListener: NullDataError");
+      }
+      if (t != null) {
+        if (mounted) {
+          setState(() {
+            _transcript = t;
+          });
+        }
+      }
+    });
   }
 
   /// Get mic permissions, check server health, and perform Chat connection establishment.
   /// Returns error string if any.
   Future<String?> startPressed() async {
-    String? err;
-    print("startPressed [START]");
+    print("chat: startPressed: [START]");
     setState(() {
-      _messages.clear();
-      _justStarted = false;
+      _transcript = null;
       callStatus = CallStatus.ringing;
       serverStatus = ServerStatus.pending;
     });
-    // Backend server check
-    bool healthy = await moshi.healthCheck();
-    setState(() {
-      serverStatus = (healthy) ? ServerStatus.ready : ServerStatus.error;
-      callStatus = (healthy) ? callStatus : CallStatus.idle;
-    });
-    if (!healthy) {
-      return "Moshi servers unhealthy, please try again.";
-    }
-    // Microphone check
-    err = await startMicrophoneStream();
-    setState(() {
-      micStatus = (err == null) ? MicStatus.muted : MicStatus.noPermission;
-    });
-    if (err != null) {
-      return err;
-      // return "Moshi requires microphone permissions. Please enable in your system settings.";
-    }
-    err = await callMoshi();
-    if (err != null) {
-      setState(() {
-        callStatus = CallStatus.idle;
-        serverStatus = ServerStatus.error;
-      });
-      return err;
-    }
-    print("startPressed [END]");
-    return null;
-  }
 
-  /// Set up the Chat session.
-  Future<String?> callMoshi() async {
-    String? err;
-    print("callMoshi [START]");
-    if (_pc != null || _dc != null) {
-      print("peer connection already exists, ending previous call.");
-      await tearDownChat();
+    // Check and request permission
+    print("chat: startPressed: checking permission");
+    if (!(await record.hasPermission())) {
+      setState(() {
+        micStatus = MicStatus.noPermission;
+      });
+      return "Please grant microphone permission";
     }
+
+    // Call cloud function start_activity
+    final HttpsCallable startActivity = FirebaseFunctions.instance.httpsCallable('start_activity');
+    HttpsCallableResult result;
     try {
-      // Create peer connection
-      print("creating peer connection");
-      print("with config: $pcConfig");
-      print("with constraints: $pcConstraints");
-      RTCPeerConnection pc = await setupPeerConnection(pcConfig, pcConstraints);
-      pc.onConnectionState = (pcs) {
-        print("pc: onConnectionState: $pcs");
-        if (pcs == RTCPeerConnectionState.RTCPeerConnectionStateConnected) {
-          print("pc: connected");
-        } else if (pcs == RTCPeerConnectionState.RTCPeerConnectionStateDisconnected) {
-          print("pc: disconnected");
-          setState(() {
-            callStatus = CallStatus.idle;
-          });
-        } else if (pcs == RTCPeerConnectionState.RTCPeerConnectionStateFailed) {
-          print("pc: failed");
-          setState(() {
-            callStatus = CallStatus.error;
-          });
-        } else {
-          print("TODO pc: connection state change unhandled: $pcs");
-        }
-      };
-      print("created pc: $pc");
-      // Create data channel
-      RTCDataChannelInit dataChannelDict = RTCDataChannelInit()..maxRetransmits = 30;
-      RTCDataChannel dc = await pc.createDataChannel('data', dataChannelDict);
-      dc.onDataChannelState = (dcs) {
-        if (dcs == RTCDataChannelState.RTCDataChannelOpen) {
-          print("dc: data channel open");
-        } else if (dcs == RTCDataChannelState.RTCDataChannelClosed) {
-          print("dc: data channel closed");
-          setState(() {
-            callStatus = CallStatus.idle;
-          });
-        } else {
-          print("Unhanlded data channel state: $dcs");
-        }
-      };
-      dc.onMessage = (dcm) {
-        if (!dcm.isBinary) {
-          _handleStringMessage(dcm.text);
-        } else {
-          print("TODO handle binary data channel messages");
-        }
-      };
-      print("created dc: $dc");
-      setState(() {
-        _pc = pc;
-        _dc = dc;
+      result = await startActivity.call(<String, dynamic>{
+        'type': _activityType,
       });
-      err = await negotiate();
-      if (err != null) {
-        await hangUpMoshi();
-        return err;
+    } catch (e) {
+      setState(() {
+        serverStatus = ServerStatus.error;
+        callStatus = CallStatus.error;
+      });
+      if (e is FirebaseFunctionsException) {
+        return "😭 Server error: ${e.message}";
       }
-    } catch (error) {
-      print("Error: $error");
-      return "Failed to connect to Moshi servers. Please try again.";
+      return "❌ Server error: ${e.toString()}";
     }
-    print("callMoshi [END]");
+
+    print("chat: startPressed: startActivity result: message ${result.data['message']}");
+    print("chat: startPressed: startActivity result: detail ${result.data['detail']}");
+    _initTranscriptListener(result.data['detail']['transcript_id']);
+    setState(() {
+      serverStatus = ServerStatus.ready;
+      callStatus = CallStatus.inCall;
+    });
+    print("chat: startPressed: [END]");
     return null;
-  }
-
-  Future<void> _sendFeedback(String body) async {
-    print("Sending feedback: $body");
-    DocumentReference feedbackRef = FirebaseFirestore.instance.collection('feedback').doc();
-    FeedbackMsg fbk = FeedbackMsg(
-      uid: widget.profile.uid,
-      body: body,
-      type: "call",
-      tid: _transcriptId ?? "",
-    );
-    await feedbackRef.set(fbk.toMap());
-  }
-
-  void _afterFeedbackMessage() {
-    // Thank the user via snackbox, then nav.pop if mounted
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Text("🙇 Thank you very much for helping us improve."),
-        duration: Duration(seconds: 2),
-      ),
-    );
-    if (mounted) {
-      Navigator.of(context).pop();
-    }
-  }
-
-  /// Pop up a dialog to ask for feedback.
-  Future<void> feedbackAfterCall() async {
-    print("feedbackPressed [START]");
-    await showDialog(
-      context: context,
-      builder: (BuildContext context) {
-        return AlertDialog(
-          title: Text(
-            "Feedback",
-            style: TextStyle(
-              fontSize: Theme.of(context).textTheme.headlineSmall?.fontSize,
-              fontFamily: Theme.of(context).textTheme.headlineSmall?.fontFamily,
-              color: Theme.of(context).colorScheme.secondary,
-            ),
-          ),
-          content: Text(
-            "How was your call?",
-          ),
-          actions: [
-            TextButton(
-              child: Text(
-                "👍",
-                style: TextStyle(
-                  fontFamily: Theme.of(context).textTheme.headlineMedium?.fontFamily,
-                  fontSize: Theme.of(context).textTheme.headlineMedium?.fontSize,
-                  color: Theme.of(context).colorScheme.secondary,
-                ),
-              ),
-              onPressed: () async {
-                await _sendFeedback("good");
-                _afterFeedbackMessage();
-              },
-            ),
-            TextButton(
-              child: Text(
-                "👎",
-                style: TextStyle(
-                  fontFamily: Theme.of(context).textTheme.headlineMedium?.fontFamily,
-                  fontSize: Theme.of(context).textTheme.headlineMedium?.fontSize,
-                  color: Theme.of(context).colorScheme.secondary,
-                ),
-              ),
-              onPressed: () async {
-                await _sendFeedback("bad");
-                _afterFeedbackMessage();
-              },
-            ),
-          ],
-        );
-      },
-    );
-    print("feedbackPressed [END]");
   }
 
   /// Terminate the Chat session.
   Future<String?> stopPressed() async {
     print("stopPressed [START]");
-    await _dc?.send(RTCDataChannelMessage("status bye"));
-    await hangUpMoshi();
-    await stopMicrophoneStream();
+    await record.dispose();
     await feedbackAfterCall();
     print("stopPressed [END]");
     return null;
   }
 
-  /// Acquire audio permissions and add audio stream to state `_localStream`.
-  Future<String?> startMicrophoneStream() async {
-    print("startMicrophoneStream [START]");
-    try {
-      final mediaConstraints = <String, dynamic>{'audio': true, 'video': false};
-      var stream = await navigator.mediaDevices.getUserMedia(mediaConstraints);
+  /// Acquire audio permissions and add audio stream to state `_localRec`.
+  Future<String?> chatPressed() async {
+    print("chat: startMicrophoneRec [START]");
+    await record.start(
+      // path: 'aFullPath/myFile.m4a',  // datetime
+      path:
+          'com.chatmoshi.moshi/audio/permission..m4a', // both ios and android can record to MPEG-4 https://pub.dev/packages/record
+      encoder: AudioEncoder.aacLc, // by default
+      bitRate: 128000, // by default
+      samplingRate: 44100, // by default
+    );
+
+    bool isRecording = await record.isRecording();
+    if (!isRecording) {
       setState(() {
-        micStatus = MicStatus.muted;
-        _localStream = stream;
+        micStatus = MicStatus.noPermission;
       });
-      MediaStreamTrack audio = _localStream!.getAudioTracks()[0];
-      audio.onMute = () => micStatus = MicStatus.muted;
-      audio.onUnMute = () => micStatus = MicStatus.on;
-    } catch (error) {
-      print("Error: $error");
-      return "I couldn't get access to your microphone, try enabling it in your phone's settings.";
+      return "Error starting microphone, please grant microphone permissions in system settings.";
     }
-    print("startMicrophoneStream [END]");
-    return null;
-  }
 
-  /// After setting up stream and signaling, create an SDP offer and handle the answer.
-  Future<String?> negotiate() async {
-    print("negotiate [START]");
-    RTCPeerConnection pc = _pc!;
-    // NOTE createOffer collects the available codecs from the audio tracks added to the stream
-    RTCSessionDescription offer = await pc.createOffer();
-    print("negotiate: created offer");
-    print("offer:\n\ttype: ${offer.type}\n\tsdp:\n${offer.sdp}");
-    await pc.setLocalDescription(offer);
-    final RTCSessionDescription? answer;
-    try {
-      answer = await moshi.sendOfferGetAnswer(offer);
-    } on moshi.AuthError {
-      return "🥸 Please log in.";
-    } on moshi.RateLimitError catch (e) {
-      return "🙅 ${e.message}";
-    } catch (e) {
-      print("negotiate: error: $e");
-      return "😭 Moshi servers are having trouble.\nWe're working on it! 🏗";
-    }
-    print("answer:\n\ttype: ${answer.type}\n\tsdp:\n${answer.sdp}");
-    await pc.setRemoteDescription(answer);
-    print("negotiate [END]");
-    return null;
-  }
-
-  /// Create the peer connection and set up event handlers.
-  Future<RTCPeerConnection> setupPeerConnection(Map<String, dynamic> config, Map<String, dynamic> constraints) async {
-    _pc = await createPeerConnection(config, constraints);
-    if (_pc == null) {
-      throw 'Failed to create peer connection';
-    }
-    RTCPeerConnection pc = _pc!;
-    // Add listeners for ICE state change.
-    // NOTE webrtc implementation handles resolving ice candidates.
-    pc.onIceGatheringState = (gs) async {
-      print("pc: onIceGatheringState: $gs");
-    };
-    pc.onIceConnectionState = (cs) async {
-      print("pc: onIceConnectionState: $cs");
-    };
-    pc.onSignalingState = (ss) async {
-      print("pc: onIceSignalingState: $ss");
-    };
-    pc.onIceCandidate = (candidate) async {
-      print("pc: onIceCandidate: ${candidate.candidate}");
-    };
-    // Handle what to do when tracks are added
-    pc.onTrack = (evt) {
-      if (evt.track.kind == 'audio') {
-        print("pc: audio track added");
-      } else {
-        print("pc: unexpected track added: ${evt.track.kind}");
+    setState(() {
+      if (isRecording) {
+        micStatus = MicStatus.on;
       }
-    };
-    // Connect local stream to peer connection
-    _localStream!.getTracks().forEach((track) {
-      print("pc: adding track $track");
-      track.enabled = false; // start muted
-      pc.addTrack(track, _localStream!);
     });
-    return pc;
+
+    print("chat: startMicrophoneRec [END]");
+    return null;
   }
 
-  /// Destroy the stream object and set the state to not recording.
-  Future<void> stopMicrophoneStream() async {
+  /// Stop the audio recording and flush to file.
+  Future<void> chatReleased() async {
     print("stopMicrophoneStream [START]");
-    for (var audioTrack in _localStream!.getAudioTracks()) {
-      await audioTrack.stop();
+
+    bool isRecording = await record.isRecording();
+    if (isRecording) {
+      print("Is recording, stopping...");
+      String? path = await record.stop();
+      setState(() {
+        if (micStatus == MicStatus.on) {
+          micStatus = MicStatus.muted;
+        }
+      });
+      print("TODO upload to storage: $path");
     }
-    await _localStream?.dispose();
-    setState(() {
-      if (micStatus == MicStatus.on) {
-        micStatus = MicStatus.muted;
-      }
-    });
     print("stopMicrophoneStream [END]");
-  }
-
-  /// Destroy the webrtc peer connection and set the state to not connected.
-  Future<void> hangUpMoshi() async {
-    print("hangUpMoshi [START]");
-    await tearDownChat();
-    setState(() {
-      callStatus = CallStatus.idle;
-    });
-    print("hangUpMoshi [END]");
-  }
-
-  /// Destroy the peer connections
-  Future<void> tearDownChat() async {
-    print("tearDownChat [START]");
-    await _pc?.dispose();
-    await _dc?.close();
-    if (!mounted) {
-      print("tearDownChat [END]");
-      return;
-    }
-    setState(() {
-      _pc = null;
-      _dc = null;
-    });
-    print("tearDownChat [END]");
-  }
-
-  /// Insert a new message into the Chat widget
-  void _addMsg(Message msg) {
-    setState(() {
-      _messages.insert(0, msg);
-    });
-  }
-
-  /// Route the data channel message to the appropriate handler
-  void _handleStringMessage(String dcm) {
-    final List<String> words = dcm.split(" ");
-    final String msgtp = words[0];
-    final String? body = (words.length > 1) ? words.sublist(1).join(' ') : null;
-    switch (msgtp) {
-      case "transcript":
-        _handleTranscript(body!);
-        break;
-      case "status":
-        _handleStatus(body!);
-        break;
-      case "ping":
-        print("TODO send pong");
-        break;
-      case "error":
-        _handleError(body);
-        break;
-      case "info":
-        String varName = words[1];
-        String varValue = words[2];
-        _handleInfo(varName, varValue);
-        break;
-      default:
-        print("unhandled message type: $msgtp");
-    }
-  }
-
-  void _handleError(String? errtype) async {
-    print("_handleError");
-    switch (errtype) {
-      case "usrNotSpeaking":
-        util.showError(context,
-            "😪 Moshi hung up after waiting for you to speak.\nPlease feel free to start another conversation.");
-        break;
-      default:
-        print("unhandled error type: $errtype");
-        util.showError(context, "🙇 Moshi servers are having trouble.\nWe're working on it! 🏗");
-        break;
-    }
-    await stopPressed();
-  }
-
-  /// Update the call state to inCall
-  void _handleHello() {
-    setState(() {
-      callStatus = CallStatus.inCall;
-    });
-  }
-
-  /// Parse the status and modify screen state accordingly.
-  void _handleStatus(String body) {
-    final String statusType = body.split(" ")[0];
-    switch (statusType) {
-      case "hello":
-        _handleHello();
-        break;
-      default:
-        print("unhandled status type: $statusType");
-    }
-  }
-
-  void _handleInfo(String varName, String varValue) {
-    switch (varName) {
-      case "tid":
-        print("Got transcript id: $varValue");
-        setState(() {
-          _transcriptId = varValue;
-        });
-        break;
-      default:
-        print("unhandled info type: $varName");
-    }
-  }
-
-  /// Parse the Message from a datachannel (non-binary) serialization and add it to the screen
-  void _handleTranscript(String body) {
-    final Role role = (body.split(" ")[0] == "ast") ? Role.ast : Role.usr;
-    final String content = body.split(" ").sublist(1).join(' ');
-    _addMsg(Message(role, content));
-  }
-
-  /// While hold-to-chat pressed, enable the mic and send audio to the server.
-  void _enableMic() {
-    for (var audioTrack in _localStream!.getAudioTracks()) {
-      audioTrack.enabled = true;
-      // print("audioTrack.enabled = true; $audioTrack");
-    }
-    setState(() {
-      micStatus = MicStatus.on;
-    });
-  }
-
-  /// Whenever the user's finger leaves the button, mute the track and update the status.
-  void _disableMic() {
-    for (var audioTrack in _localStream!.getAudioTracks()) {
-      audioTrack.enabled = false;
-      // print("audioTrack.enabled = false; $audioTrack");
-    }
-    setState(() {
-      micStatus = MicStatus.muted;
-    });
   }
 
   @override
   Widget build(BuildContext context) {
-    if (_justStarted) {
-      _messages = _initMessages();
+    Transcript? transcript;
+    if (_transcript == null) {
+      transcript = Transcript(
+        id: "dne",
+        createdAt: Timestamp.now(),
+        messages: _initMessages(),
+        language: widget.profile.lang,
+        activityId: "dne",
+      );
+    } else {
+      transcript = _transcript;
     }
     final Row topStatusBar = _topStatusBar(context);
-    final Chat middleChatBox = Chat(messages: _messages);
+    final Chat middleChatBox = Chat(messages: transcript!.messages);
     final Row bottomButtons = _bottomButtons(context);
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -625,11 +318,12 @@ class _ChatScreenState extends State<ChatScreen> {
   GestureDetector _holdToChatButton(BuildContext context) {
     return GestureDetector(
       onLongPressStart: (_) {
-        _enableMic();
+        chatPressed();
         HapticFeedback.lightImpact();
       },
       onLongPressEnd: (_) {
-        _disableMic();
+        chatReleased();
+        HapticFeedback.lightImpact();
       },
       child: FloatingActionButton.extended(
         onPressed: () async {},
@@ -647,5 +341,75 @@ class _ChatScreenState extends State<ChatScreen> {
         ),
       ),
     );
+  }
+
+  /// Pop up a dialog to ask for feedback.
+  Future<void> feedbackAfterCall() async {
+    print("feedbackPressed [START]");
+    await showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: Text(
+            "Feedback",
+            style: TextStyle(
+              fontSize: Theme.of(context).textTheme.headlineSmall?.fontSize,
+              fontFamily: Theme.of(context).textTheme.headlineSmall?.fontFamily,
+              color: Theme.of(context).colorScheme.secondary,
+            ),
+          ),
+          content: Text(
+            "How was your call?",
+          ),
+          actions: [
+            TextButton(
+              child: Text(
+                "👍",
+                style: Theme.of(context).textTheme.headlineMedium,
+              ),
+              onPressed: () async {
+                await _sendFeedback("good");
+                _afterFeedbackMessage();
+              },
+            ),
+            TextButton(
+              child: Text(
+                "👎",
+                style: Theme.of(context).textTheme.headlineMedium,
+              ),
+              onPressed: () async {
+                await _sendFeedback("bad");
+                _afterFeedbackMessage();
+              },
+            ),
+          ],
+        );
+      },
+    );
+    print("feedbackPressed [END]");
+  }
+
+  Future<void> _sendFeedback(String body) async {
+    print("Sending feedback: $body");
+    DocumentReference transcriptRef = FirebaseFirestore.instance
+        .collection('users')
+        .doc(widget.profile.uid)
+        .collection('transcripts')
+        .doc(_transcript!.id);
+    await transcriptRef.update({
+      'feedback': body,
+    });
+  }
+
+  void _afterFeedbackMessage() {
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text("🙇 Thank you very much for helping us improve."),
+        duration: Duration(seconds: 2),
+      ),
+    );
+    if (mounted) {
+      Navigator.of(context).pop();
+    }
   }
 }

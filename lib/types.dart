@@ -8,6 +8,54 @@ enum Role {
   sys,
 }
 
+class NullDataError implements Exception {
+  final String message;
+  NullDataError(this.message);
+}
+
+class Transcript {
+  String id;
+  List<Message> messages;
+  String language;
+  Timestamp createdAt;
+  String activityId;
+  String? summary;
+
+  Transcript(
+      {required this.id,
+      required this.messages,
+      required this.language,
+      required this.createdAt,
+      required this.activityId});
+
+  factory Transcript.fromDocumentSnapshot(DocumentSnapshot snapshot) {
+    Map<String, dynamic>? data = snapshot.data() as Map<String, dynamic>?;
+    if (data == null) {
+      throw NullDataError("Transcript.fromDocumentSnapshot: data is null: ${snapshot.id}");
+    }
+    List<Message> msgs = [];
+    for (var msg in snapshot['messages'].reversed) {
+      Message message = Message.fromMap(msg);
+      msgs.add(message);
+    }
+    return Transcript(
+        id: snapshot.id,
+        messages: msgs,
+        language: snapshot['language'],
+        createdAt: snapshot['created_at'],
+        activityId: snapshot['activity_id']);
+  }
+
+  bool hasNonSysMessages() {
+    for (var msg in messages) {
+      if (msg.role != Role.sys) {
+        return true;
+      }
+    }
+    return false;
+  }
+}
+
 class Message {
   Role role;
   String msg;

@@ -1,7 +1,5 @@
 import 'package:flutter/material.dart';
 
-import 'package:moshi/util.dart';
-
 // make the Profile optional
 DropdownButtonFormField<String> languageDropdown(
   List<String> slans, {
@@ -19,7 +17,7 @@ DropdownButtonFormField<String> languageDropdown(
       return DropdownMenuItem<String>(
         value: value,
         // child: Text("${getLangEmoji(value)} ${value.toUpperCase()}"),
-        child: Text("$value"),
+        child: Text(value),
       );
     }).toList(),
     onChanged: (String? newValue) {

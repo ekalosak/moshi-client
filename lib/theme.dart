@@ -10,9 +10,11 @@ final moshiColorScheme = ColorScheme(
   brightness: Brightness.dark,
   primary: Color.fromARGB(255, 12, 185, 204),
   onPrimary: Color(0xFF3C3C3C),
-  secondary: Color(0xFFD2E04B),
+  // secondary: Color(0xFFD2E04B),
+  secondary: Color.fromARGB(255, 245, 103, 148),
   onSecondary: Color(0xFF3C3C3C),
-  tertiary: Color.fromARGB(255, 172, 238, 57),
+  // tertiary: Color.fromARGB(255, 172, 238, 57),
+  tertiary: Color.fromARGB(255, 248, 35, 102),
   onTertiary: Color.fromARGB(255, 28, 28, 28),
   background: Color.fromARGB(255, 28, 28, 28),
   onBackground: Color(0xFFF5F5F5),
@@ -56,7 +58,7 @@ final moshiTextTheme = TextTheme(
   headlineSmall: TextStyle(
     fontSize: 28,
     fontFamily: 'Rubik',
-    color: moshiColorScheme.onBackground,
+    color: moshiColorScheme.secondary,
   ),
   bodyLarge: TextStyle(
     fontSize: 24,

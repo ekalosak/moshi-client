@@ -6,6 +6,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:moshi/types.dart';
 import 'package:moshi/screens/auth/make_profile.dart';
 import 'package:moshi/screens/switch.dart';
+import 'chat.dart';
 import 'feed.dart';
 import 'profile.dart';
 import 'progress.dart';
@@ -24,6 +25,7 @@ const int CHAT_INDEX = 0;
 const int HOME_INDEX = 1;
 const int PROFILE_INDEX = 2;
 const int PROGRESS_INDEX = 3;
+const int CHATV2_INDEX = 4;
 
 // Progress page bottom navbar indices
 const int PROG_VOCAB_INDEX = 0;
@@ -32,7 +34,8 @@ const int PROG_TRANSCRIPTS_INDEX = 2;
 
 class _WrapperScreenState extends State<WrapperScreen> {
   Profile? profile;
-  int _index = HOME_INDEX;
+  // int _index = HOME_INDEX;
+  int _index = CHATV2_INDEX;
   int _progressIndex = PROG_TRANSCRIPTS_INDEX;
   Map<String, dynamic> languages = {};
   late StreamSubscription _profileListener;
@@ -161,6 +164,8 @@ class _WrapperScreenState extends State<WrapperScreen> {
         return ProfileScreen(profile: pro, languages: languages);
       case PROGRESS_INDEX:
         return ProgressScreen(profile: pro, index: _progressIndex);
+      case CHATV2_INDEX:
+        return ChatScreen(profile: pro, languages: languages);
       default:
         throw ("ERROR: invalid index");
     }
@@ -304,14 +309,13 @@ class _WrapperScreenState extends State<WrapperScreen> {
                     ),
                     child: Text(
                       'ChatMoshi',
-                      style: TextStyle(
-                        color: Theme.of(context).colorScheme.background,
-                        fontSize: Theme.of(context).textTheme.displayLarge!.fontSize,
-                        fontFamily: Theme.of(context).textTheme.displayLarge!.fontFamily,
-                      ),
+                      style: Theme.of(context).textTheme.displayLarge!.copyWith(
+                            color: Theme.of(context).colorScheme.background,
+                          ),
                     ),
                   ),
                   _listTile('Chat', CHAT_INDEX),
+                  _listTile('Chat v2', CHATV2_INDEX),
                   _listTile('Feed', HOME_INDEX),
                   _listTile('Progress', PROGRESS_INDEX),
                 ],
@@ -376,6 +380,8 @@ class _WrapperScreenState extends State<WrapperScreen> {
           default:
             throw ("ERROR: invalid progress index");
         }
+      case CHATV2_INDEX:
+        return "";
       default:
         throw ("ERROR: invalid index");
     }
