@@ -13,6 +13,7 @@ class Item {
   final String type;
   final DateTime timestamp;
   bool read;
+  final String id;
 
   Item({
     required this.title,
@@ -21,6 +22,7 @@ class Item {
     required this.type,
     required this.timestamp,
     required this.read,
+    required this.id,
   });
 
   factory Item.fromDocumentSnapshot(DocumentSnapshot doc) {
@@ -33,6 +35,7 @@ class Item {
       type: data.containsKey('type') ? data['type'] : '',
       timestamp: data.containsKey('timestamp') ? data['timestamp'].toDate() : '',
       read: data.containsKey('read') ? (data['read'] == 'true') : true,
+      id: doc.id,
     );
   }
 }
@@ -77,7 +80,7 @@ class _FeedScreenState extends State<FeedScreen> {
         Map<String, dynamic> data = doc.data();
         if (data.containsKey('global')) {
           // stub for global feed item, holds read status
-          globalRead[doc.id] = (data['read'] == 'true');
+          globalRead[doc.id] = data['read'];
         } else {
           // actual item
           final Item item = Item.fromDocumentSnapshot(doc);
@@ -148,52 +151,65 @@ class _FeedScreenState extends State<FeedScreen> {
             color: bkgdColor,
             child: Padding(
               padding: EdgeInsets.all(8),
-              child: ListTile(
-                title: Text(
-                  i.title,
-                  style: Theme.of(context).textTheme.headlineSmall,
-                ),
-                subtitle: Text(
-                  i.subtitle,
-                  style: Theme.of(context).textTheme.bodyLarge,
-                ),
-                onTap: () {
-                  showDialog(
-                    context: context,
-                    builder: (BuildContext context) {
-                      return AlertDialog(
-                        title: Text(
-                          i.title,
-                          style: Theme.of(context).textTheme.headlineSmall,
-                        ),
-                        content: SingleChildScrollView(
-                          child: Text(i.body,
-                              style: TextStyle(
-                                color: Theme.of(context).colorScheme.onSurface,
-                                fontFamily: Theme.of(context).textTheme.bodySmall?.fontFamily,
-                                fontSize: Theme.of(context).textTheme.bodySmall?.fontSize,
-                              )),
-                        ),
-                        actions: [
-                          TextButton(
-                            onPressed: () {
-                              Navigator.of(context).pop();
-                            },
-                            child: Text(
-                              "x",
-                              style: TextStyle(
-                                color: Theme.of(context).colorScheme.tertiary,
-                                fontFamily: Theme.of(context).textTheme.headlineSmall?.fontFamily,
-                                fontSize: Theme.of(context).textTheme.headlineSmall?.fontSize,
-                              ),
+              child: Card(
+                  elevation: 8,
+                  margin: EdgeInsets.all(0),
+                  color: Theme.of(context).colorScheme.background,
+                  shadowColor: i.read ? Colors.transparent : Theme.of(context).colorScheme.primary,
+                  child: ListTile(
+                    title: Text(
+                      i.title,
+                      style: Theme.of(context).textTheme.headlineSmall,
+                    ),
+                    subtitle: Text(
+                      i.subtitle,
+                      style: Theme.of(context).textTheme.bodyLarge,
+                    ),
+                    onTap: () {
+                      showDialog(
+                        context: context,
+                        builder: (BuildContext context) {
+                          return AlertDialog(
+                            title: Text(
+                              i.title,
+                              style: Theme.of(context).textTheme.headlineSmall,
                             ),
-                          ),
-                        ],
+                            content: SingleChildScrollView(
+                              child: Text(i.body,
+                                  style: TextStyle(
+                                    color: Theme.of(context).colorScheme.onSurface,
+                                    fontFamily: Theme.of(context).textTheme.bodySmall?.fontFamily,
+                                    fontSize: Theme.of(context).textTheme.bodySmall?.fontSize,
+                                  )),
+                            ),
+                            actions: [
+                              TextButton(
+                                onPressed: () async {
+                                  await FirebaseFirestore.instance
+                                      .collection('users')
+                                      .doc(widget.profile.uid)
+                                      .collection('feed')
+                                      .doc(i.id)
+                                      .update({'read': true});
+                                  if (mounted) {
+                                    Navigator.of(context).pop();
+                                  }
+                                },
+                                child: Text(
+                                  "x",
+                                  style: TextStyle(
+                                    color: Theme.of(context).colorScheme.tertiary,
+                                    fontFamily: Theme.of(context).textTheme.headlineSmall?.fontFamily,
+                                    fontSize: Theme.of(context).textTheme.headlineSmall?.fontSize,
+                                  ),
+                                ),
+                              ),
+                            ],
+                          );
+                        },
                       );
                     },
-                  );
-                },
-              ),
+                  )),
             ),
           ),
         ),
