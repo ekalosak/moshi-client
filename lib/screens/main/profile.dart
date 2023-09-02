@@ -50,6 +50,9 @@ class _ProfileScreenState extends State<ProfileScreen> {
   }
 
   DropdownButtonFormField<String> _languageDropdown() {
+    List<String> languages = widget.languages.keys.toList();
+    languages.sort(
+        (a, b) => widget.languages[a]['language']['full_name'].compareTo(widget.languages[b]['language']['full_name']));
     return DropdownButtonFormField<String>(
       menuMaxHeight: 300.0,
       decoration: InputDecoration(
@@ -60,7 +63,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
         ),
       ),
       value: widget.profile.primaryLang,
-      items: widget.languages.keys.map<DropdownMenuItem<String>>((String value) {
+      items: languages.map<DropdownMenuItem<String>>((String value) {
         return DropdownMenuItem<String>(
           value: value,
           child: Text(
@@ -99,12 +102,17 @@ class _ProfileScreenState extends State<ProfileScreen> {
         String? err = await updateProfile(
           uid: widget.profile.uid,
           name: nameCont.text,
-          primaryLang: primaryLang,
+          nativeLang: primaryLang,
         );
         WidgetsBinding.instance.addPostFrameCallback((_) {
           ScaffoldMessenger.of(context).showSnackBar((err == null)
               ? SnackBar(
-                  content: Text("✅ Profile saved!"),
+                  content: Text("✅ Profile saved!",
+                      style: TextStyle(
+                        fontSize: Theme.of(context).textTheme.bodyMedium?.fontSize,
+                        fontFamily: Theme.of(context).textTheme.headlineMedium?.fontFamily,
+                        color: Theme.of(context).colorScheme.onPrimary,
+                      )),
                   backgroundColor: Theme.of(context).colorScheme.primary,
                 )
               : SnackBar(
@@ -136,22 +144,21 @@ class _ProfileScreenState extends State<ProfileScreen> {
 
 /// Update the user's profile document in Firestore.
 // Require string uid; optional string lang, name, primaryLang.
-Future<String?> updateProfile({required String uid, String? lang, String? name, String? primaryLang}) async {
+Future<String?> updateProfile({required String uid, String? targetLang, String? name, String? nativeLang}) async {
   String? err;
-  print("updateProfile: uid: $uid, lang: $lang, name: $name, primaryLang: $primaryLang");
-  DocumentReference<Map<String, dynamic>> documentReference =
-      FirebaseFirestore.instance.collection('profiles').doc(uid);
+  print("updateProfile: uid: $uid, targetLanguage: $targetLang, name: $name, nativeLanguage: $nativeLang");
+  DocumentReference<Map<String, dynamic>> documentReference = FirebaseFirestore.instance.collection('users').doc(uid);
   try {
     // construct a map of the fields to update
     Map<String, dynamic> data = {};
-    if (lang != null) {
-      data['lang'] = lang;
+    if (targetLang != null) {
+      data['language'] = targetLang;
     }
     if (name != null) {
       data['name'] = name;
     }
-    if (primaryLang != null) {
-      data['primary_lang'] = primaryLang;
+    if (nativeLang != null) {
+      data['native_language'] = nativeLang;
     }
     await documentReference.update(data);
   } catch (e) {

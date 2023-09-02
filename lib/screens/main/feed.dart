@@ -25,7 +25,7 @@ class Item {
 
   factory Item.fromDocumentSnapshot(DocumentSnapshot doc) {
     Map<String, dynamic> data = doc.data() as Map<String, dynamic>;
-    print("feed: Item.fromDocumentSnapshot: data: ${data.entries.length} entries");
+    print("feed: Item.fromDocumentSnapshot: data: ${data.keys}");
     return Item(
       title: data.containsKey('title') ? data['title'] : '',
       subtitle: data.containsKey('subtitle') ? data['subtitle'] : '',

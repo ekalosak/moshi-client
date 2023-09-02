@@ -211,7 +211,7 @@ class _WrapperScreenState extends State<WrapperScreen> {
                 String lang = languages.keys.toList()[index];
                 return GestureDetector(
                   onTap: () async {
-                    String? err = await updateProfile(uid: profile.uid, lang: lang);
+                    String? err = await updateProfile(uid: profile.uid, targetLang: lang);
                     if (err == null) {
                       if (mounted) {
                         Navigator.pop(context);
