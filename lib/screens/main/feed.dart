@@ -25,7 +25,7 @@ class Item {
 
   factory Item.fromDocumentSnapshot(DocumentSnapshot doc) {
     Map<String, dynamic> data = doc.data() as Map<String, dynamic>;
-    print("feed: Item.fromDocumentSnapshot: data: ${data.entries.toList()}");
+    print("feed: Item.fromDocumentSnapshot: data: ${data.entries.length} entries");
     return Item(
       title: data.containsKey('title') ? data['title'] : '',
       subtitle: data.containsKey('subtitle') ? data['subtitle'] : '',
@@ -59,7 +59,6 @@ class _FeedScreenState extends State<FeedScreen> {
       final Map<String, Item> globalFeed = {};
       for (var doc in event.docs) {
         globalFeed[doc.id] = Item.fromDocumentSnapshot(doc);
-        print('HELLO doc: ${doc.data()}');
       }
       if (globalFeed.isNotEmpty) {
         _addToGlobalFeed(globalFeed);

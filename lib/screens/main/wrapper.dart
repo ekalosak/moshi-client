@@ -5,20 +5,21 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 
 import 'package:moshi/types.dart';
 import 'package:moshi/screens/auth/make_profile.dart';
-import 'info.dart';
+import 'package:moshi/screens/switch.dart';
+import 'feed.dart';
 import 'profile.dart';
 import 'progress.dart';
 import 'webrtc.dart';
 
-class MainScreen extends StatefulWidget {
-  // make MainScreen take User user as a param
+class WrapperScreen extends StatefulWidget {
+  // make WrapperScreen take User user as a param
   final User user;
-  MainScreen({required this.user});
+  WrapperScreen({required this.user});
   @override
-  _MainScreenState createState() => _MainScreenState();
+  _WrapperScreenState createState() => _WrapperScreenState();
 }
 
-// Main sidebar indices
+// Sidebar indices
 const int CHAT_INDEX = 0;
 const int HOME_INDEX = 1;
 const int PROFILE_INDEX = 2;
@@ -29,7 +30,7 @@ const int PROG_VOCAB_INDEX = 0;
 const int PROG_REPORT_INDEX = 1;
 const int PROG_TRANSCRIPTS_INDEX = 2;
 
-class _MainScreenState extends State<MainScreen> {
+class _WrapperScreenState extends State<WrapperScreen> {
   Profile? profile;
   int _index = HOME_INDEX;
   int _progressIndex = PROG_TRANSCRIPTS_INDEX;
@@ -46,7 +47,7 @@ class _MainScreenState extends State<MainScreen> {
         .snapshots()
         .listen((DocumentSnapshot snapshot) {
       if (snapshot.exists && snapshot.data() != null) {
-        print("main: User profile exists and is not empty.");
+        print("wrapper: User profile exists and is not empty.");
         setState(() {
           profile = Profile(
             uid: snapshot.id,
@@ -56,7 +57,7 @@ class _MainScreenState extends State<MainScreen> {
           );
         });
       } else {
-        print("main: User profile doesn't exist or is empty.");
+        print("wrapper: User profile doesn't exist or is empty.");
         Navigator.pushAndRemoveUntil(
             context, MaterialPageRoute(builder: (context) => MakeProfileScreen(user: widget.user)), (route) => false);
       }
@@ -67,12 +68,13 @@ class _MainScreenState extends State<MainScreen> {
         .snapshots()
         .listen((DocumentSnapshot snapshot) {
       if (snapshot.exists && snapshot.data() != null) {
-        print("main: config/languages exists and isn't empty.");
+        print("wrapper: config/languages exists and isn't empty.");
         setState(() {
           languages = snapshot.data() as Map<String, dynamic>;
         });
       } else {
-        throw Exception("main: config/languages doesn't exist or is empty.");
+        print("wrapper: config/languages doesn't exist or is empty: ${snapshot.exists} ${snapshot.data()}");
+        throw Exception("wrapper: config/languages doesn't exist or is empty.");
       }
     });
   }
@@ -86,16 +88,20 @@ class _MainScreenState extends State<MainScreen> {
 
   @override
   Widget build(BuildContext context) {
-    print("main: MainScreen.build");
+    print("wrapper: WrapperScreen.build");
+    if (FirebaseAuth.instance.currentUser == null) {
+      print("wrapper: FirebaseAuth.instance.currentUser == null");
+      Navigator.of(context).pop();
+    }
     if (profile == null || languages.isEmpty) {
-      print("main: profile == null: ${profile == null}");
-      print("main: languages.isEmpty: ${languages.isEmpty}");
+      print("wrapper: profile == null: ${profile == null}");
+      print("wrapper: languages.isEmpty: ${languages.isEmpty}");
       return Center(
         child: CircularProgressIndicator(),
       );
     } else {
-      print("main: profile: ${profile?.name} ${profile?.uid}");
-      print("main: languages: ${languages.keys.toList().sublist(0, 5)}...");
+      print("wrapper: profile: ${profile?.name} ${profile?.uid}");
+      print("wrapper: languages: ${languages.keys.toList().sublist(0, 5)}...");
       return _buildScaffold(profile!, languages);
     }
   }
@@ -104,7 +110,7 @@ class _MainScreenState extends State<MainScreen> {
     try {
       return languages[lang]['country']['flag'];
     } catch (e) {
-      print("main: getLangEmoji: $e");
+      print("wrapper: getLangEmoji: $e");
       return lang;
     }
   }
@@ -321,7 +327,12 @@ class _MainScreenState extends State<MainScreen> {
                 padding: const EdgeInsets.only(left: 8.0),
                 child: ElevatedButton.icon(
                     onPressed: () async {
+                      print("wrapper: log out");
                       await FirebaseAuth.instance.signOut();
+                      if (mounted) {
+                        Navigator.of(context).pushAndRemoveUntil(
+                            MaterialPageRoute(builder: (context) => SwitchScreen()), (route) => false);
+                      }
                     },
                     icon: Icon(
                       Icons.logout,

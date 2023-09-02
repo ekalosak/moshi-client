@@ -8,7 +8,7 @@ import 'package:flutter/material.dart';
 import 'package:moshi/firebase_options.dart';
 
 import 'theme.dart';
-import 'screens/home.dart';
+import 'screens/switch.dart';
 
 const useEmulators = true;
 
@@ -40,8 +40,8 @@ void main() async {
     } catch (e) {
       print(e);
     }
-    // // log out user
-    // await FirebaseAuth.instance.signOut();
+    // log out user
+    await FirebaseAuth.instance.signOut();
   } else {
     print("RELEASE");
   }
@@ -54,7 +54,7 @@ class MyApp extends StatelessWidget {
     return MaterialApp(
       title: 'Moshi',
       theme: moshiTheme,
-      home: HomeScreen(),
+      home: SwitchScreen(),
     );
   }
 }

@@ -5,7 +5,7 @@ import 'package:cloud_functions/cloud_functions.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 
-import 'package:moshi/screens/home.dart';
+import 'package:moshi/screens/switch.dart';
 
 class MakeProfileScreen extends StatefulWidget {
   final User user;
@@ -174,7 +174,7 @@ class _MakeProfileScreenState extends State<MakeProfileScreen> {
         if (err == null) {
           if (mounted) {
             Navigator.of(context)
-                .pushAndRemoveUntil(MaterialPageRoute(builder: (context) => HomeScreen()), (route) => false);
+                .pushAndRemoveUntil(MaterialPageRoute(builder: (context) => SwitchScreen()), (route) => false);
           }
         }
       },

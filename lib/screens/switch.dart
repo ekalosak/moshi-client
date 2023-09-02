@@ -3,15 +3,15 @@ import 'dart:async';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 
-import 'main/main.dart';
+import 'main/wrapper.dart';
 import 'auth/login.dart';
 
-class HomeScreen extends StatefulWidget {
+class SwitchScreen extends StatefulWidget {
   @override
-  State<StatefulWidget> createState() => _HomeScreenState();
+  State<StatefulWidget> createState() => _SwitchScreenState();
 }
 
-class _HomeScreenState extends State<HomeScreen> {
+class _SwitchScreenState extends State<SwitchScreen> {
   User? user;
   late StreamSubscription<User?> _userListener;
 
@@ -19,15 +19,16 @@ class _HomeScreenState extends State<HomeScreen> {
   void initState() {
     super.initState();
     _userListener = FirebaseAuth.instance.authStateChanges().listen((User? user) {
+      print("switch: authStateChanges: $user");
       if (user == null) {
-        print('home: User is currently signed out.');
+        print('switch: User is currently signed out.');
       } else {
         if (user.emailVerified) {
-          print('home: User is signed in.');
+          print('switch: User is signed in.');
         } else {
-          print('home: User is signed in but email is not verified.');
+          print('switch: User is signed in but email is not verified.');
         }
-        print('home: User: ${user.uid}');
+        print('switch: User: ${user.uid}');
       }
       setState(() {
         this.user = user;
@@ -43,7 +44,7 @@ class _HomeScreenState extends State<HomeScreen> {
 
   @override
   Widget build(BuildContext context) {
-    print("home: HomeScreen.build");
-    return (user == null) ? LoginScreen() : MainScreen(user: user!);
+    print("switch: SwitchScreen.build");
+    return (user == null) ? LoginScreen() : WrapperScreen(user: user!);
   }
 }

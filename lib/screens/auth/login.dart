@@ -1,6 +1,6 @@
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
-import 'package:moshi/screens/main/main.dart';
+import 'package:moshi/screens/main/wrapper.dart';
 import 'password_reset.dart';
 import 'sign_up.dart';
 
@@ -131,6 +131,7 @@ class _LoginScreenState extends State<LoginScreen> {
                         ),
                         backgroundColor: Theme.of(context).colorScheme.primary,
                         onPressed: () async {
+                          print("login: onPressed");
                           String? err = await loginWithEmailPassword();
                           if (err != null) {
                             WidgetsBinding.instance.addPostFrameCallback((_) {
@@ -141,7 +142,7 @@ class _LoginScreenState extends State<LoginScreen> {
                           } else if (mounted) {
                             Navigator.of(context).pushAndRemoveUntil(
                               MaterialPageRoute(
-                                builder: (context) => MainScreen(user: FirebaseAuth.instance.currentUser!),
+                                builder: (context) => WrapperScreen(user: FirebaseAuth.instance.currentUser!),
                               ),
                               (route) => false,
                             );
