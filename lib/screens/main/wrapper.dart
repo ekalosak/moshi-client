@@ -77,7 +77,6 @@ class _WrapperScreenState extends State<WrapperScreen> {
         });
       } else {
         print("wrapper: config/languages doesn't exist or is empty: ${snapshot.exists} ${snapshot.data()}");
-        throw Exception("wrapper: config/languages doesn't exist or is empty.");
       }
     });
   }

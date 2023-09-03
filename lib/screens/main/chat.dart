@@ -5,7 +5,7 @@ import 'package:audioplayers/audioplayers.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:cloud_functions/cloud_functions.dart';
 import 'package:firebase_storage/firebase_storage.dart';
-// import 'package:flutter/foundation.dart' show defaultTargetPlatform;
+import 'package:flutter/foundation.dart' show defaultTargetPlatform;
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:path_provider/path_provider.dart';
@@ -33,6 +33,8 @@ class _ChatScreenState extends State<ChatScreen> {
   final FirebaseStorage storage = FirebaseStorage.instance;
   StreamSubscription<DocumentSnapshot<Map<String, dynamic>>?>? _transcriptListener;
   Transcript? _transcript; // rendered state
+  final AudioEncoder encoder = defaultTargetPlatform == TargetPlatform.iOS ? AudioEncoder.flac : AudioEncoder.wav;
+  final String extension = defaultTargetPlatform == TargetPlatform.iOS ? "flac" : "wav";
 
   @override
   void initState() {
@@ -127,14 +129,12 @@ class _ChatScreenState extends State<ChatScreen> {
       return "Please grant microphone permission";
     }
 
-    // Negotiate codec  (just m4a i.e. MPEG-4 AAC LC for now)
-    final isSupported = await record.isEncoderSupported(
-      AudioEncoder.aacLc,
-    );
+    // Negotiate codec
+    final isSupported = await record.isEncoderSupported(encoder);
     if (isSupported) {
-      print("chat: startPressed: AAC supported");
+      print("chat: startPressed: ${encoder.name} supported");
     } else {
-      print("chat: startPressed: AAC not supported");
+      throw ("chat: startPressed: ${encoder.name} not supported");
     }
 
     // Call cloud function start_activity
@@ -211,24 +211,22 @@ class _ChatScreenState extends State<ChatScreen> {
     }
     final List<FileSystemEntity> files = transcriptCacheDir.listSync(recursive: false, followLinks: false);
     final int nextIndex = files.length;
-    final String nextPath = '${transcriptCacheDir.path}/$nextIndex-USR.m4a';
+    final String nextPath = '${transcriptCacheDir.path}/$nextIndex-USR.$extension';
     print("chat: _nextUsrAudio: nextPath: $nextPath");
     return File(nextPath);
   }
 
   /// Acquire audio permissions and record audio to file.
-  /// Both ios and android can record to MPEG-4 https://pub.dev/packages/record
+  /// Both ios and android can record to MPEG-4 and PCM16 LINEAR https://pub.dev/packages/record
   Future<String?> chatPressed() async {
     print("chat: chatPressed: [START]");
     final File audioPath = await _nextUsrAudio(_transcript!.id);
     print("chat: audioPath: ${audioPath.path}");
     await record.start(
-      // const RecordConfig(),
       path: audioPath.path,
-      encoder: AudioEncoder.aacLc, // by default
-      bitRate: 128000, // by default
-      samplingRate: 44100, // by default
-      // samplingRate: 48000,
+      encoder: encoder,
+      samplingRate: 16000,
+      numChannels: 1,
     );
 
     bool isRecording = await record.isRecording();

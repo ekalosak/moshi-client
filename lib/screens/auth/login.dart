@@ -87,18 +87,20 @@ class _LoginScreenState extends State<LoginScreen> {
                     TextField(
                       controller: emailController,
                       decoration: InputDecoration(
-                        labelText: 'Email',
-                        labelStyle: Theme.of(context).textTheme.headlineSmall,
-                      ),
+                          labelText: 'Email',
+                          labelStyle: Theme.of(context).textTheme.headlineSmall?.copyWith(
+                                color: Theme.of(context).colorScheme.onSurface,
+                              )),
                       style: Theme.of(context).textTheme.headlineSmall,
                       autofillHints: [AutofillHints.email],
                     ),
                     TextField(
                       controller: passwordController,
                       decoration: InputDecoration(
-                        labelText: 'Password',
-                        labelStyle: Theme.of(context).textTheme.headlineSmall,
-                      ),
+                          labelText: 'Password',
+                          labelStyle: Theme.of(context).textTheme.headlineSmall?.copyWith(
+                                color: Theme.of(context).colorScheme.onSurface,
+                              )),
                       style: Theme.of(context).textTheme.headlineSmall,
                       obscureText: true,
                       autofillHints: [AutofillHints.password],
@@ -108,11 +110,9 @@ class _LoginScreenState extends State<LoginScreen> {
                       child: FloatingActionButton.extended(
                         heroTag: "login",
                         label: Text('Log in',
-                            style: TextStyle(
-                              fontSize: Theme.of(context).textTheme.headlineSmall!.fontSize,
-                              fontFamily: Theme.of(context).textTheme.headlineSmall!.fontFamily,
-                              color: Theme.of(context).colorScheme.onPrimary,
-                            )),
+                            style: Theme.of(context).textTheme.headlineSmall?.copyWith(
+                                  color: Theme.of(context).colorScheme.onPrimary,
+                                )),
                         icon: Icon(
                           Icons.login,
                           color: Theme.of(context).colorScheme.onPrimary,
@@ -151,14 +151,10 @@ class _LoginScreenState extends State<LoginScreen> {
                     children: [
                       FloatingActionButton.extended(
                         heroTag: "reset",
-                        label: Text(
-                          'Reset password',
-                          style: TextStyle(
-                            color: Theme.of(context).colorScheme.onSecondary,
-                            fontSize: Theme.of(context).textTheme.headlineSmall!.fontSize,
-                            fontFamily: Theme.of(context).textTheme.headlineSmall!.fontFamily,
-                          ),
-                        ),
+                        label: Text('Reset password',
+                            style: Theme.of(context).textTheme.headlineSmall?.copyWith(
+                                  color: Theme.of(context).colorScheme.onSecondary,
+                                )),
                         icon: Icon(
                           Icons.lock_reset,
                           size: Theme.of(context).textTheme.headlineSmall!.fontSize,
@@ -176,14 +172,10 @@ class _LoginScreenState extends State<LoginScreen> {
                       SizedBox(height: 16),
                       FloatingActionButton.extended(
                         heroTag: "signup",
-                        label: Text(
-                          'Sign up',
-                          style: TextStyle(
-                            color: Theme.of(context).colorScheme.onSecondary,
-                            fontSize: Theme.of(context).textTheme.headlineSmall!.fontSize,
-                            fontFamily: Theme.of(context).textTheme.headlineSmall!.fontFamily,
-                          ),
-                        ),
+                        label: Text('Sign up',
+                            style: Theme.of(context).textTheme.headlineSmall?.copyWith(
+                                  color: Theme.of(context).colorScheme.onSecondary,
+                                )),
                         icon: Icon(
                           Icons.person_add,
                           size: Theme.of(context).textTheme.headlineSmall!.fontSize,

@@ -62,11 +62,7 @@ class _MakeProfileScreenState extends State<MakeProfileScreen> {
         appBar: AppBar(
             title: Text(
           'Set up your profile',
-          style: TextStyle(
-            color: Theme.of(context).colorScheme.secondary,
-            fontSize: Theme.of(context).textTheme.displaySmall!.fontSize,
-            fontFamily: Theme.of(context).textTheme.displaySmall!.fontFamily,
-          ),
+          style: Theme.of(context).textTheme.displaySmall,
         )),
         body: Padding(
           padding: EdgeInsets.fromLTRB(16, 0, 16, 0),
