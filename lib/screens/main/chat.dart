@@ -4,6 +4,7 @@ import 'dart:io';
 import 'package:audioplayers/audioplayers.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:cloud_functions/cloud_functions.dart';
+import 'package:firebase_storage/firebase_storage.dart';
 // import 'package:flutter/foundation.dart' show defaultTargetPlatform;
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -28,8 +29,8 @@ class _ChatScreenState extends State<ChatScreen> {
   CallStatus callStatus = CallStatus.idle;
   String _activityType = "unstructured";
   late Record record;
-  // late AudioRecorder record;
   late AudioPlayer audioPlayer;
+  final FirebaseStorage storage = FirebaseStorage.instance;
   StreamSubscription<DocumentSnapshot<Map<String, dynamic>>?>? _transcriptListener;
   Transcript? _transcript; // rendered state
 
@@ -37,13 +38,11 @@ class _ChatScreenState extends State<ChatScreen> {
   void initState() {
     super.initState();
     record = Record();
-    // record = AudioRecorder();
     audioPlayer = AudioPlayer();
   }
 
   @override
   void dispose() async {
-    super.dispose();
     await _transcriptListener?.cancel();
     await record.dispose();
     await audioPlayer.dispose();
@@ -58,6 +57,7 @@ class _ChatScreenState extends State<ChatScreen> {
       print("chat: dispose: error: $e");
     }
     print("chat: TODO clear cached audio");
+    super.dispose();
   }
 
   Future<Directory> _audioCacheDir() async {
@@ -265,18 +265,28 @@ class _ChatScreenState extends State<ChatScreen> {
         micStatus = MicStatus.muted;
       }
     });
-    // TODO open with audio player and play the audio until done
     File audioFile = File(path!);
-    // does the file exist?
     if (!await audioFile.exists()) {
-      print("WARNING chat: chatReleased: audio file does not exist, returning...");
-      return;
+      throw ("chat: chatReleased: audio file does not exist: $path");
     }
+    // TODO don't replay the audio, upload it to storage, this replay is for debugging
     print("START play");
     await audioPlayer.play(DeviceFileSource(audioFile.path));
     print("END   play");
-    print("TODO upload to storage: $path");
+    await _uploadAudio(_transcript!.id, audioFile.path); // _transcript is not null after startPressed succeeds
     print("chat: chatReleased: [END]");
+  }
+
+  Future<void> _uploadAudio(String transcriptId, String path) async {
+    final File audioFile = File(path);
+    final String audioName = audioFile.path.split('/').last;
+    print("chat: _uploadAudio: audioName: $audioName");
+    final Reference audioRef = storage.ref().child('audio/${widget.profile.uid}/$transcriptId/$audioName');
+    print("chat: _uploadAudio: audioRef: $audioRef");
+    print("chat: _uploadAudio: uploading $audioName to $audioRef");
+    final UploadTask uploadTask = audioRef.putFile(audioFile);
+    final TaskSnapshot taskSnapshot = await uploadTask.whenComplete(() => null);
+    print("chat: _uploadAudio: taskSnapshot: $taskSnapshot");
   }
 
   @override
