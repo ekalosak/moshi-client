@@ -1,9 +1,13 @@
 import 'dart:async';
+import 'dart:io';
 
+import 'package:audioplayers/audioplayers.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:cloud_functions/cloud_functions.dart';
+// import 'package:flutter/foundation.dart' show defaultTargetPlatform;
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:path_provider/path_provider.dart';
 import 'package:record/record.dart';
 
 import 'package:moshi/types.dart';
@@ -23,19 +27,43 @@ class _ChatScreenState extends State<ChatScreen> {
   ServerStatus serverStatus = ServerStatus.unknown;
   CallStatus callStatus = CallStatus.idle;
   String _activityType = "unstructured";
-  final record = Record();
+  late Record record;
+  // late AudioRecorder record;
+  late AudioPlayer audioPlayer;
   StreamSubscription<DocumentSnapshot<Map<String, dynamic>>?>? _transcriptListener;
   Transcript? _transcript; // rendered state
 
   @override
   void initState() {
     super.initState();
+    record = Record();
+    // record = AudioRecorder();
+    audioPlayer = AudioPlayer();
   }
 
   @override
-  void dispose() {
+  void dispose() async {
     super.dispose();
-    _transcriptListener?.cancel();
+    await _transcriptListener?.cancel();
+    await record.dispose();
+    await audioPlayer.dispose();
+    final Directory cacheDir = await _audioCacheDir();
+    print("chat: dispose: cacheDir: $cacheDir");
+    try {
+      await for (var entity in cacheDir.list(recursive: true, followLinks: false)) {
+        print("chat: dispose: entity: $entity");
+      }
+      // TODO: clear cached audio files
+    } catch (e) {
+      print("chat: dispose: error: $e");
+    }
+    print("chat: TODO clear cached audio");
+  }
+
+  Future<Directory> _audioCacheDir() async {
+    /// get the cache directory and append the audioRoot
+    Directory cacheDir = await getApplicationCacheDirectory();
+    return Directory('${cacheDir.path}/audio');
   }
 
   /// This gets shown to users on page load.
@@ -57,12 +85,12 @@ class _ChatScreenState extends State<ChatScreen> {
         .snapshots()
         .listen((doc) {
       Transcript? t;
-      print("chat: _initTranscriptListener: ${doc.data()}");
+      print("chat: _transcriptListener: doc.data: ${doc.data()}");
       try {
         t = Transcript.fromDocumentSnapshot(doc);
-        print("chat: _initTranscriptListener: ${t.messages.length} messages}");
+        print("chat: _transcriptListener: ${t.messages.length} messages}");
       } on NullDataError {
-        print("chat: _initTranscriptListener: NullDataError");
+        print("chat: _transcriptListener: NullDataError");
       }
       if (t != null) {
         if (mounted) {
@@ -74,7 +102,7 @@ class _ChatScreenState extends State<ChatScreen> {
     });
   }
 
-  /// Get mic permissions, check server health, and perform Chat connection establishment.
+  /// Get mic Permissions, check server health, and perform Chat connection establishment.
   /// Returns error string if any.
   Future<String?> startPressed() async {
     print("chat: startPressed: [START]");
@@ -82,15 +110,31 @@ class _ChatScreenState extends State<ChatScreen> {
       _transcript = null;
       callStatus = CallStatus.ringing;
       serverStatus = ServerStatus.pending;
+      micStatus = MicStatus.off;
     });
+
+    // Make sure we have a cached audio directory
+    await ensureAudioCacheExists();
 
     // Check and request permission
     print("chat: startPressed: checking permission");
     if (!(await record.hasPermission())) {
       setState(() {
         micStatus = MicStatus.noPermission;
+        callStatus = CallStatus.idle;
+        serverStatus = ServerStatus.ready;
       });
       return "Please grant microphone permission";
+    }
+
+    // Negotiate codec  (just m4a i.e. MPEG-4 AAC LC for now)
+    final isSupported = await record.isEncoderSupported(
+      AudioEncoder.aacLc,
+    );
+    if (isSupported) {
+      print("chat: startPressed: AAC supported");
+    } else {
+      print("chat: startPressed: AAC not supported");
     }
 
     // Call cloud function start_activity
@@ -104,19 +148,24 @@ class _ChatScreenState extends State<ChatScreen> {
       setState(() {
         serverStatus = ServerStatus.error;
         callStatus = CallStatus.error;
+        micStatus = MicStatus.off;
       });
       if (e is FirebaseFunctionsException) {
         return "😭 Server error: ${e.message}";
       }
       return "❌ Server error: ${e.toString()}";
     }
-
     print("chat: startPressed: startActivity result: message ${result.data['message']}");
     print("chat: startPressed: startActivity result: detail ${result.data['detail']}");
+
+    // Listen to the transcript provisioned by the start_activity call
     _initTranscriptListener(result.data['detail']['transcript_id']);
+
+    // Show the user we're ready
     setState(() {
       serverStatus = ServerStatus.ready;
       callStatus = CallStatus.inCall;
+      micStatus = MicStatus.muted;
     });
     print("chat: startPressed: [END]");
     return null;
@@ -125,22 +174,61 @@ class _ChatScreenState extends State<ChatScreen> {
   /// Terminate the Chat session.
   Future<String?> stopPressed() async {
     print("stopPressed [START]");
-    await record.dispose();
+    await record.stop();
+    await audioPlayer.stop();
+    setState(() {
+      callStatus = CallStatus.idle;
+    });
     await feedbackAfterCall();
     print("stopPressed [END]");
     return null;
   }
 
-  /// Acquire audio permissions and add audio stream to state `_localRec`.
+  /// mkdir ..cache../com.chatmoshi.moshi/audio/
+  Future<void> ensureAudioCacheExists() async {
+    final Directory audioCacheDir = await _audioCacheDir();
+    print("chat: ensureAudioCacheExists: audioCacheDir: $audioCacheDir");
+    if (!await audioCacheDir.exists()) {
+      print("chat: ensureAudioCacheExists: creating audio cache dir");
+      await audioCacheDir.create(recursive: true);
+      print(
+          "chat: ensureAudioCacheExists: created audio cache dir: $audioCacheDir exists: ${await audioCacheDir.exists()}");
+    } else {
+      print("chat: ensureAudioCacheExists: audio cache dir: $audioCacheDir already exists");
+    }
+  }
+
+  /// Get the next available audio file path for the user.
+  Future<File> _nextUsrAudio(String transcriptId) async {
+    final Directory audioCacheDir = await _audioCacheDir();
+    // create the directory `audioCacheDir/transcript_id`
+    final Directory transcriptCacheDir = Directory('${audioCacheDir.path}/$transcriptId');
+    if (!await transcriptCacheDir.exists()) {
+      print("chat: _nextUsrAudio: creating transcript cache dir");
+      await transcriptCacheDir.create(recursive: true);
+    } else {
+      print("chat: _nextUsrAudio: transcript cache dir exists");
+    }
+    final List<FileSystemEntity> files = transcriptCacheDir.listSync(recursive: false, followLinks: false);
+    final int nextIndex = files.length;
+    final String nextPath = '${transcriptCacheDir.path}/$nextIndex-USR.m4a';
+    print("chat: _nextUsrAudio: nextPath: $nextPath");
+    return File(nextPath);
+  }
+
+  /// Acquire audio permissions and record audio to file.
+  /// Both ios and android can record to MPEG-4 https://pub.dev/packages/record
   Future<String?> chatPressed() async {
-    print("chat: startMicrophoneRec [START]");
+    print("chat: chatPressed: [START]");
+    final File audioPath = await _nextUsrAudio(_transcript!.id);
+    print("chat: audioPath: ${audioPath.path}");
     await record.start(
-      // path: 'aFullPath/myFile.m4a',  // datetime
-      path:
-          'com.chatmoshi.moshi/audio/permission..m4a', // both ios and android can record to MPEG-4 https://pub.dev/packages/record
+      // const RecordConfig(),
+      path: audioPath.path,
       encoder: AudioEncoder.aacLc, // by default
       bitRate: 128000, // by default
       samplingRate: 44100, // by default
+      // samplingRate: 48000,
     );
 
     bool isRecording = await record.isRecording();
@@ -151,32 +239,44 @@ class _ChatScreenState extends State<ChatScreen> {
       return "Error starting microphone, please grant microphone permissions in system settings.";
     }
 
+    print("chat: startMicrophoneRec [END]");
     setState(() {
       if (isRecording) {
         micStatus = MicStatus.on;
       }
     });
-
-    print("chat: startMicrophoneRec [END]");
     return null;
   }
 
   /// Stop the audio recording and flush to file.
   Future<void> chatReleased() async {
-    print("stopMicrophoneStream [START]");
+    print("chat: chatReleased: [START]");
 
     bool isRecording = await record.isRecording();
-    if (isRecording) {
-      print("Is recording, stopping...");
-      String? path = await record.stop();
-      setState(() {
-        if (micStatus == MicStatus.on) {
-          micStatus = MicStatus.muted;
-        }
-      });
-      print("TODO upload to storage: $path");
+    if (!isRecording) {
+      print("WARNING chat: chatReleased: Is not recording, returning...");
+      return;
     }
-    print("stopMicrophoneStream [END]");
+    print("chat: chatReleased: stopping recording...");
+    String? path = await record.stop();
+    print("chat: chatReleased: stopped recording, path: $path");
+    setState(() {
+      if (micStatus == MicStatus.on) {
+        micStatus = MicStatus.muted;
+      }
+    });
+    // TODO open with audio player and play the audio until done
+    File audioFile = File(path!);
+    // does the file exist?
+    if (!await audioFile.exists()) {
+      print("WARNING chat: chatReleased: audio file does not exist, returning...");
+      return;
+    }
+    print("START play");
+    await audioPlayer.play(DeviceFileSource(audioFile.path));
+    print("END   play");
+    print("TODO upload to storage: $path");
+    print("chat: chatReleased: [END]");
   }
 
   @override
