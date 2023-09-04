@@ -5,8 +5,9 @@ import 'package:moshi/screens/main/transcripts.dart';
 
 class ProgressScreen extends StatefulWidget {
   final Profile profile;
+  final Map<String, dynamic> languages;
   final int index;
-  ProgressScreen({required this.profile, required this.index});
+  ProgressScreen({required this.profile, required this.languages, required this.index});
 
   @override
   State<ProgressScreen> createState() => _ProgressScreenState();
@@ -18,12 +19,11 @@ class _ProgressScreenState extends State<ProgressScreen> {
   @override
   void initState() {
     super.initState();
-    // body = TranscriptScreen(profile: widget.profile);
-    body = _buildBody(widget.profile, widget.index);
+    body = _buildBody();
   }
 
-  Widget _buildBody(Profile pro, int index) {
-    switch (index) {
+  Widget _buildBody() {
+    switch (widget.index) {
       case 0:
         return Align(
           alignment: Alignment.topCenter,
@@ -35,7 +35,7 @@ class _ProgressScreenState extends State<ProgressScreen> {
           child: Text("Under construction..."),
         );
       case 2:
-        return TranscriptScreen(profile: pro);
+        return TranscriptScreen(profile: widget.profile, languages: widget.languages);
       default:
         throw ("ERROR: invalid index");
     }
@@ -45,7 +45,7 @@ class _ProgressScreenState extends State<ProgressScreen> {
   Widget build(BuildContext context) {
     // this is the body of a scaffold, do not create another scaffold
     // it needs a segmented button to switch between vocab, report, and transcripts
-    Widget body = _buildBody(widget.profile, widget.index);
+    Widget body = _buildBody();
     return Padding(
       padding: EdgeInsets.all(16),
       child: body,

@@ -7,8 +7,9 @@ import 'package:moshi/widgets/chat.dart';
 
 class TranscriptScreen extends StatefulWidget {
   final Profile profile;
+  final Map<String, dynamic> languages;
 
-  TranscriptScreen({required this.profile});
+  TranscriptScreen({required this.profile, required this.languages});
 
   @override
   State<StatefulWidget> createState() {
@@ -22,6 +23,7 @@ class _TranscriptScreenState extends State<TranscriptScreen> {
 
   @override
   void initState() {
+    print("TranscriptScreen.initState");
     super.initState();
     // listen for transcript documents with this user's uid in the uid field.
     // the transcript documents have their own unique document id.
@@ -29,7 +31,7 @@ class _TranscriptScreenState extends State<TranscriptScreen> {
         .collection('users')
         .doc(widget.profile.uid)
         .collection('transcripts')
-        .orderBy("timestamp", descending: true)
+        .orderBy('created_at', descending: true)
         .limitToLast(16)
         .snapshots()
         .listen((event) {
@@ -59,12 +61,14 @@ class _TranscriptScreenState extends State<TranscriptScreen> {
 
   @override
   void dispose() {
+    print("TranscriptScreen.dispose");
     _transcriptListener.cancel();
     _transcripts?.clear();
     super.dispose();
   }
 
   void _addTranscripts(List<Transcript> ts) {
+    print("_addTranscripts");
     List<Transcript> transcripts = _transcripts ?? [];
     for (var t in ts) {
       // add transcript only if the tid doesn't match any existing transcript and if it has non-sys messages
@@ -84,12 +88,11 @@ class _TranscriptScreenState extends State<TranscriptScreen> {
     List<Transcript> transcripts = _transcripts!;
     itemBuilder(BuildContext context, int index) {
       Transcript t = transcripts[index];
-      // String emoji = util.getLangEmoji(t.language);
-      String emoji = t.language;
+      String title =
+          "${widget.languages[t.language]['country']['flag']} ${widget.languages[t.language]['language']['name']}";
       String date = t.createdAt.toDate().toString().substring(0, 16); // NOTE drops seconds and smaller
-      String title = "$emoji $date";
       int nm = t.messages.where((element) => element.role != Role.sys).length;
-      String subtitle = t.summary ?? '$nm messages';
+      String subtitle = "${t.summary ?? '$nm messages'}\n$date";
       return ListTile(
         title: Text(title,
             style: TextStyle(
@@ -124,24 +127,22 @@ class _TranscriptScreenState extends State<TranscriptScreen> {
   }
 
   Scaffold _chatScaffold(Transcript transcript) {
+    // print(transcript.id);
+    print("_chatScaffold: transcript.id: ${transcript.id}");
     List<Message> msgs = [];
     for (var msg in transcript.messages) {
       if (msg.role != Role.sys) {
         msgs.add(msg);
       }
     }
+    print("_chatScaffold: summary: ${transcript.summary}");
+    String title = transcript.summary ?? transcript.createdAt.toDate().toString().substring(0, 16);
     return Scaffold(
       appBar: AppBar(
           title: Text(
-        transcript.createdAt.toDate().toString().substring(0, 16),
-        style: Theme.of(context).textTheme.headlineMedium,
-      )
-          // style: TextStyle(
-          //   color: Theme.of(context).colorScheme.secondary,
-          //   fontFamily: Theme.of(context).textTheme.headlineMedium?.fontFamily,
-          //   fontSize: Theme.of(context).textTheme.headlineMedium?.fontSize,
-          // )),
-          ),
+        title,
+        style: Theme.of(context).textTheme.headlineSmall,
+      )),
       body: Chat(messages: msgs),
     );
   }

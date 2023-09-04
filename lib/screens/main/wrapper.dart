@@ -115,7 +115,7 @@ class _WrapperScreenState extends State<WrapperScreen> {
     try {
       return languages[lang]['country']['flag'];
     } catch (e) {
-      print("wrapper: getLangEmoji: $e");
+      print("ERROR wrapper: getLangEmoji: $e");
       return lang;
     }
   }
@@ -128,11 +128,7 @@ class _WrapperScreenState extends State<WrapperScreen> {
     Widget? bottomNavigationBar = _bottomNavigationBar(_index);
     Text title = Text(
       _titleForIndex(_index),
-      style: TextStyle(
-        fontFamily: Theme.of(context).textTheme.headlineMedium!.fontFamily,
-        fontSize: Theme.of(context).textTheme.headlineMedium!.fontSize,
-        color: Theme.of(context).colorScheme.secondary,
-      ),
+      style: Theme.of(context).textTheme.headlineSmall,
     );
     return Scaffold(
       appBar: AppBar(
@@ -165,7 +161,7 @@ class _WrapperScreenState extends State<WrapperScreen> {
       case PROFILE_INDEX:
         return ProfileScreen(profile: pro, languages: languages);
       case PROGRESS_INDEX:
-        return ProgressScreen(profile: pro, index: _progressIndex);
+        return ProgressScreen(profile: pro, languages: languages, index: _progressIndex);
       case CHATV2_INDEX:
         return ChatScreen(profile: pro, languages: languages);
       default:

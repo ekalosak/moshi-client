@@ -26,7 +26,8 @@ class Transcript {
       required this.messages,
       required this.language,
       required this.createdAt,
-      required this.activityId});
+      required this.activityId,
+      this.summary});
 
   factory Transcript.fromDocumentSnapshot(DocumentSnapshot snapshot) {
     Map<String, dynamic>? data = snapshot.data() as Map<String, dynamic>?;
@@ -38,12 +39,14 @@ class Transcript {
       Message message = Message.fromMap(msg);
       msgs.add(message);
     }
+    String? summary = data.containsKey('summary') ? snapshot['summary'] : null;
     return Transcript(
         id: snapshot.id,
         messages: msgs,
         language: snapshot['language'],
         createdAt: snapshot['created_at'],
-        activityId: snapshot['activity_id']);
+        activityId: snapshot['activity_id'],
+        summary: summary);
   }
 
   bool hasNonSysMessages() {
