@@ -74,7 +74,7 @@ class _ChatScreenState extends State<ChatScreen> {
   Future<Directory> _audioCacheDir() async {
     /// get the cache directory and append the audioRoot
     Directory cacheDir = await getApplicationCacheDirectory();
-    return Directory('${cacheDir.path}/audio');
+    return Directory('${cacheDir.path}/audio/${_transcript.id}');
   }
 
   /// This gets shown to users on page load.
