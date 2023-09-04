@@ -80,7 +80,9 @@ class _ChatScreenState extends State<ChatScreen> {
   /// This gets shown to users on page load.
   List<Message> _initMessages() {
     return [
-      Message(Role.ast, "Press the call button (📞) to get started."),
+      Message(Role.ast,
+          "Then, hold the walkie-talkie button to speak. Let go when you're done speaking. You should feel your phone vibrate when the recording starts."),
+      Message(Role.ast, "Press the call button to get started."),
       Message(Role.ast, "Would you like to practice ${widget.languages[widget.profile.lang]['language']['name']}?"),
       Message(Role.ast, "Hello, ${widget.profile.name}."),
     ];
