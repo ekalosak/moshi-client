@@ -1,7 +1,8 @@
 import 'dart:async';
+
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
-import 'package:cloud_firestore/cloud_firestore.dart';
 
 import 'package:moshi/types.dart';
 import 'package:moshi/screens/auth/make_profile.dart';
@@ -11,6 +12,8 @@ import 'feed.dart';
 import 'profile.dart';
 import 'progress.dart';
 import 'webrtc.dart';
+
+const String version = "23.9.0";
 
 class WrapperScreen extends StatefulWidget {
   // make WrapperScreen take User user as a param
@@ -328,7 +331,6 @@ class _WrapperScreenState extends State<WrapperScreen> {
                 padding: const EdgeInsets.only(left: 8.0),
                 child: ElevatedButton.icon(
                     onPressed: () async {
-                      print("wrapper: log out");
                       await FirebaseAuth.instance.signOut();
                       if (mounted) {
                         Navigator.of(context).pushAndRemoveUntil(
@@ -354,7 +356,11 @@ class _WrapperScreenState extends State<WrapperScreen> {
               ),
             ),
           ),
-          Expanded(flex: 1, child: Container()),
+          Expanded(
+              flex: 1,
+              child: Align(
+                  alignment: Alignment.centerRight,
+                  child: Text("v$version", style: Theme.of(context).textTheme.headlineSmall))),
         ],
       ),
     );
