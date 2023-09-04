@@ -12,19 +12,19 @@ dependencies:
   flutter:
     sdk: flutter
 
-  shared_preferences: ^2.2.0
-  http: ^1.1.0
-  firebase_auth: ^4.6.3
-  google_sign_in: ^6.1.4
-  firebase_core: ^2.15.0
-  flutter_cache_manager: ^3.3.1
-  firebase_storage: ^11.2.5
-  flutter_webrtc: ^0.9.36
+  audioplayers: ^5.1.0
   cloud_firestore: ^4.8.3
   cloud_functions: ^4.4.0
-  record: ^4.4.4
-  audioplayers: ^5.1.0
+  firebase_auth: ^4.6.3
+  firebase_core: ^2.15.0
+  firebase_storage: ^11.2.5
+  flutter_cache_manager: ^3.3.1
+  flutter_webrtc: ^0.9.36
+  google_sign_in: ^6.1.4
+  http: ^1.1.0
   path_provider: ^2.1.1
+  record: ^4.4.4
+  shared_preferences: ^2.2.0
 
 dev_dependencies:
   flutter_test:
