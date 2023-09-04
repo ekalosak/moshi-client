@@ -77,7 +77,11 @@ class _MakeProfileScreenState extends State<MakeProfileScreen> {
                   throw ("make_profile languages snapshot: ${snapshot.error.toString()}");
                 } else {
                   // The doc is a map from e.g. "en-US" to the details about the language (name, emoji, etc.); Convert the doc into a map.
-                  languages = snapshot.data!.data() as Map<String, dynamic>;
+                  try {
+                    languages = snapshot.data!.data() as Map<String, dynamic>;
+                  } catch (e) {
+                    return Text("Eric forgot to initialize the database.");
+                  }
                   return _makeUserForm();
                 }
               },
