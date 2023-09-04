@@ -447,7 +447,7 @@ class _ChatScreenState extends State<ChatScreen> {
   Widget _topStatusBar(BuildContext context) {
     return Column(children: [
       // add loading bar
-      _isLoading ? LinearProgressIndicator() : SizedBox(height: 4),
+      _isLoading ? LinearProgressIndicator() : SizedBox(height: 8),
       Row(children: [
         Expanded(
           flex: 2,
