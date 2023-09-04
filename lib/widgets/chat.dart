@@ -1,4 +1,5 @@
 /// Chat box with messages, looks like an SMS messenger app.
+import 'dart:math';
 import 'package:flutter/material.dart';
 import 'package:moshi/types.dart';
 
@@ -11,6 +12,25 @@ const double boxOffset = 12;
 const double boxCornerRad = 6;
 const double boxTextPadding = 10;
 const double betweenBoxPadding = 4;
+
+String _closeIcon() {
+  /// random food emoji
+  int rand = Random().nextInt(5);
+  switch (rand) {
+    case 0:
+      return '🍕';
+    case 1:
+      return '🥗';
+    case 2:
+      return '🍱';
+    case 3:
+      return '🍙';
+    case 4:
+      return '🍰';
+    default:
+      return '🦴';
+  }
+}
 
 class Chat extends StatefulWidget {
   final List<Message> messages;
@@ -97,6 +117,7 @@ class _RoundedBoxPainter extends CustomPainter {
 }
 
 /// Draws a message box with a triangle lip on one side.
+/// On press, show a popup with the translation.
 class MsgBox extends StatelessWidget {
   final Message msg;
   final Color boxColor;
@@ -124,7 +145,8 @@ class MsgBox extends StatelessWidget {
         ]));
   }
 
-  // Build the text box, including the text and underneath the filled rounded rectangle, for the message.
+  /// Build the text box, including the text and underneath the filled rounded rectangle, for the message.
+  /// On tap, show the translation.
   Widget _msg(Message msg, BuildContext context) {
     final Text msgText = Text(
       msg.msg,
@@ -142,7 +164,30 @@ class MsgBox extends StatelessWidget {
             alignment: (msg.role == Role.ast) ? Alignment.centerLeft : Alignment.centerRight,
             child: Padding(
               padding: (msg.role == Role.ast) ? EdgeInsets.only(right: boxOffset) : EdgeInsets.only(left: boxOffset),
-              child: RoundedBox(boxColor: boxColor, padding: boxTextPadding, child: msgText),
+              child: GestureDetector(
+                onTap: () {
+                  showDialog(
+                      context: context,
+                      builder: (BuildContext context) {
+                        return AlertDialog(
+                          title: Text("Translation",
+                              style: Theme.of(context).textTheme.headlineSmall?.copyWith(
+                                    color: Theme.of(context).colorScheme.primary,
+                                  )),
+                          content: msg.translation == null ? Text("No translation available.") : Text(msg.translation!),
+                          actions: [
+                            TextButton(
+                              child: Text(_closeIcon()),
+                              onPressed: () {
+                                Navigator.of(context).pop();
+                              },
+                            ),
+                          ],
+                        );
+                      });
+                },
+                child: RoundedBox(boxColor: boxColor, padding: boxTextPadding, child: msgText),
+              ),
             ),
           )),
     );

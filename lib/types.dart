@@ -83,7 +83,7 @@ class Message {
   /// - an exception if the keys 'role' or 'content' are missing.
   factory Message.fromMap(Map<String, dynamic> map) {
     Role role = Role.values.firstWhere((e) => e.toString() == 'Role.${map["role"]}');
-    String msg = map['content'];
+    String msg = map['body'];
     Audio audio = Audio.fromMap(map['audio']);
     Timestamp createdAt = map['created_at'];
     String? translation = (map['translation'] == '') ? null : map['translation'];

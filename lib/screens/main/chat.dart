@@ -234,6 +234,9 @@ class _ChatScreenState extends State<ChatScreen> {
     print("chat: _playAstAudio: [START]");
     File astAudio = await _downloadAudio(msg.audio);
     await audioPlayer.play(DeviceFileSource(astAudio.path));
+    setState(() {
+      _isLoading = false;
+    });
     print("chat: _playAstAudio: [START]");
   }
 
@@ -282,7 +285,7 @@ class _ChatScreenState extends State<ChatScreen> {
   /// Acquire audio permissions and record audio to file.
   Future<String?> chatPressed() async {
     print("chat: chatPressed: [START]");
-    final File audioPath = await _nextUsrAudio(_transcript!.id);
+    final File audioPath = await _nextUsrAudio(_transcript.id);
     print("chat: audioPath: ${audioPath.path}");
     await record.start(
       path: audioPath.path,
@@ -323,6 +326,7 @@ class _ChatScreenState extends State<ChatScreen> {
     setState(() {
       if (micStatus == MicStatus.on) {
         micStatus = MicStatus.muted;
+        _isLoading = true;
       }
     });
     File audioFile = File(path!);
