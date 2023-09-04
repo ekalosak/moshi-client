@@ -166,25 +166,40 @@ class MsgBox extends StatelessWidget {
               padding: (msg.role == Role.ast) ? EdgeInsets.only(right: boxOffset) : EdgeInsets.only(left: boxOffset),
               child: GestureDetector(
                 onTap: () {
-                  showDialog(
-                      context: context,
-                      builder: (BuildContext context) {
-                        return AlertDialog(
-                          title: Text("Translation",
-                              style: Theme.of(context).textTheme.headlineSmall?.copyWith(
-                                    color: Theme.of(context).colorScheme.primary,
-                                  )),
-                          content: msg.translation == null ? Text("No translation available.") : Text(msg.translation!),
-                          actions: [
-                            TextButton(
-                              child: Text(_closeIcon()),
-                              onPressed: () {
-                                Navigator.of(context).pop();
-                              },
-                            ),
-                          ],
-                        );
-                      });
+                  if (msg.translation != null) {
+                    showDialog(
+                        context: context,
+                        builder: (BuildContext context) {
+                          return AlertDialog(
+                            title: Text("Translation",
+                                style: Theme.of(context).textTheme.headlineSmall?.copyWith(
+                                      color: Theme.of(context).colorScheme.primary,
+                                    )),
+                            content: Text(msg.translation!,
+                                style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                                      color: Theme.of(context).colorScheme.onSurface,
+                                    )),
+                            actions: [
+                              TextButton(
+                                child: Text(_closeIcon()),
+                                onPressed: () {
+                                  Navigator.of(context).pop();
+                                },
+                              ),
+                            ],
+                          );
+                        });
+                  } else {
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      SnackBar(
+                        content: Text('⏳ No translation available yet.'),
+                        duration: Duration(seconds: 1),
+                      ),
+                    );
+                  }
+                },
+                onLongPress: () async {
+                  // TODO Play the audio
                 },
                 child: RoundedBox(boxColor: boxColor, padding: boxTextPadding, child: msgText),
               ),
