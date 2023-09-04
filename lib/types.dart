@@ -56,10 +56,23 @@ class Transcript {
   }
 }
 
+class Audio {
+  String bucket;
+  String path;
+  Audio(this.bucket, this.path);
+  factory Audio.fromMap(Map<String, dynamic> map) {
+    return Audio(map['bucket'], map['path']);
+  }
+}
+
 class Message {
   Role role;
   String msg;
-  Message(this.role, this.msg);
+  Audio? audio;
+  Timestamp? createdAt;
+  String? translation;
+  // Message(this.role, this.msg, this.audio, this.createdAt, this.translation);
+  Message(this.role, this.msg, {this.audio, this.createdAt, this.translation});
 
   /// Raises:
   /// - an exception if the string is not a valid Role;
@@ -68,7 +81,10 @@ class Message {
   factory Message.fromMap(Map<String, dynamic> map) {
     Role role = Role.values.firstWhere((e) => e.toString() == 'Role.${map["role"]}');
     String msg = map['content'];
-    return Message(role, msg);
+    Audio audio = Audio.fromMap(map['audio']);
+    Timestamp createdAt = Timestamp.fromDate(DateTime.parse(map['created_at']));
+    String? translation = (map['translation'] == '') ? null : map['translation'];
+    return Message(role, msg, audio: audio, createdAt: createdAt, translation: translation);
   }
 }
 

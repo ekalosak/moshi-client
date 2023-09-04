@@ -41,6 +41,7 @@ void main() async {
       print(e);
     }
     // // log out user
+    // print("LOGGING OUT USER");
     // await FirebaseAuth.instance.signOut();
   } else {
     print("RELEASE");

@@ -93,11 +93,7 @@ class _SignUpScreenState extends State<SignUpScreen> {
         appBar: AppBar(
           title: Text(
             'Create an account',
-            style: TextStyle(
-              color: Theme.of(context).colorScheme.onSurface,
-              fontSize: Theme.of(context).textTheme.displaySmall!.fontSize,
-              fontFamily: Theme.of(context).textTheme.displaySmall!.fontFamily,
-            ),
+            style: Theme.of(context).textTheme.displaySmall,
           ),
         ),
         body: Padding(
@@ -111,29 +107,30 @@ class _SignUpScreenState extends State<SignUpScreen> {
                       "Let's get started!\nFirst, set your login credentials.",
                       textAlign: TextAlign.center,
                     ),
-                    SizedBox(height: 24),
                     TextField(
                       controller: emailController,
                       decoration: InputDecoration(
-                        labelText: 'Email',
-                        labelStyle: Theme.of(context).textTheme.headlineSmall,
-                      ),
+                          labelText: 'Email',
+                          labelStyle: Theme.of(context).textTheme.headlineSmall?.copyWith(
+                                color: Theme.of(context).colorScheme.onSurface,
+                              )),
                       style: Theme.of(context).textTheme.headlineSmall,
                     ),
                     TextField(
                       controller: passwordController,
                       decoration: InputDecoration(
-                        labelText: 'Password',
-                        labelStyle: Theme.of(context).textTheme.headlineSmall,
-                      ),
+                          labelText: 'Password',
+                          labelStyle: Theme.of(context).textTheme.headlineSmall?.copyWith(
+                                color: Theme.of(context).colorScheme.onSurface,
+                              )),
                       style: Theme.of(context).textTheme.headlineSmall,
                       obscureText: true,
                     ),
-                    SizedBox(height: 24),
+                    SizedBox(height: 4),
                     _signUpButton()
                   ]
                       .map((e) => Padding(
-                            padding: EdgeInsets.symmetric(vertical: 8.0),
+                            padding: EdgeInsets.symmetric(vertical: 8),
                             child: e,
                           ))
                       .toList()),

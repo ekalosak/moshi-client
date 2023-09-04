@@ -59,39 +59,31 @@ class _MakeProfileScreenState extends State<MakeProfileScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-        appBar: AppBar(
-            title: Text(
-          'Set up your profile',
-          style: Theme.of(context).textTheme.displaySmall,
-        )),
-        body: Padding(
-          padding: EdgeInsets.fromLTRB(16, 0, 16, 0),
-          child: Column(children: [
-            Flexible(flex: 2, child: Container()),
-            Flexible(
-                flex: 2, child: Padding(padding: EdgeInsets.all(16.0), child: Text("You can change these later."))),
-            Flexible(
-                flex: 8,
-                child: Padding(
-                  padding: EdgeInsets.all(16.0),
-                  child: StreamBuilder(
-                    stream: _languageStream,
-                    builder: (BuildContext context, AsyncSnapshot<DocumentSnapshot> snapshot) {
-                      if (snapshot.connectionState == ConnectionState.waiting) {
-                        return Center(child: CircularProgressIndicator());
-                      } else if (snapshot.hasError) {
-                        throw ("make_profile languages snapshot: ${snapshot.error.toString()}");
-                      } else {
-                        // The doc is a map from e.g. "en-US" to the details about the language (name, emoji, etc.); Convert the doc into a map.
-                        languages = snapshot.data!.data() as Map<String, dynamic>;
-                        return _makeUserForm();
-                      }
-                    },
-                  ),
-                )),
-            Flexible(flex: 2, child: Container()),
-          ]),
-        ));
+      appBar: AppBar(
+          title: Text(
+        'Set up your profile',
+        style: Theme.of(context).textTheme.displaySmall,
+      )),
+      body: Padding(
+          padding: EdgeInsets.all(16.0),
+          child: Column(mainAxisAlignment: MainAxisAlignment.center, children: [
+            Text("You can change these later."),
+            StreamBuilder(
+              stream: _languageStream,
+              builder: (BuildContext context, AsyncSnapshot<DocumentSnapshot> snapshot) {
+                if (snapshot.connectionState == ConnectionState.waiting) {
+                  return Center(child: CircularProgressIndicator());
+                } else if (snapshot.hasError) {
+                  throw ("make_profile languages snapshot: ${snapshot.error.toString()}");
+                } else {
+                  // The doc is a map from e.g. "en-US" to the details about the language (name, emoji, etc.); Convert the doc into a map.
+                  languages = snapshot.data!.data() as Map<String, dynamic>;
+                  return _makeUserForm();
+                }
+              },
+            ),
+          ])),
+    );
   }
 
   Widget _makeUserForm() {
@@ -115,12 +107,12 @@ class _MakeProfileScreenState extends State<MakeProfileScreen> {
               style: TextStyle(
                 color: Theme.of(context).colorScheme.onBackground,
                 fontSize: Theme.of(context).textTheme.bodyLarge!.fontSize,
-                fontFamily: Theme.of(context).textTheme.bodyLarge!.fontFamily,
+                fontFamily: Theme.of(context).textTheme.headlineSmall!.fontFamily,
               ),
               decoration: InputDecoration(
                 labelText: 'What should Moshi call you?',
                 labelStyle: TextStyle(
-                  color: Theme.of(context).colorScheme.secondary,
+                  color: Theme.of(context).colorScheme.onSurface,
                   fontSize: Theme.of(context).textTheme.bodyLarge!.fontSize,
                   fontFamily: Theme.of(context).textTheme.headlineSmall!.fontFamily,
                 ),
@@ -183,7 +175,7 @@ class _MakeProfileScreenState extends State<MakeProfileScreen> {
       decoration: InputDecoration(
         labelText: "Native language",
         labelStyle: TextStyle(
-          color: Theme.of(context).colorScheme.secondary,
+          color: Theme.of(context).colorScheme.onSurface,
           fontSize: Theme.of(context).textTheme.headlineSmall!.fontSize,
           fontFamily: Theme.of(context).textTheme.headlineSmall!.fontFamily,
         ),
@@ -216,7 +208,7 @@ class _MakeProfileScreenState extends State<MakeProfileScreen> {
       decoration: InputDecoration(
         labelText: "Target language",
         labelStyle: TextStyle(
-          color: Theme.of(context).colorScheme.secondary,
+          color: Theme.of(context).colorScheme.onSurface,
           fontSize: Theme.of(context).textTheme.headlineSmall!.fontSize,
           fontFamily: Theme.of(context).textTheme.headlineSmall!.fontFamily,
         ),

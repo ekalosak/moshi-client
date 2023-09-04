@@ -22,6 +22,7 @@ class _LoginScreenState extends State<LoginScreen> {
 
   Future<String?> loginWithEmailPassword() async {
     String? err;
+    String defaultError = '😵 An error occurred. Please try again later.';
     try {
       UserCredential credentials = await FirebaseAuth.instance.signInWithEmailAndPassword(
         email: emailController.text,
@@ -32,28 +33,28 @@ class _LoginScreenState extends State<LoginScreen> {
       print("FirebaseAuthException: $e");
       print("FirebaseAuthException.code: ${e.code}");
       if (e.code == 'user-not-found') {
-        err = 'No user found for that email.';
+        err = '🥸 No user found for that email.\n😄 Why not sign up?';
       } else if (e.code == 'wrong-password') {
-        err = 'Wrong password provided for that user.';
+        err = '🙅 Wrong password.';
       } else if (e.code == 'too-many-requests') {
-        err = 'Please slow down! Too many requests. Try again later.';
+        err = '😵‍💫 Please slow down! Too many requests. Try again later.';
       } else if (e.code == 'unknown') {
         if (e.toString().contains('auth/invalid-email')) {
-          err = 'Email invalid.';
+          err = '😣 Email invalid.';
         } else if (e.toString().contains('auth/wrong-password')) {
-          err = 'Wrong password.';
+          err = '🙅 Wrong password.';
         } else {
           print("Nonspecific FirebaseAuthException: $e");
-          err = 'An error occurred. Please try again later.';
+          err = defaultError;
         }
       } else {
         print("Nonspecific Exception: $e");
-        err = 'An error occurred. Please try again later.';
+        err = defaultError;
       }
     } catch (e) {
       print("Unknown error");
       print(e);
-      err = 'An error occurred. Please try again later.';
+      err = defaultError;
     }
     return err;
   }
@@ -62,12 +63,10 @@ class _LoginScreenState extends State<LoginScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text('Log in',
-            style: TextStyle(
-              color: Theme.of(context).colorScheme.onSurface,
-              fontSize: Theme.of(context).textTheme.displayMedium!.fontSize,
-              fontFamily: Theme.of(context).textTheme.displayMedium!.fontFamily,
-            )),
+        title: Text(
+          'Log in',
+          style: Theme.of(context).textTheme.displayMedium,
+        ),
       ),
       body: Padding(
         padding: EdgeInsets.all(16.0),
@@ -75,39 +74,37 @@ class _LoginScreenState extends State<LoginScreen> {
           return Column(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              Expanded(
-                flex: 1,
-                child: Container(),
-              ),
-              Expanded(
-                flex: 2,
+              Flexible(
+                flex: 4,
                 child: Column(
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
                     TextField(
                       controller: emailController,
-                      decoration: InputDecoration(
-                          labelText: 'Email',
-                          labelStyle: Theme.of(context).textTheme.headlineSmall?.copyWith(
-                                color: Theme.of(context).colorScheme.onSurface,
-                              )),
+                      decoration:
+                          InputDecoration(labelText: 'Email', labelStyle: Theme.of(context).textTheme.headlineSmall),
                       style: Theme.of(context).textTheme.headlineSmall,
                       autofillHints: [AutofillHints.email],
                     ),
                     TextField(
                       controller: passwordController,
-                      decoration: InputDecoration(
-                          labelText: 'Password',
-                          labelStyle: Theme.of(context).textTheme.headlineSmall?.copyWith(
-                                color: Theme.of(context).colorScheme.onSurface,
-                              )),
+                      decoration:
+                          InputDecoration(labelText: 'Password', labelStyle: Theme.of(context).textTheme.headlineSmall),
                       style: Theme.of(context).textTheme.headlineSmall,
                       obscureText: true,
                       autofillHints: [AutofillHints.password],
                     ),
-                    Padding(
-                      padding: EdgeInsets.all(24),
-                      child: FloatingActionButton.extended(
+                  ],
+                ),
+              ),
+              Flexible(
+                flex: 4,
+                child: Align(
+                  alignment: Alignment.bottomCenter,
+                  child: Column(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      FloatingActionButton.extended(
                         heroTag: "login",
                         label: Text('Log in',
                             style: Theme.of(context).textTheme.headlineSmall?.copyWith(
@@ -138,17 +135,7 @@ class _LoginScreenState extends State<LoginScreen> {
                           }
                         },
                       ),
-                    ),
-                  ],
-                ),
-              ),
-              Expanded(
-                flex: 2,
-                child: Align(
-                  alignment: Alignment.bottomCenter,
-                  child: Column(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
+                      SizedBox(height: 16),
                       FloatingActionButton.extended(
                         heroTag: "reset",
                         label: Text('Reset password',
@@ -168,7 +155,6 @@ class _LoginScreenState extends State<LoginScreen> {
                           );
                         },
                       ),
-                      // space by 16 px
                       SizedBox(height: 16),
                       FloatingActionButton.extended(
                         heroTag: "signup",

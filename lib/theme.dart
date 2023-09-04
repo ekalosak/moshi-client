@@ -58,7 +58,7 @@ final moshiTextTheme = TextTheme(
   headlineSmall: TextStyle(
     fontSize: 28,
     fontFamily: 'Rubik',
-    color: moshiColorScheme.secondary,
+    color: moshiColorScheme.onSurface,
   ),
   bodyLarge: TextStyle(
     fontSize: 24,
