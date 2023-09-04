@@ -82,7 +82,7 @@ class Message {
     Role role = Role.values.firstWhere((e) => e.toString() == 'Role.${map["role"]}');
     String msg = map['content'];
     Audio audio = Audio.fromMap(map['audio']);
-    Timestamp createdAt = Timestamp.fromDate(DateTime.parse(map['created_at']));
+    Timestamp createdAt = map['created_at'];
     String? translation = (map['translation'] == '') ? null : map['translation'];
     return Message(role, msg, audio: audio, createdAt: createdAt, translation: translation);
   }

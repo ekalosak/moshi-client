@@ -28,23 +28,33 @@ class _ChatScreenState extends State<ChatScreen> {
   ServerStatus serverStatus = ServerStatus.unknown;
   CallStatus callStatus = CallStatus.idle;
   String _activityType = "unstructured";
+  bool _isLoading = false; // true when waiting for ast response
   late Record record;
   late AudioPlayer audioPlayer;
   final FirebaseStorage storage = FirebaseStorage.instance;
   StreamSubscription<DocumentSnapshot<Map<String, dynamic>>?>? _transcriptListener;
-  Transcript? _transcript; // rendered state
+  late Transcript _transcript; // rendered state
+  /// For supported codecs, see: https://pub.dev/packages/record
   final AudioEncoder encoder = defaultTargetPlatform == TargetPlatform.iOS ? AudioEncoder.flac : AudioEncoder.wav;
   final String extension = defaultTargetPlatform == TargetPlatform.iOS ? "flac" : "wav";
 
   @override
   void initState() {
     super.initState();
+    _transcript = Transcript(
+      id: "dne",
+      createdAt: Timestamp.now(),
+      messages: _initMessages(),
+      language: widget.profile.lang,
+      activityId: "dne",
+    );
     record = Record();
     audioPlayer = AudioPlayer();
   }
 
   @override
   void dispose() async {
+    super.dispose();
     await _transcriptListener?.cancel();
     await record.dispose();
     await audioPlayer.dispose();
@@ -59,7 +69,6 @@ class _ChatScreenState extends State<ChatScreen> {
       print("chat: dispose: error: $e");
     }
     print("chat: TODO clear cached audio");
-    super.dispose();
   }
 
   Future<Directory> _audioCacheDir() async {
@@ -86,8 +95,8 @@ class _ChatScreenState extends State<ChatScreen> {
         .doc(tid)
         .snapshots()
         .listen((doc) {
-      Transcript? t;
       print("chat: _transcriptListener: doc.data: ${doc.data()}");
+      Transcript? t;
       try {
         t = Transcript.fromDocumentSnapshot(doc);
         print("chat: _transcriptListener: ${t.messages.length} messages}");
@@ -95,11 +104,32 @@ class _ChatScreenState extends State<ChatScreen> {
         print("chat: _transcriptListener: NullDataError");
       }
       if (t != null) {
-        if (mounted) {
-          setState(() {
-            _transcript = t;
-          });
+        // check if the transcript has any new messages
+        // if so, play the audio
+        if (_transcript.id == 'dne') {
+          print("chat: _transcriptListener: _transcript is startup instructions, setting it to received value.");
+        } else if (t.messages.length > _transcript.messages.length) {
+          print("chat: _transcriptListener: new messages, playing audio if it's AST");
+        } else {
+          print("chat: _transcriptListener: no new messages");
         }
+        print("START PLAY");
+        print("messages: ${t.messages}");
+        if (t.messages.isNotEmpty) {
+          print("last message: ${t.messages.first.role} ${t.messages.first.msg}");
+        }
+        if (t.messages.isNotEmpty && t.messages.first.role == Role.ast) {
+          print("GOT AST MESSAGE");
+          _playAudioFromMessage(t.messages.first);
+        }
+        print("END PLAY");
+        print("SET STATE");
+        setState(() {
+          _transcript = t!;
+          _isLoading = false;
+        });
+      } else {
+        print("WARNING chat: _transcriptListener: t is null; failed to parse");
       }
     });
   }
@@ -109,7 +139,6 @@ class _ChatScreenState extends State<ChatScreen> {
   Future<String?> startPressed() async {
     print("chat: startPressed: [START]");
     setState(() {
-      _transcript = null;
       callStatus = CallStatus.ringing;
       serverStatus = ServerStatus.pending;
       micStatus = MicStatus.off;
@@ -198,6 +227,38 @@ class _ChatScreenState extends State<ChatScreen> {
     }
   }
 
+  /// Download the audio from GCS, if it doesn't exist locally, and play it.
+  Future<void> _playAudioFromMessage(Message msg) async {
+    print("chat: _playAstAudio: [START]");
+    File astAudio = await _downloadAudio(msg.audio);
+    await audioPlayer.play(DeviceFileSource(astAudio.path));
+    print("chat: _playAstAudio: [START]");
+  }
+
+  // TODO debug this following
+  /// Download the audio from GCS and return the file.
+  Future<File> _downloadAudio(Audio? audio) async {
+    if (audio == null) {
+      throw ("chat: _downloadAudio: audio is null");
+    }
+    final Directory audioCacheDir = await _audioCacheDir();
+    final String audioName = audio.path.split('/').last;
+    final File audioFile = File('${audioCacheDir.path}/$audioName');
+    if (await audioFile.exists()) {
+      print("chat: _downloadAudio: audio file already exists: $audioFile");
+      return audioFile;
+    }
+    print("chat: _downloadAudio: downloading $audioName to $audioFile");
+    if (storage.bucket != audio.bucket) {
+      throw ("chat: _downloadAudio: storage.bucket != audio.bucket: ${storage.bucket} != ${audio.bucket}");
+    }
+    final Reference audioRef = storage.ref().child(audio.path);
+    print("chat: _downloadAudio: audioRef: $audioRef");
+    await audioRef.writeToFile(audioFile);
+    print("chat: _downloadAudio: downloaded $audioName to $audioFile");
+    return audioFile;
+  }
+
   /// Get the next available audio file path for the user.
   Future<File> _nextUsrAudio(String transcriptId) async {
     final Directory audioCacheDir = await _audioCacheDir();
@@ -217,7 +278,6 @@ class _ChatScreenState extends State<ChatScreen> {
   }
 
   /// Acquire audio permissions and record audio to file.
-  /// Both ios and android can record to MPEG-4 and PCM16 LINEAR https://pub.dev/packages/record
   Future<String?> chatPressed() async {
     print("chat: chatPressed: [START]");
     final File audioPath = await _nextUsrAudio(_transcript!.id);
@@ -271,7 +331,7 @@ class _ChatScreenState extends State<ChatScreen> {
     print("START play");
     await audioPlayer.play(DeviceFileSource(audioFile.path));
     print("END   play");
-    await _uploadAudio(_transcript!.id, audioFile.path); // _transcript is not null after startPressed succeeds
+    await _uploadAudio(_transcript.id, audioFile.path); // _transcript is not null after startPressed succeeds
     print("chat: chatReleased: [END]");
   }
 
@@ -289,21 +349,9 @@ class _ChatScreenState extends State<ChatScreen> {
 
   @override
   Widget build(BuildContext context) {
-    Transcript? transcript;
-    if (_transcript == null) {
-      transcript = Transcript(
-        id: "dne",
-        createdAt: Timestamp.now(),
-        messages: _initMessages(),
-        language: widget.profile.lang,
-        activityId: "dne",
-      );
-    } else {
-      transcript = _transcript;
-    }
-    final Row topStatusBar = _topStatusBar(context);
-    final Chat middleChatBox = Chat(messages: transcript!.messages);
-    final Row bottomButtons = _bottomButtons(context);
+    final Widget topStatusBar = _topStatusBar(context);
+    final Chat middleChatBox = Chat(messages: _transcript.messages);
+    final Widget bottomButtons = _bottomButtons(context);
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
@@ -396,30 +444,34 @@ class _ChatScreenState extends State<ChatScreen> {
     ]);
   }
 
-  Row _topStatusBar(BuildContext context) {
-    return Row(children: [
-      Expanded(
-        flex: 2,
-        // while call is ringing, show a spinner aligned topleft, otherwise nothing
-        child: (callStatus == CallStatus.ringing || serverStatus == ServerStatus.pending)
-            ? Align(
-                alignment: Alignment.topLeft,
-                child: Padding(
-                  padding: const EdgeInsets.all(16.0),
-                  child: CircularProgressIndicator(),
-                ),
-              )
-            : SizedBox(),
-      ),
-      Expanded(
-        flex: 3,
-        child: ConnectionStatus(
-          micStatus: micStatus,
-          serverStatus: serverStatus,
-          callStatus: callStatus,
-          colorScheme: Theme.of(context).colorScheme,
+  Widget _topStatusBar(BuildContext context) {
+    return Column(children: [
+      // add loading bar
+      _isLoading ? LinearProgressIndicator() : SizedBox(height: 4),
+      Row(children: [
+        Expanded(
+          flex: 2,
+          // while call is ringing, show a spinner aligned topleft, otherwise nothing
+          child: (callStatus == CallStatus.ringing || serverStatus == ServerStatus.pending)
+              ? Align(
+                  alignment: Alignment.topLeft,
+                  child: Padding(
+                    padding: const EdgeInsets.all(16.0),
+                    child: CircularProgressIndicator(),
+                  ),
+                )
+              : SizedBox(),
         ),
-      ),
+        Expanded(
+          flex: 3,
+          child: ConnectionStatus(
+            micStatus: micStatus,
+            serverStatus: serverStatus,
+            callStatus: callStatus,
+            colorScheme: Theme.of(context).colorScheme,
+          ),
+        ),
+      ])
     ]);
   }
 
