@@ -15,6 +15,9 @@ import 'package:moshi/types.dart';
 import 'package:moshi/widgets/chat.dart';
 import 'package:moshi/widgets/status.dart';
 
+const int maxRecordingSeconds = 50;
+const int thinkingHalflifeSeconds = 3;
+
 class ChatScreen extends StatefulWidget {
   final Profile profile;
   final Map<String, dynamic> languages;
@@ -29,6 +32,9 @@ class _ChatScreenState extends State<ChatScreen> {
   CallStatus callStatus = CallStatus.idle;
   String _activityType = "unstructured";
   bool _isLoading = false; // true when waiting for ast response
+  bool _isRecording = false; // true when user is speaking
+  late Timer _recordingTimer;
+  int _recordingSeconds = 0;
   late Record record;
   late AudioPlayer audioPlayer;
   final FirebaseStorage storage = FirebaseStorage.instance;
@@ -58,17 +64,20 @@ class _ChatScreenState extends State<ChatScreen> {
     await _transcriptListener?.cancel();
     await record.dispose();
     await audioPlayer.dispose();
-    final Directory cacheDir = await _audioCacheDir();
-    print("chat: dispose: cacheDir: $cacheDir");
-    try {
-      await for (var entity in cacheDir.list(recursive: true, followLinks: false)) {
-        print("chat: dispose: entity: $entity");
-      }
-      // TODO: clear cached audio files
-    } catch (e) {
-      print("chat: dispose: error: $e");
+    if (_isRecording) {
+      _recordingTimer.cancel();
     }
-    print("chat: TODO clear cached audio");
+    // // TODO: clear cached audio files
+    // final Directory cacheDir = await _audioCacheDir();
+    // print("chat: dispose: cacheDir: $cacheDir");
+    // try {
+    //   await for (var entity in cacheDir.list(recursive: true, followLinks: false)) {
+    //     print("chat: dispose: entity: $entity");
+    //   }
+    // } catch (e) {
+    //   print("chat: dispose: error: $e");
+    // }
+    // print("chat: TODO clear cached audio");
   }
 
   Future<Directory> _audioCacheDir() async {
@@ -115,17 +124,14 @@ class _ChatScreenState extends State<ChatScreen> {
         } else {
           print("chat: _transcriptListener: no new messages");
         }
-        print("START PLAY");
-        print("messages: ${t.messages}");
+        print("chat: _transcriptListener: messages: ${t.messages}");
         if (t.messages.isNotEmpty) {
-          print("last message: ${t.messages.first.role} ${t.messages.first.msg}");
+          print("latest message: ${t.messages.first.role} ${t.messages.first.msg}");
         }
         if (t.messages.isNotEmpty && t.messages.first.role == Role.ast) {
-          print("GOT AST MESSAGE");
+          print("chat: _transcriptListener: playing AST audio");
           _playAudioFromMessage(t.messages.first);
         }
-        print("END PLAY");
-        print("SET STATE");
         setState(() {
           _transcript = t!;
           _isLoading = false;
@@ -294,6 +300,7 @@ class _ChatScreenState extends State<ChatScreen> {
       numChannels: 1,
     );
 
+    // If failed to start, return error and update UI icon.
     bool isRecording = await record.isRecording();
     if (!isRecording) {
       setState(() {
@@ -302,11 +309,20 @@ class _ChatScreenState extends State<ChatScreen> {
       return "Error starting microphone, please grant microphone permissions in system settings.";
     }
 
+    // Start the recording timer
+    _recordingTimer = Timer.periodic(Duration(milliseconds: 100), (Timer t) {
+      setState(() {
+        _recordingSeconds++;
+      });
+      if (_recordingSeconds >= maxRecordingSeconds) {
+        chatReleased();
+      }
+    });
+
     print("chat: startMicrophoneRec [END]");
     setState(() {
-      if (isRecording) {
-        micStatus = MicStatus.on;
-      }
+      micStatus = MicStatus.on;
+      _isRecording = true;
     });
     return null;
   }
@@ -314,7 +330,7 @@ class _ChatScreenState extends State<ChatScreen> {
   /// Stop the audio recording and flush to file.
   Future<void> chatReleased() async {
     print("chat: chatReleased: [START]");
-
+    _recordingTimer.cancel();
     bool isRecording = await record.isRecording();
     if (!isRecording) {
       print("WARNING chat: chatReleased: Is not recording, returning...");
@@ -327,17 +343,15 @@ class _ChatScreenState extends State<ChatScreen> {
       if (micStatus == MicStatus.on) {
         micStatus = MicStatus.muted;
         _isLoading = true;
+        _isRecording = false;
       }
     });
     File audioFile = File(path!);
     if (!await audioFile.exists()) {
       throw ("chat: chatReleased: audio file does not exist: $path");
     }
-    // TODO don't replay the audio, upload it to storage, this replay is for debugging
-    print("START play");
-    await audioPlayer.play(DeviceFileSource(audioFile.path));
-    print("END   play");
-    await _uploadAudio(_transcript.id, audioFile.path); // _transcript is not null after startPressed succeeds
+    // await _uploadAudio(_transcript.id, audioFile.path); // _transcript is not null after startPressed succeeds
+    print("HELLO HELLO AUDIO UPLOAD IS DISABLED FOR DEBUGGING PURPOSES");
     print("chat: chatReleased: [END]");
   }
 
@@ -377,6 +391,7 @@ class _ChatScreenState extends State<ChatScreen> {
   /// The bottom row of buttons.
   Row _bottomButtons(BuildContext context) {
     final GestureDetector holdToChatButton = _holdToChatButton(context);
+    final Widget callButton = _callButton(context);
     return Row(children: [
       Flexible(
           flex: 2,
@@ -385,54 +400,7 @@ class _ChatScreenState extends State<ChatScreen> {
               child: FractionallySizedBox(
                 widthFactor: 0.65,
                 heightFactor: 0.65,
-                child: FloatingActionButton(
-                  // New call
-                  autofocus: true,
-                  onPressed: () async {
-                    final String? err;
-                    switch (callStatus) {
-                      case CallStatus.inCall:
-                        err = await stopPressed();
-                        break;
-                      case CallStatus.idle:
-                        err = await startPressed();
-                        break;
-                      case CallStatus.error:
-                        err = await startPressed();
-                        break;
-                      case CallStatus.ringing:
-                        err = null;
-                        break;
-                    }
-                    if (err != null) {
-                      if (mounted) {
-                        ScaffoldMessenger.of(context).showSnackBar(
-                          SnackBar(content: Text(err)),
-                        );
-                      }
-                    }
-                  },
-                  backgroundColor: {
-                    CallStatus.idle: Theme.of(context).colorScheme.tertiary,
-                    CallStatus.ringing: Theme.of(context).colorScheme.onSurface,
-                    CallStatus.inCall: Theme.of(context).colorScheme.primary,
-                    CallStatus.error: Theme.of(context).colorScheme.tertiary,
-                  }[callStatus],
-                  child: Icon(
-                      {
-                        CallStatus.idle: Icons.call,
-                        CallStatus.ringing: Icons.call_made,
-                        CallStatus.inCall: Icons.call_end,
-                        CallStatus.error: Icons.wifi_calling_3,
-                      }[callStatus],
-                      size: Theme.of(context).textTheme.headlineLarge?.fontSize,
-                      color: {
-                        CallStatus.idle: Theme.of(context).colorScheme.onTertiary,
-                        CallStatus.ringing: Theme.of(context).colorScheme.surface,
-                        CallStatus.inCall: Theme.of(context).colorScheme.onTertiary,
-                        CallStatus.error: Theme.of(context).colorScheme.onTertiary,
-                      }[callStatus]),
-                ),
+                child: callButton,
               ))),
       Flexible(
         flex: 3,
@@ -450,23 +418,36 @@ class _ChatScreenState extends State<ChatScreen> {
     ]);
   }
 
+  Widget _progressBar(BuildContext context) {
+    if (_isRecording) {
+      print('recording');
+      double progressValue = _recordingSeconds / maxRecordingSeconds;
+      print('progressValue: $progressValue');
+      return LinearProgressIndicator(
+        value: progressValue,
+        minHeight: 8,
+      );
+    } else if (callStatus == CallStatus.ringing || serverStatus == ServerStatus.pending) {
+      print('ringing');
+      return LinearProgressIndicator();
+    } else if (_isLoading) {
+      print('loading');
+      return LinearProgressIndicator();
+    } else {
+      print('no progress bar');
+      return SizedBox(height: 8);
+    }
+  }
+
   Widget _topStatusBar(BuildContext context) {
+    // float thinkingProgress = 0;
     return Column(children: [
       // add loading bar
-      _isLoading ? LinearProgressIndicator() : SizedBox(height: 8),
+      _progressBar(context),
       Row(children: [
         Expanded(
           flex: 2,
-          // while call is ringing, show a spinner aligned topleft, otherwise nothing
-          child: (callStatus == CallStatus.ringing || serverStatus == ServerStatus.pending)
-              ? Align(
-                  alignment: Alignment.topLeft,
-                  child: Padding(
-                    padding: const EdgeInsets.all(16.0),
-                    child: CircularProgressIndicator(),
-                  ),
-                )
-              : SizedBox(),
+          child: SizedBox(),
         ),
         Expanded(
           flex: 3,
@@ -479,6 +460,56 @@ class _ChatScreenState extends State<ChatScreen> {
         ),
       ])
     ]);
+  }
+
+  Widget _callButton(BuildContext context) {
+    return FloatingActionButton(
+      autofocus: true,
+      onPressed: () async {
+        final String? err;
+        switch (callStatus) {
+          case CallStatus.inCall:
+            err = await stopPressed();
+            break;
+          case CallStatus.idle:
+            err = await startPressed();
+            break;
+          case CallStatus.error:
+            err = await startPressed();
+            break;
+          case CallStatus.ringing:
+            err = null;
+            break;
+        }
+        if (err != null) {
+          if (mounted) {
+            ScaffoldMessenger.of(context).showSnackBar(
+              SnackBar(content: Text(err)),
+            );
+          }
+        }
+      },
+      backgroundColor: {
+        CallStatus.idle: Theme.of(context).colorScheme.tertiary,
+        CallStatus.ringing: Theme.of(context).colorScheme.onSurface,
+        CallStatus.inCall: Theme.of(context).colorScheme.primary,
+        CallStatus.error: Theme.of(context).colorScheme.tertiary,
+      }[callStatus],
+      child: Icon(
+          {
+            CallStatus.idle: Icons.call,
+            CallStatus.ringing: Icons.call_made,
+            CallStatus.inCall: Icons.call_end,
+            CallStatus.error: Icons.wifi_calling_3,
+          }[callStatus],
+          size: Theme.of(context).textTheme.headlineLarge?.fontSize,
+          color: {
+            CallStatus.idle: Theme.of(context).colorScheme.onTertiary,
+            CallStatus.ringing: Theme.of(context).colorScheme.surface,
+            CallStatus.inCall: Theme.of(context).colorScheme.onTertiary,
+            CallStatus.error: Theme.of(context).colorScheme.onTertiary,
+          }[callStatus]),
+    );
   }
 
   GestureDetector _holdToChatButton(BuildContext context) {
