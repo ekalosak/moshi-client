@@ -15,8 +15,7 @@ import 'package:moshi/types.dart';
 import 'package:moshi/widgets/chat.dart';
 import 'package:moshi/widgets/status.dart';
 
-const int maxRecordingSeconds = 50;
-const int thinkingHalflifeSeconds = 3;
+const int maxRecordingSeconds = 30;
 
 class ChatScreen extends StatefulWidget {
   final Profile profile;
@@ -34,7 +33,7 @@ class _ChatScreenState extends State<ChatScreen> {
   bool _isLoading = false; // true when waiting for ast response
   bool _isRecording = false; // true when user is speaking
   late Timer _recordingTimer;
-  int _recordingSeconds = 0;
+  double _recordingSeconds = 0.0;
   late Record record;
   late AudioPlayer audioPlayer;
   final FirebaseStorage storage = FirebaseStorage.instance;
@@ -98,7 +97,8 @@ class _ChatScreenState extends State<ChatScreen> {
   }
 
   /// Start listening to the transcript document.
-  void _initTranscriptListener(String tid) {
+  Future<void> _initTranscriptListener(String tid) async {
+    await _transcriptListener?.cancel();
     _transcriptListener = FirebaseFirestore.instance
         .collection('users')
         .doc(widget.profile.uid)
@@ -196,7 +196,7 @@ class _ChatScreenState extends State<ChatScreen> {
     print("chat: startPressed: startActivity result: detail ${result.data['detail']}");
 
     // Listen to the transcript provisioned by the start_activity call
-    _initTranscriptListener(result.data['detail']['transcript_id']);
+    await _initTranscriptListener(result.data['detail']['transcript_id']);
 
     // Show the user we're ready
     setState(() {
@@ -215,6 +215,8 @@ class _ChatScreenState extends State<ChatScreen> {
     await audioPlayer.stop();
     setState(() {
       callStatus = CallStatus.idle;
+      _isLoading = false;
+      _isRecording = false;
     });
     await feedbackAfterCall();
     print("stopPressed [END]");
@@ -312,7 +314,7 @@ class _ChatScreenState extends State<ChatScreen> {
     // Start the recording timer
     _recordingTimer = Timer.periodic(Duration(milliseconds: 100), (Timer t) {
       setState(() {
-        _recordingSeconds++;
+        _recordingSeconds = _recordingSeconds + 0.1;
       });
       if (_recordingSeconds >= maxRecordingSeconds) {
         chatReleased();
@@ -429,10 +431,10 @@ class _ChatScreenState extends State<ChatScreen> {
       );
     } else if (callStatus == CallStatus.ringing || serverStatus == ServerStatus.pending) {
       print('ringing');
-      return LinearProgressIndicator();
+      return LinearProgressIndicator(minHeight: 8);
     } else if (_isLoading) {
       print('loading');
-      return LinearProgressIndicator();
+      return LinearProgressIndicator(minHeight: 8);
     } else {
       print('no progress bar');
       return SizedBox(height: 8);
@@ -515,22 +517,20 @@ class _ChatScreenState extends State<ChatScreen> {
   GestureDetector _holdToChatButton(BuildContext context) {
     return GestureDetector(
       onLongPressStart: (_) {
-        chatPressed();
         HapticFeedback.lightImpact();
+        chatPressed();
       },
       onLongPressEnd: (_) {
-        chatReleased();
         HapticFeedback.lightImpact();
+        chatReleased();
       },
       child: FloatingActionButton.extended(
         onPressed: () async {},
-        backgroundColor: Theme.of(context).colorScheme.tertiary,
+        backgroundColor: _isLoading ? Theme.of(context).colorScheme.background : Theme.of(context).colorScheme.tertiary,
         label: Text("Hold to\nspeak",
-            style: TextStyle(
-              fontSize: Theme.of(context).textTheme.headlineSmall?.fontSize,
-              fontFamily: Theme.of(context).textTheme.headlineSmall?.fontFamily,
-              color: Theme.of(context).colorScheme.onSurface,
-            )),
+            style: Theme.of(context).textTheme.headlineSmall?.copyWith(
+                  color: Theme.of(context).colorScheme.onSurface,
+                )),
         icon: Icon(
           Icons.mic,
           size: Theme.of(context).textTheme.headlineLarge?.fontSize,
@@ -547,14 +547,7 @@ class _ChatScreenState extends State<ChatScreen> {
       context: context,
       builder: (BuildContext context) {
         return AlertDialog(
-          title: Text(
-            "Feedback",
-            style: TextStyle(
-              fontSize: Theme.of(context).textTheme.headlineSmall?.fontSize,
-              fontFamily: Theme.of(context).textTheme.headlineSmall?.fontFamily,
-              color: Theme.of(context).colorScheme.secondary,
-            ),
-          ),
+          title: Text("Feedback", style: Theme.of(context).textTheme.headlineSmall),
           content: Text(
             "How was your call?",
           ),
