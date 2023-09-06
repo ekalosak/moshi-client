@@ -346,6 +346,7 @@ class _ChatScreenState extends State<ChatScreen> {
         micStatus = MicStatus.muted;
         _isLoading = true;
         _isRecording = false;
+        _recordingSeconds = 0.0;
       }
     });
     File audioFile = File(path!);
@@ -392,7 +393,7 @@ class _ChatScreenState extends State<ChatScreen> {
 
   /// The bottom row of buttons.
   Row _bottomButtons(BuildContext context) {
-    final GestureDetector holdToChatButton = _holdToChatButton(context);
+    final Widget holdToChatButton = _holdToChatButton(context);
     final Widget callButton = _callButton(context);
     return Row(children: [
       Flexible(
@@ -421,24 +422,28 @@ class _ChatScreenState extends State<ChatScreen> {
   }
 
   Widget _progressBar(BuildContext context) {
+    double loadingHeight = 8;
+    double spacingHeight = 4;
+    Widget loadingBar;
     if (_isRecording) {
-      print('recording');
       double progressValue = _recordingSeconds / maxRecordingSeconds;
-      print('progressValue: $progressValue');
-      return LinearProgressIndicator(
+      loadingBar = LinearProgressIndicator(
         value: progressValue,
-        minHeight: 8,
+        minHeight: loadingHeight,
       );
     } else if (callStatus == CallStatus.ringing || serverStatus == ServerStatus.pending) {
-      print('ringing');
-      return LinearProgressIndicator(minHeight: 8);
+      loadingBar = LinearProgressIndicator(minHeight: loadingHeight);
     } else if (_isLoading) {
-      print('loading');
-      return LinearProgressIndicator(minHeight: 8);
+      loadingBar = LinearProgressIndicator(minHeight: loadingHeight);
     } else {
-      print('no progress bar');
-      return SizedBox(height: 8);
+      loadingBar = SizedBox(height: loadingHeight);
     }
+    return Column(
+      children: [
+        loadingBar,
+        SizedBox(height: spacingHeight),
+      ],
+    );
   }
 
   Widget _topStatusBar(BuildContext context) {
@@ -514,30 +519,32 @@ class _ChatScreenState extends State<ChatScreen> {
     );
   }
 
-  GestureDetector _holdToChatButton(BuildContext context) {
-    return GestureDetector(
-      onLongPressStart: (_) {
-        HapticFeedback.lightImpact();
-        chatPressed();
-      },
-      onLongPressEnd: (_) {
-        HapticFeedback.lightImpact();
-        chatReleased();
-      },
-      child: FloatingActionButton.extended(
-        onPressed: () async {},
-        backgroundColor: _isLoading ? Theme.of(context).colorScheme.background : Theme.of(context).colorScheme.tertiary,
-        label: Text("Hold to\nspeak",
-            style: Theme.of(context).textTheme.headlineSmall?.copyWith(
-                  color: Theme.of(context).colorScheme.onSurface,
-                )),
-        icon: Icon(
-          Icons.mic,
-          size: Theme.of(context).textTheme.headlineLarge?.fontSize,
-          color: Theme.of(context).colorScheme.onSurface,
-        ),
-      ),
-    );
+  Widget _holdToChatButton(BuildContext context) {
+    return _isLoading
+        ? SizedBox()
+        : GestureDetector(
+            onLongPressStart: (_) {
+              HapticFeedback.lightImpact();
+              chatPressed();
+            },
+            onLongPressEnd: (_) {
+              HapticFeedback.lightImpact();
+              chatReleased();
+            },
+            child: FloatingActionButton.extended(
+              onPressed: () async {},
+              backgroundColor: Theme.of(context).colorScheme.tertiary,
+              label: Text("Hold to\nspeak",
+                  style: Theme.of(context).textTheme.headlineSmall?.copyWith(
+                        color: Theme.of(context).colorScheme.onSurface,
+                      )),
+              icon: Icon(
+                Icons.mic,
+                size: Theme.of(context).textTheme.headlineLarge?.fontSize,
+                color: Theme.of(context).colorScheme.onSurface,
+              ),
+            ),
+          );
   }
 
   /// Pop up a dialog to ask for feedback.
