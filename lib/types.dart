@@ -17,6 +17,7 @@ class Activity {
   String id;
   String title;
   String type;
+  String name;
   String? language;
   List<Map<String, dynamic>>? goals;
   String? userPrompt;
@@ -26,6 +27,7 @@ class Activity {
       {required this.id,
       required this.title,
       required this.type,
+      required this.name,
       this.language,
       this.userPrompt,
       this.goals,
@@ -36,17 +38,29 @@ class Activity {
     if (data == null) {
       throw NullDataError("Activity.fromDocumentSnapshot: data is null: ${snapshot.id}");
     }
-    List<Map<String, dynamic>> goals = data.containsKey('goals') ? snapshot['goals'] : null;
+    print('Activity.data: $data');
+    // TODO parse goals, requires Goals class {title: string, criteria: list[{body: string, points: int > 0}]}
+    List<Map<String, dynamic>> goals = [];
+    String? name;
+    if (data['type'] == 'lesson') {
+      name = snapshot['config']['topic'];
+    } else if (data['type'] == 'unstructured') {
+      name = 'unstructured';
+    } else {
+      throw Exception("Activity.fromDocumentSnapshot: unknown activity type: ${snapshot.id}");
+    }
     String? userPrompt = data.containsKey('user_prompt') ? snapshot['user_prompt'] : null;
     int? level = data.containsKey('level') ? snapshot['level'] : null;
-    return Activity(
+    final Activity act = Activity(
         id: snapshot.id,
         language: snapshot['language'],
         title: snapshot['title'],
         type: snapshot['type'],
+        name: name!,
         goals: goals,
         userPrompt: userPrompt,
         level: level);
+    return act;
   }
 }
 
@@ -136,7 +150,8 @@ class Profile {
   String lang;
   String name;
   String uid;
-  Profile({required this.uid, required this.lang, required this.name, this.primaryLang = 'en'});
+  int level;
+  Profile({required this.uid, required this.lang, required this.name, this.primaryLang = 'en-US', this.level = 1});
 }
 
 class Config {

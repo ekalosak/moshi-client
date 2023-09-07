@@ -52,12 +52,15 @@ class _WrapperScreenState extends State<WrapperScreen> {
         .listen((DocumentSnapshot snapshot) {
       if (snapshot.exists && snapshot.data() != null) {
         print("wrapper: User profile exists and is not empty.");
+        Map<String, dynamic> data = snapshot.data() as Map<String, dynamic>;
+        int level = data.containsKey('level') ? snapshot['level'] : 1;
         setState(() {
           profile = Profile(
             uid: snapshot.id,
             lang: snapshot['language'],
             name: snapshot['name'],
             primaryLang: snapshot['native_language'],
+            level: level,
           );
         });
       } else {

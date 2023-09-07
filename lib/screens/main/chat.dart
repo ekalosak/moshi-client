@@ -35,14 +35,14 @@ class _ChatScreenState extends State<ChatScreen> {
   bool _isRecording = false; // true when user is speaking
   late Timer _recordingTimer;
   double _recordingSeconds = 0.0;
-  late Record record;
+  late Record record; // NOTE there's no reason why these are public v private right now
   late AudioPlayer audioPlayer;
   final FirebaseStorage storage = FirebaseStorage.instance;
-  StreamSubscription<DocumentSnapshot<Map<String, dynamic>>?>? _activityListener;
-  List<Map<String, dynamic>> _activities = [];
-  late Map<String, dynamic> _activity;
+  List<Activity> _activities = [];
+  StreamSubscription<QuerySnapshot<Map<String, dynamic>>?>? _activityListener;
+  Activity? _activity;
   StreamSubscription<DocumentSnapshot<Map<String, dynamic>>?>? _transcriptListener;
-  late Transcript _transcript; // rendered state
+  late Transcript _transcript; // must be late to get profile.name and lang from widget
   /// For supported codecs, see: https://pub.dev/packages/record
   final AudioEncoder encoder = defaultTargetPlatform == TargetPlatform.iOS ? AudioEncoder.flac : AudioEncoder.wav;
   final String extension = defaultTargetPlatform == TargetPlatform.iOS ? "flac" : "wav";
@@ -50,16 +50,27 @@ class _ChatScreenState extends State<ChatScreen> {
   @override
   void initState() {
     super.initState();
-    _activity = {
-      'type': 'unstructured',
-    };
     _transcript = Transcript(
-      id: "dne",
-      createdAt: Timestamp.now(),
-      messages: _initMessages(),
-      language: widget.profile.lang,
-      activityId: "dne",
-    );
+        id: 'dne',
+        messages: _initMessages(),
+        language: widget.profile.lang,
+        createdAt: Timestamp.now(),
+        activityId: 'dne');
+    _activityListener = FirebaseFirestore.instance.collection('activities').snapshots().listen((querySnapshot) {
+      print("chat: _activityListener: querySnapshot: ${querySnapshot.docs.length} docs");
+      if (querySnapshot.docs.isEmpty) {
+        print("WARNING chat: _activityListener: querySnapshot.docs.length == 0");
+        return;
+      }
+      for (var doc in querySnapshot.docs) {
+        Activity a = Activity.fromDocumentSnapshot(doc);
+        print("chat: _activityListener: doc -> activity: ${a.name} ${a.title}");
+        setState(() {
+          _activities.add(a);
+          _activity = a;
+        });
+      }
+    });
     record = Record();
     audioPlayer = AudioPlayer();
   }
@@ -86,8 +97,8 @@ class _ChatScreenState extends State<ChatScreen> {
   /// This gets shown to users on page load.
   List<Message> _initMessages() {
     return [
-      Message(Role.ast,
-          "Then, hold the walkie-talkie button to speak. Let go when you're done speaking. You should feel your phone vibrate when the recording starts."),
+      // Message(Role.ast,
+      //     "Then, hold the walkie-talkie button to speak. Let go when you're done speaking. You should feel your phone vibrate when the recording starts."),
       Message(Role.ast, "Press the call button to get started."),
       Message(Role.ast, "Would you like to practice ${widget.languages[widget.profile.lang]['language']['name']}?"),
       Message(Role.ast, "Hello, ${widget.profile.name}."),
@@ -181,8 +192,10 @@ class _ChatScreenState extends State<ChatScreen> {
       print("chat: startPressed: _activity: $_activity");
       print("chat: startPressed: language: ${widget.profile.lang}");
       result = await startActivity.call(<String, dynamic>{
-        'type': _activity['type'],
+        'name': _activity?.name ?? 'unstructured',
+        'type': _activity?.type ?? 'unstructured',
         'language': widget.profile.lang,
+        'level': widget.profile.level,
       });
     } catch (e) {
       setState(() {
@@ -477,33 +490,35 @@ class _ChatScreenState extends State<ChatScreen> {
     ]);
   }
 
-  // If in call, show the activity name; otherwise, show a drop down to select activity.
   Widget _activitySelector(BuildContext context) {
-    return (callStatus == CallStatus.inCall)
-        ? _activity['title']
-        : DropdownButton<String>(
-            value: _activity['type'],
-            icon: const Icon(Icons.arrow_downward),
-            iconSize: 24,
-            elevation: 16,
-            style: Theme.of(context).textTheme.headlineSmall,
-            underline: Container(
-              height: 2,
-              color: Theme.of(context).colorScheme.onSurface,
-            ),
-            onChanged: (String? newValue) {
-              // TODO set the whole activity from the activities
-              setState(() {
-                _activity['type'] = newValue!;
-              });
-            },
-            items: <String>['unstructured', 'structured', 'freeform'].map<DropdownMenuItem<String>>((String value) {
-              return DropdownMenuItem<String>(
-                value: value,
-                child: Text(value, style: Theme.of(context).textTheme.headlineSmall),
-              );
-            }).toList(),
-          );
+    List<String> activityNames = _activities.map((a) => a.name).toSet().toList();
+    print("chat: _activitySelector: activityNames: $activityNames");
+    print("chat: _activitySelector: _activity: ${_activity?.title}");
+    return DropdownButton<String>(
+      value: _activity?.name,
+      icon: const Icon(Icons.arrow_downward),
+      iconSize: 24,
+      elevation: 16,
+      style: Theme.of(context).textTheme.headlineSmall,
+      underline: Container(
+        height: 2,
+        color: Theme.of(context).colorScheme.onSurface,
+      ),
+      onChanged: (String? newValue) {
+        print("chat: _activitySelector: onChanged: newValue: $newValue");
+        print("chat: _activitySelector: onChanged: _activities: ${_activities.map((a) => a.name).toList()}");
+        print("chat: _activitySelector: onChanged: _activity: ${_activity?.title}");
+        setState(() {
+          _activity = _activities.firstWhere((a) => a.name == newValue);
+        });
+      },
+      items: activityNames.map<DropdownMenuItem<String>>((String value) {
+        return DropdownMenuItem<String>(
+          value: value,
+          child: Text(value, style: Theme.of(context).textTheme.headlineSmall),
+        );
+      }).toList(),
+    );
   }
 
   Widget _callButton(BuildContext context) {
@@ -634,7 +649,7 @@ class _ChatScreenState extends State<ChatScreen> {
         .collection('users')
         .doc(widget.profile.uid)
         .collection('transcripts')
-        .doc(_transcript!.id);
+        .doc(_transcript.id);
     await transcriptRef.update({
       'feedback': body,
     });
