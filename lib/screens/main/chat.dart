@@ -20,7 +20,9 @@ const int maxRecordingSeconds = 30;
 class ChatScreen extends StatefulWidget {
   final Profile profile;
   final Map<String, dynamic> languages;
-  ChatScreen({required this.profile, required this.languages});
+  // function from Str to void to update title of wrapper
+  final Function(String) setTitle;
+  ChatScreen({required this.profile, required this.languages, required this.setTitle});
   @override
   _ChatScreenState createState() => _ChatScreenState();
 }
@@ -29,7 +31,6 @@ class _ChatScreenState extends State<ChatScreen> {
   MicStatus micStatus = MicStatus.off;
   ServerStatus serverStatus = ServerStatus.unknown;
   CallStatus callStatus = CallStatus.idle;
-  String _activityType = "unstructured";
   bool _isLoading = false; // true when waiting for ast response
   bool _isRecording = false; // true when user is speaking
   late Timer _recordingTimer;
@@ -37,6 +38,9 @@ class _ChatScreenState extends State<ChatScreen> {
   late Record record;
   late AudioPlayer audioPlayer;
   final FirebaseStorage storage = FirebaseStorage.instance;
+  StreamSubscription<DocumentSnapshot<Map<String, dynamic>>?>? _activityListener;
+  List<Map<String, dynamic>> _activities = [];
+  late Map<String, dynamic> _activity;
   StreamSubscription<DocumentSnapshot<Map<String, dynamic>>?>? _transcriptListener;
   late Transcript _transcript; // rendered state
   /// For supported codecs, see: https://pub.dev/packages/record
@@ -46,6 +50,9 @@ class _ChatScreenState extends State<ChatScreen> {
   @override
   void initState() {
     super.initState();
+    _activity = {
+      'type': 'unstructured',
+    };
     _transcript = Transcript(
       id: "dne",
       createdAt: Timestamp.now(),
@@ -61,28 +68,19 @@ class _ChatScreenState extends State<ChatScreen> {
   void dispose() async {
     super.dispose();
     await _transcriptListener?.cancel();
+    await _activityListener?.cancel();
     await record.dispose();
     await audioPlayer.dispose();
     if (_isRecording) {
       _recordingTimer.cancel();
     }
-    // // TODO: clear cached audio files
-    // final Directory cacheDir = await _audioCacheDir();
-    // print("chat: dispose: cacheDir: $cacheDir");
-    // try {
-    //   await for (var entity in cacheDir.list(recursive: true, followLinks: false)) {
-    //     print("chat: dispose: entity: $entity");
-    //   }
-    // } catch (e) {
-    //   print("chat: dispose: error: $e");
-    // }
-    // print("chat: TODO clear cached audio");
   }
 
+  // Where audio files will be stored on the device.
   Future<Directory> _audioCacheDir() async {
-    /// get the cache directory and append the audioRoot
     Directory cacheDir = await getApplicationCacheDirectory();
-    return Directory('${cacheDir.path}/audio/${_transcript.id}');
+    print("chat: _audioCacheDir: cacheDir: $cacheDir");
+    return Directory('${cacheDir.path}/audio/');
   }
 
   /// This gets shown to users on page load.
@@ -153,7 +151,8 @@ class _ChatScreenState extends State<ChatScreen> {
     });
 
     // Make sure we have a cached audio directory
-    await ensureAudioCacheExists();
+    await _clearCachedAudio();
+    await _ensureAudioCacheExists();
 
     // Check and request permission
     print("chat: startPressed: checking permission");
@@ -178,8 +177,12 @@ class _ChatScreenState extends State<ChatScreen> {
     final HttpsCallable startActivity = FirebaseFunctions.instance.httpsCallable('start_activity');
     HttpsCallableResult result;
     try {
+      print("chat: startPressed: calling startActivity");
+      print("chat: startPressed: _activity: $_activity");
+      print("chat: startPressed: language: ${widget.profile.lang}");
       result = await startActivity.call(<String, dynamic>{
-        'type': _activityType,
+        'type': _activity['type'],
+        'language': widget.profile.lang,
       });
     } catch (e) {
       setState(() {
@@ -223,18 +226,29 @@ class _ChatScreenState extends State<ChatScreen> {
     return null;
   }
 
-  /// mkdir ..cache../com.chatmoshi.moshi/audio/
-  Future<void> ensureAudioCacheExists() async {
+  Future<void> _ensureAudioCacheExists() async {
     final Directory audioCacheDir = await _audioCacheDir();
-    print("chat: ensureAudioCacheExists: audioCacheDir: $audioCacheDir");
+    print("chat: _ensureAudioCacheExists: audioCacheDir: $audioCacheDir");
     if (!await audioCacheDir.exists()) {
-      print("chat: ensureAudioCacheExists: creating audio cache dir");
+      print("chat: _ensureAudioCacheExists: creating audio cache dir");
       await audioCacheDir.create(recursive: true);
       print(
-          "chat: ensureAudioCacheExists: created audio cache dir: $audioCacheDir exists: ${await audioCacheDir.exists()}");
+          "chat: _ensureAudioCacheExists: created audio cache dir: $audioCacheDir exists: ${await audioCacheDir.exists()}");
     } else {
-      print("chat: ensureAudioCacheExists: audio cache dir: $audioCacheDir already exists");
+      print("chat: _ensureAudioCacheExists: audio cache dir: $audioCacheDir already exists");
     }
+  }
+
+  Future<void> _clearCachedAudio() async {
+    final Directory audioCacheDir = await _audioCacheDir();
+    print("chat: _clearCachedAudio: audioCacheDir: $audioCacheDir");
+    if (!await audioCacheDir.exists()) {
+      print("chat: _clearCachedAudio: audio cache dir does not exist, returning");
+      return;
+    }
+    print("chat: _clearCachedAudio: clearing audio cache dir");
+    await audioCacheDir.delete(recursive: true);
+    print("chat: _clearCachedAudio: cleared audio cache dir");
   }
 
   /// Download the audio from GCS, if it doesn't exist locally, and play it.
@@ -275,7 +289,6 @@ class _ChatScreenState extends State<ChatScreen> {
   /// Get the next available audio file path for the user.
   Future<File> _nextUsrAudio(String transcriptId) async {
     final Directory audioCacheDir = await _audioCacheDir();
-    // create the directory `audioCacheDir/transcript_id`
     final Directory transcriptCacheDir = Directory('${audioCacheDir.path}/$transcriptId');
     if (!await transcriptCacheDir.exists()) {
       print("chat: _nextUsrAudio: creating transcript cache dir");
@@ -353,8 +366,7 @@ class _ChatScreenState extends State<ChatScreen> {
     if (!await audioFile.exists()) {
       throw ("chat: chatReleased: audio file does not exist: $path");
     }
-    // await _uploadAudio(_transcript.id, audioFile.path); // _transcript is not null after startPressed succeeds
-    print("HELLO HELLO AUDIO UPLOAD IS DISABLED FOR DEBUGGING PURPOSES");
+    await _uploadAudio(_transcript.id, audioFile.path);
     print("chat: chatReleased: [END]");
   }
 
@@ -395,18 +407,19 @@ class _ChatScreenState extends State<ChatScreen> {
   Row _bottomButtons(BuildContext context) {
     final Widget holdToChatButton = _holdToChatButton(context);
     final Widget callButton = _callButton(context);
+    final Widget activitySelector = _activitySelector(context);
     return Row(children: [
       Flexible(
-          flex: 2,
+          flex: 3,
           child: Align(
               alignment: Alignment.center,
               child: FractionallySizedBox(
-                widthFactor: 0.65,
+                widthFactor: 0.8,
                 heightFactor: 0.65,
                 child: callButton,
               ))),
       Flexible(
-        flex: 3,
+        flex: 4,
         child: Align(
           alignment: Alignment.center,
           child: (callStatus == CallStatus.inCall)
@@ -415,7 +428,7 @@ class _ChatScreenState extends State<ChatScreen> {
                   heightFactor: 0.65,
                   child: holdToChatButton,
                 )
-              : SizedBox(),
+              : activitySelector,
         ),
       ),
     ]);
@@ -447,15 +460,10 @@ class _ChatScreenState extends State<ChatScreen> {
   }
 
   Widget _topStatusBar(BuildContext context) {
-    // float thinkingProgress = 0;
     return Column(children: [
-      // add loading bar
       _progressBar(context),
       Row(children: [
-        Expanded(
-          flex: 2,
-          child: SizedBox(),
-        ),
+        Expanded(flex: 2, child: SizedBox()),
         Expanded(
           flex: 3,
           child: ConnectionStatus(
@@ -469,8 +477,38 @@ class _ChatScreenState extends State<ChatScreen> {
     ]);
   }
 
+  // If in call, show the activity name; otherwise, show a drop down to select activity.
+  Widget _activitySelector(BuildContext context) {
+    return (callStatus == CallStatus.inCall)
+        ? _activity['title']
+        : DropdownButton<String>(
+            value: _activity['type'],
+            icon: const Icon(Icons.arrow_downward),
+            iconSize: 24,
+            elevation: 16,
+            style: Theme.of(context).textTheme.headlineSmall,
+            underline: Container(
+              height: 2,
+              color: Theme.of(context).colorScheme.onSurface,
+            ),
+            onChanged: (String? newValue) {
+              // TODO set the whole activity from the activities
+              setState(() {
+                _activity['type'] = newValue!;
+              });
+            },
+            items: <String>['unstructured', 'structured', 'freeform'].map<DropdownMenuItem<String>>((String value) {
+              return DropdownMenuItem<String>(
+                value: value,
+                child: Text(value, style: Theme.of(context).textTheme.headlineSmall),
+              );
+            }).toList(),
+          );
+  }
+
   Widget _callButton(BuildContext context) {
-    return FloatingActionButton(
+    String buttonText = (callStatus == CallStatus.inCall) ? "End" : "Start";
+    return FloatingActionButton.extended(
       autofocus: true,
       onPressed: () async {
         final String? err;
@@ -502,7 +540,7 @@ class _ChatScreenState extends State<ChatScreen> {
         CallStatus.inCall: Theme.of(context).colorScheme.primary,
         CallStatus.error: Theme.of(context).colorScheme.tertiary,
       }[callStatus],
-      child: Icon(
+      icon: Icon(
           {
             CallStatus.idle: Icons.call,
             CallStatus.ringing: Icons.call_made,
@@ -516,6 +554,10 @@ class _ChatScreenState extends State<ChatScreen> {
             CallStatus.inCall: Theme.of(context).colorScheme.onTertiary,
             CallStatus.error: Theme.of(context).colorScheme.onTertiary,
           }[callStatus]),
+      label: Text(buttonText,
+          style: Theme.of(context).textTheme.headlineSmall?.copyWith(
+                color: Theme.of(context).colorScheme.background,
+              )),
     );
   }
 

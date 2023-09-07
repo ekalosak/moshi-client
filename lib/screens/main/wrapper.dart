@@ -11,9 +11,8 @@ import 'chat.dart';
 import 'feed.dart';
 import 'profile.dart';
 import 'progress.dart';
-import 'webrtc.dart';
 
-const String version = "23.9.0";
+const String version = "23.9.1";
 
 class WrapperScreen extends StatefulWidget {
   // make WrapperScreen take User user as a param
@@ -28,7 +27,6 @@ const int CHAT_INDEX = 0;
 const int HOME_INDEX = 1;
 const int PROFILE_INDEX = 2;
 const int PROGRESS_INDEX = 3;
-const int CHATV2_INDEX = 4;
 
 // Progress page bottom navbar indices
 const int PROG_VOCAB_INDEX = 0;
@@ -37,8 +35,8 @@ const int PROG_TRANSCRIPTS_INDEX = 2;
 
 class _WrapperScreenState extends State<WrapperScreen> {
   Profile? profile;
-  // int _index = HOME_INDEX;
-  int _index = CHATV2_INDEX;
+  String? _title;
+  int _index = CHAT_INDEX;
   int _progressIndex = PROG_TRANSCRIPTS_INDEX;
   Map<String, dynamic> languages = {};
   late StreamSubscription _profileListener;
@@ -89,6 +87,12 @@ class _WrapperScreenState extends State<WrapperScreen> {
     _profileListener.cancel();
     _supportedLangsListener.cancel();
     super.dispose();
+  }
+
+  void updateTitle(String title) {
+    setState(() {
+      _title = title;
+    });
   }
 
   @override
@@ -155,15 +159,13 @@ class _WrapperScreenState extends State<WrapperScreen> {
   Widget _body(Profile pro, Map<String, dynamic> languages, int index) {
     switch (index) {
       case CHAT_INDEX:
-        return WebRTCScreen(profile: pro);
+        return ChatScreen(profile: pro, languages: languages, setTitle: updateTitle);
       case HOME_INDEX:
         return FeedScreen(profile: pro);
       case PROFILE_INDEX:
         return ProfileScreen(profile: pro, languages: languages);
       case PROGRESS_INDEX:
         return ProgressScreen(profile: pro, languages: languages, index: _progressIndex);
-      case CHATV2_INDEX:
-        return ChatScreen(profile: pro, languages: languages);
       default:
         throw ("ERROR: invalid index");
     }
@@ -312,8 +314,7 @@ class _WrapperScreenState extends State<WrapperScreen> {
                           ),
                     ),
                   ),
-                  _listTile('Chat A', CHAT_INDEX),
-                  _listTile('Chat B', CHATV2_INDEX),
+                  _listTile('Chat', CHAT_INDEX),
                   _listTile('Feed', HOME_INDEX),
                   _listTile('Progress', PROGRESS_INDEX),
                 ],
@@ -355,7 +356,7 @@ class _WrapperScreenState extends State<WrapperScreen> {
           Expanded(
               flex: 1,
               child: Align(
-                  alignment: Alignment.centerRight,
+                  alignment: Alignment.center,
                   child: Text("v$version", style: Theme.of(context).textTheme.headlineSmall))),
         ],
       ),
@@ -365,7 +366,7 @@ class _WrapperScreenState extends State<WrapperScreen> {
   String _titleForIndex(int index) {
     switch (index) {
       case CHAT_INDEX:
-        return "";
+        return _title ?? "";
       case HOME_INDEX:
         return "";
       case PROFILE_INDEX:
@@ -381,8 +382,6 @@ class _WrapperScreenState extends State<WrapperScreen> {
           default:
             throw ("ERROR: invalid progress index");
         }
-      case CHATV2_INDEX:
-        return "";
       default:
         throw ("ERROR: invalid index");
     }
