@@ -13,6 +13,43 @@ class NullDataError implements Exception {
   NullDataError(this.message);
 }
 
+class Activity {
+  String id;
+  String title;
+  String type;
+  String? language;
+  List<Map<String, dynamic>>? goals;
+  String? userPrompt;
+  int? level;
+
+  Activity(
+      {required this.id,
+      required this.title,
+      required this.type,
+      this.language,
+      this.userPrompt,
+      this.goals,
+      this.level});
+
+  factory Activity.fromDocumentSnapshot(DocumentSnapshot snapshot) {
+    Map<String, dynamic>? data = snapshot.data() as Map<String, dynamic>?;
+    if (data == null) {
+      throw NullDataError("Activity.fromDocumentSnapshot: data is null: ${snapshot.id}");
+    }
+    List<Map<String, dynamic>> goals = data.containsKey('goals') ? snapshot['goals'] : null;
+    String? userPrompt = data.containsKey('user_prompt') ? snapshot['user_prompt'] : null;
+    int? level = data.containsKey('level') ? snapshot['level'] : null;
+    return Activity(
+        id: snapshot.id,
+        language: snapshot['language'],
+        title: snapshot['title'],
+        type: snapshot['type'],
+        goals: goals,
+        userPrompt: userPrompt,
+        level: level);
+  }
+}
+
 class Transcript {
   String id;
   List<Message> messages;
