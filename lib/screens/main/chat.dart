@@ -63,12 +63,17 @@ class _ChatScreenState extends State<ChatScreen> {
         return;
       }
       for (var doc in querySnapshot.docs) {
-        Activity a = Activity.fromDocumentSnapshot(doc);
-        print("chat: _activityListener: doc -> activity: ${a.name} ${a.title}");
-        setState(() {
-          _activities.add(a);
-          _activity = a;
-        });
+        try {
+          Activity a = Activity.fromDocumentSnapshot(doc);
+          print("chat: _activityListener: doc -> activity: ${a.name} ${a.title}");
+          setState(() {
+            _activities.add(a);
+            _activity = a;
+          });
+        } catch (e) {
+          print("WARNING chat: _activityListener: failed to parse activity: ${doc.id}");
+          continue;
+        }
       }
     });
     record = Record();
