@@ -94,10 +94,12 @@ class _FeedScreenState extends State<FeedScreen> {
 
   @override
   void dispose() {
+    super.dispose();
     _globalFeedListener.cancel();
     _feedListener.cancel();
     _userFeed.clear();
-    super.dispose();
+    _globalFeed.clear();
+    _globalRead.clear();
   }
 
   void _addToUserFeed(Map<String, Item> userFeed, Map<String, bool> globalRead) {

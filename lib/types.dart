@@ -14,24 +14,12 @@ class NullDataError implements Exception {
 }
 
 class Activity {
-  String id;
   String title;
   String type;
   String name;
-  String? language;
-  List<Map<String, dynamic>>? goals;
-  String? userPrompt;
-  int? level;
+  int level;
 
-  Activity(
-      {required this.id,
-      required this.title,
-      required this.type,
-      required this.name,
-      this.language,
-      this.userPrompt,
-      this.goals,
-      this.level});
+  Activity({required this.title, required this.type, required this.name, required this.level});
 
   factory Activity.fromDocumentSnapshot(DocumentSnapshot snapshot) {
     Map<String, dynamic>? data = snapshot.data() as Map<String, dynamic>?;
@@ -39,8 +27,6 @@ class Activity {
       throw NullDataError("Activity.fromDocumentSnapshot: data is null: ${snapshot.id}");
     }
     print('Activity.data: $data');
-    // TODO parse goals, requires Goals class {title: string, criteria: list[{body: string, points: int > 0}]}
-    List<Map<String, dynamic>> goals = [];
     String? name;
     if (data['type'] == 'lesson') {
       name = snapshot['config']['topic'];
@@ -49,17 +35,11 @@ class Activity {
     } else {
       throw Exception("Activity.fromDocumentSnapshot: unknown activity type: ${snapshot.id}");
     }
-    String? userPrompt = data.containsKey('user_prompt') ? snapshot['user_prompt'] : null;
-    int? level = data.containsKey('level') ? snapshot['level'] : null;
     final Activity act = Activity(
-        id: snapshot.id,
-        language: snapshot['language'],
-        title: snapshot['title'],
+        title: snapshot['translations']['en-US']['title'],
         type: snapshot['type'],
         name: name!,
-        goals: goals,
-        userPrompt: userPrompt,
-        level: level);
+        level: snapshot['config']['level']);
     return act;
   }
 }

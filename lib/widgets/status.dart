@@ -50,8 +50,9 @@ class ConnectionStatus extends StatelessWidget {
     // print('serverStatus: $serverStatus');
     // print('callStatus: $callStatus');
     return Row(
-      mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-      children: [_micIcon(micStatus), _serverIcon(serverStatus), _callIcon(callStatus)],
+      // mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+      mainAxisAlignment: MainAxisAlignment.spaceAround,
+      children: [_micIcon(micStatus), _serverIcon(serverStatus)], //, _callIcon(callStatus)],
     );
   }
 }

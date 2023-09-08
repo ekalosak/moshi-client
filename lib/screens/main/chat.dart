@@ -104,7 +104,7 @@ class _ChatScreenState extends State<ChatScreen> {
     return [
       // Message(Role.ast,
       //     "Then, hold the walkie-talkie button to speak. Let go when you're done speaking. You should feel your phone vibrate when the recording starts."),
-      Message(Role.ast, "Press the call button to get started."),
+      Message(Role.ast, "Press that button to get started."),
       Message(Role.ast, "Would you like to practice ${widget.languages[widget.profile.lang]['language']['name']}?"),
       Message(Role.ast, "Hello, ${widget.profile.name}."),
     ];
@@ -461,6 +461,7 @@ class _ChatScreenState extends State<ChatScreen> {
       loadingBar = LinearProgressIndicator(
         value: progressValue,
         minHeight: loadingHeight,
+        color: Theme.of(context).colorScheme.tertiary,
       );
     } else if (callStatus == CallStatus.ringing || serverStatus == ServerStatus.pending) {
       loadingBar = LinearProgressIndicator(minHeight: loadingHeight);
@@ -481,9 +482,9 @@ class _ChatScreenState extends State<ChatScreen> {
     return Column(children: [
       _progressBar(context),
       Row(children: [
-        Expanded(flex: 2, child: SizedBox()),
+        Expanded(flex: 7, child: SizedBox()),
         Expanded(
-          flex: 3,
+          flex: 2,
           child: ConnectionStatus(
             micStatus: micStatus,
             serverStatus: serverStatus,
@@ -557,7 +558,7 @@ class _ChatScreenState extends State<ChatScreen> {
       backgroundColor: {
         CallStatus.idle: Theme.of(context).colorScheme.tertiary,
         CallStatus.ringing: Theme.of(context).colorScheme.onSurface,
-        CallStatus.inCall: Theme.of(context).colorScheme.primary,
+        CallStatus.inCall: Theme.of(context).colorScheme.secondary,
         CallStatus.error: Theme.of(context).colorScheme.tertiary,
       }[callStatus],
       icon: Icon(
