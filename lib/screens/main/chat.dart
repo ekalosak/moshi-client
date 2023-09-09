@@ -327,6 +327,7 @@ class _ChatScreenState extends State<ChatScreen> {
   /// Acquire audio permissions and record audio to file.
   Future<String?> chatPressed() async {
     print("chat: chatPressed: [START]");
+    await audioPlayer.stop();
     final File audioPath = await _nextUsrAudio(_transcript.id);
     print("chat: audioPath: ${audioPath.path}");
     await record.start(
