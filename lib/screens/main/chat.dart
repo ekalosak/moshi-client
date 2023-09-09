@@ -56,21 +56,21 @@ class _ChatScreenState extends State<ChatScreen> {
         createdAt: Timestamp.now(),
         activityId: 'dne');
     _activityListener = FirebaseFirestore.instance.collection('activities').snapshots().listen((querySnapshot) {
-      print("chat: _activityListener: querySnapshot: ${querySnapshot.docs.length} docs");
+      // print("chat: _activityListener: querySnapshot: ${querySnapshot.docs.length} docs");
       if (querySnapshot.docs.isEmpty) {
-        print("WARNING chat: _activityListener: querySnapshot.docs.length == 0");
+        // print("WARNING chat: _activityListener: querySnapshot.docs.length == 0");
         return;
       }
       for (var doc in querySnapshot.docs) {
         try {
           Activity a = Activity.fromDocumentSnapshot(doc);
-          print("chat: _activityListener: doc -> activity: ${a.name} ${a.title}");
+          // print("chat: _activityListener: doc -> activity: ${a.name} ${a.title}");
           setState(() {
             _activities.add(a);
             _activity = a;
           });
         } catch (e) {
-          print("WARNING chat: _activityListener: failed to parse activity: ${doc.data()}");
+          // print("WARNING chat: _activityListener: failed to parse activity: ${doc.data()}");
           continue;
         }
       }
@@ -94,7 +94,7 @@ class _ChatScreenState extends State<ChatScreen> {
   // Where audio files will be stored on the device.
   Future<Directory> _audioCacheDir() async {
     Directory cacheDir = await getApplicationCacheDirectory();
-    print("chat: _audioCacheDir: cacheDir: $cacheDir");
+    // print("chat: _audioCacheDir: cacheDir: $cacheDir");
     return Directory('${cacheDir.path}/audio/');
   }
 
@@ -119,27 +119,27 @@ class _ChatScreenState extends State<ChatScreen> {
         .doc(tid)
         .snapshots()
         .listen((doc) {
-      print("chat: _transcriptListener: doc.data: ${doc.data()}");
+      // print("chat: _transcriptListener: doc.data: ${doc.data()}");
       Transcript? t;
       try {
         t = Transcript.fromDocumentSnapshot(doc);
-        print("chat: _transcriptListener: ${t.messages.length} messages}");
+        // print("chat: _transcriptListener: ${t.messages.length} messages}");
       } on NullDataError {
-        print("chat: _transcriptListener: NullDataError");
+        // print("chat: _transcriptListener: NullDataError");
       }
       if (t != null) {
         // check if the transcript has any new messages
         // if so, play the audio
         if (_transcript.id == 'dne') {
-          print("chat: _transcriptListener: _transcript is startup instructions, setting it to received value.");
+          // print("chat: _transcriptListener: _transcript is startup instructions, setting it to received value.");
         } else if (t.messages.length > _transcript.messages.length) {
-          print("chat: _transcriptListener: new messages, playing audio if it's AST");
+          // print("chat: _transcriptListener: new messages, playing audio if it's AST");
         } else {
-          print("chat: _transcriptListener: no new messages");
+          // print("chat: _transcriptListener: no new messages");
         }
-        print("chat: _transcriptListener: messages: ${t.messages}");
+        // print("chat: _transcriptListener: messages: ${t.messages}");
         if (t.messages.isNotEmpty) {
-          print("latest message: ${t.messages.first.role} ${t.messages.first.msg}");
+          // print("latest message: ${t.messages.first.role} ${t.messages.first.msg}");
         }
         if (t.messages.isNotEmpty && t.messages.first.role == Role.ast) {
           if (callStatus == CallStatus.inCall) {
@@ -151,7 +151,7 @@ class _ChatScreenState extends State<ChatScreen> {
           _isLoading = false;
         });
       } else {
-        print("WARNING chat: _transcriptListener: t is null; failed to parse");
+        // print("WARNING chat: _transcriptListener: t is null; failed to parse");
       }
     });
   }
@@ -353,7 +353,7 @@ class _ChatScreenState extends State<ChatScreen> {
       }
     });
 
-    print("chat: startMicrophoneRec [END]");
+    // print("chat: startMicrophoneRec [END]");
     setState(() {
       micStatus = MicStatus.on;
       _isRecording = true;
@@ -370,9 +370,9 @@ class _ChatScreenState extends State<ChatScreen> {
       print("WARNING chat: chatReleased: Is not recording, returning...");
       return;
     }
-    print("chat: chatReleased: stopping recording...");
+    // print("chat: chatReleased: stopping recording...");
     String? path = await record.stop();
-    print("chat: chatReleased: stopped recording, path: $path");
+    // print("chat: chatReleased: stopped recording, path: $path");
     setState(() {
       if (micStatus == MicStatus.on) {
         micStatus = MicStatus.muted;
@@ -386,19 +386,19 @@ class _ChatScreenState extends State<ChatScreen> {
       throw ("chat: chatReleased: audio file does not exist: $path");
     }
     await _uploadAudio(_transcript.id, audioFile.path);
-    print("chat: chatReleased: [END]");
+    // print("chat: chatReleased: [END]");
   }
 
   Future<void> _uploadAudio(String transcriptId, String path) async {
     final File audioFile = File(path);
     final String audioName = audioFile.path.split('/').last;
-    print("chat: _uploadAudio: audioName: $audioName");
+    // print("chat: _uploadAudio: audioName: $audioName");
     final Reference audioRef = storage.ref().child('audio/${widget.profile.uid}/$transcriptId/$audioName');
-    print("chat: _uploadAudio: audioRef: $audioRef");
-    print("chat: _uploadAudio: uploading $audioName to $audioRef");
+    // print("chat: _uploadAudio: audioRef: $audioRef");
+    // print("chat: _uploadAudio: uploading $audioName to $audioRef");
     final UploadTask uploadTask = audioRef.putFile(audioFile);
     final TaskSnapshot taskSnapshot = await uploadTask.whenComplete(() => null);
-    print("chat: _uploadAudio: taskSnapshot: $taskSnapshot");
+    // print("chat: _uploadAudio: taskSnapshot: $taskSnapshot");
   }
 
   @override
@@ -496,8 +496,8 @@ class _ChatScreenState extends State<ChatScreen> {
 
   Widget _activitySelector(BuildContext context) {
     List<String> activityNames = _activities.map((a) => a.name).toSet().toList();
-    print("chat: _activitySelector: activityNames: $activityNames");
-    print("chat: _activitySelector: _activity: ${_activity?.title}");
+    // print("chat: _activitySelector: activityNames: $activityNames");
+    // print("chat: _activitySelector: _activity: ${_activity?.title}");
     return DropdownButton<String>(
       value: _activity?.name,
       icon: const Icon(Icons.arrow_downward),
@@ -509,9 +509,9 @@ class _ChatScreenState extends State<ChatScreen> {
         color: Theme.of(context).colorScheme.onSurface,
       ),
       onChanged: (String? newValue) {
-        print("chat: _activitySelector: onChanged: newValue: $newValue");
-        print("chat: _activitySelector: onChanged: _activities: ${_activities.map((a) => a.name).toList()}");
-        print("chat: _activitySelector: onChanged: _activity: ${_activity?.title}");
+        // print("chat: _activitySelector: onChanged: newValue: $newValue");
+        // print("chat: _activitySelector: onChanged: _activities: ${_activities.map((a) => a.name).toList()}");
+        // print("chat: _activitySelector: onChanged: _activity: ${_activity?.title}");
         setState(() {
           _activity = _activities.firstWhere((a) => a.name == newValue);
         });
@@ -611,7 +611,7 @@ class _ChatScreenState extends State<ChatScreen> {
 
   /// Pop up a dialog to ask for feedback.
   Future<void> feedbackAfterCall() async {
-    print("feedbackPressed [START]");
+    // print("feedbackPressed [START]");
     await showDialog(
       context: context,
       builder: (BuildContext context) {
@@ -645,11 +645,11 @@ class _ChatScreenState extends State<ChatScreen> {
         );
       },
     );
-    print("feedbackPressed [END]");
+    // print("feedbackPressed [END]");
   }
 
   Future<void> _sendFeedback(String body) async {
-    print("Sending feedback: $body");
+    // print("Sending feedback: $body");
     DocumentReference transcriptRef = FirebaseFirestore.instance
         .collection('users')
         .doc(widget.profile.uid)

@@ -379,7 +379,7 @@ class _WrapperScreenState extends State<WrapperScreen> {
           case PROG_VOCAB_INDEX:
             return "Vocabulary";
           case PROG_REPORT_INDEX:
-            return "Report Card";
+            return "Stats";
           case PROG_TRANSCRIPTS_INDEX:
             return "Transcripts";
           default:

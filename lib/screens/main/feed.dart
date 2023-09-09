@@ -61,9 +61,9 @@ class _FeedScreenState extends State<FeedScreen> {
       // print("feed: _globalFeedListener: ${event.docs.length} docs");
       final Map<String, Item> globalFeed = {};
       for (var doc in event.docs) {
-        print('HERE');
-        print(doc.id);
-        print(doc.data());
+        // print('HERE');
+        // print(doc.id);
+        // print(doc.data());
         globalFeed[doc.id] = Item.fromDocumentSnapshot(doc);
       }
       if (globalFeed.isNotEmpty) {
@@ -130,7 +130,7 @@ class _FeedScreenState extends State<FeedScreen> {
   void _addToGlobalFeed(Map<String, Item> globalFeed) {
     // print("feed: _addToGlobalFeed: ${globalFeed.length} global feed items");
     Map<String, Item> feed = _globalFeed;
-    print("Adding to global feed: $globalFeed");
+    // print("Adding to global feed: $globalFeed");
     for (var item in globalFeed.entries) {
       feed[item.key] = item.value;
     }
@@ -150,7 +150,7 @@ class _FeedScreenState extends State<FeedScreen> {
       // print("Added item ${item.key} ${item.value.read}");
     }
     List<Item> feed = feedMap.values.toList();
-    print("feed: _buildFeedList: ${feed.length} items");
+    // print("feed: _buildFeedList: ${feed.length} items");
     feed.sort((a, b) => b.timestamp.compareTo(a.timestamp));
     itemBuilder(BuildContext context, int index) {
       Item i = feed[index];
@@ -204,7 +204,7 @@ class _FeedScreenState extends State<FeedScreen> {
                                         .doc(i.id)
                                         .update({'read': true});
                                   } on FirebaseException {
-                                    print("feed: _buildFeedList: onTap: error updating read status");
+                                    // print("feed: _buildFeedList: onTap: error updating read status");
                                   }
                                   if (mounted) {
                                     Navigator.of(context).pop();
