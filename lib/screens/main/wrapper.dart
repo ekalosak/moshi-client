@@ -10,7 +10,7 @@ import 'package:moshi/screens/switch.dart';
 import 'chat.dart';
 import 'feed.dart';
 import 'profile.dart';
-import 'progress.dart';
+import 'transcripts.dart';
 
 const String version = "23.9.1";
 
@@ -175,7 +175,8 @@ class _WrapperScreenState extends State<WrapperScreen> {
       case PROFILE_INDEX:
         return ProfileScreen(profile: pro, languages: languages);
       case PROGRESS_INDEX:
-        return ProgressScreen(profile: pro, languages: languages, index: _progressIndex);
+        // return ProgressScreen(profile: pro, languages: languages, index: _progressIndex);
+        return TranscriptScreen(profile: pro, languages: languages);
       default:
         throw ("ERROR: invalid index");
     }
@@ -326,7 +327,7 @@ class _WrapperScreenState extends State<WrapperScreen> {
                   ),
                   _listTile('Chat', CHAT_INDEX),
                   _listTile('Feed', HOME_INDEX),
-                  _listTile('Progress', PROGRESS_INDEX),
+                  _listTile('Transcripts', PROGRESS_INDEX),
                 ],
               )),
           Expanded(flex: 1, child: Container()),
@@ -398,6 +399,8 @@ class _WrapperScreenState extends State<WrapperScreen> {
   }
 
   Widget? _bottomNavigationBar(int index) {
+    // NOTE DEBUG
+    return null;
     if (_index != PROGRESS_INDEX) {
       return null;
     }

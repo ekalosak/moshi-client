@@ -167,7 +167,7 @@ class _FeedScreenState extends State<FeedScreen> {
                   elevation: 8,
                   margin: EdgeInsets.all(0),
                   color: Theme.of(context).colorScheme.background,
-                  shadowColor: i.read ? Colors.transparent : Theme.of(context).colorScheme.secondary,
+                  shadowColor: i.read ? Theme.of(context).colorScheme.primary : Theme.of(context).colorScheme.secondary,
                   child: ListTile(
                     title: Text(
                       i.title,
