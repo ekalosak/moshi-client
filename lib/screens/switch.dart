@@ -45,6 +45,7 @@ class _SwitchScreenState extends State<SwitchScreen> {
   @override
   Widget build(BuildContext context) {
     // print("switch: SwitchScreen.build");
+    // print("@@ SWITCH BUILD");
     return (user == null) ? LoginScreen() : WrapperScreen(user: user!);
   }
 }

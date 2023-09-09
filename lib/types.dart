@@ -45,7 +45,7 @@ class Activity {
     if (data == null) {
       throw NullDataError("Activity.fromDocumentSnapshot: data is null: ${snapshot.id}");
     }
-    print('Activity.data: $data');
+    // print('Activity.data: $data');
     String? name;
     if (data['type'] == 'lesson') {
       name = snapshot['config']['topic'];

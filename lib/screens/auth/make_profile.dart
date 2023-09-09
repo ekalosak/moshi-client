@@ -153,7 +153,7 @@ class _MakeProfileScreenState extends State<MakeProfileScreen> {
         size: Theme.of(context).textTheme.headlineSmall!.fontSize,
         color: Theme.of(context).colorScheme.onPrimary,
       ),
-      backgroundColor: (isLoading) ? Colors.grey : Theme.of(context).colorScheme.primary,
+      backgroundColor: (isLoading) ? Colors.grey : Theme.of(context).colorScheme.secondary,
       onPressed: () async {
         if (isLoading) {
           return;
@@ -170,6 +170,7 @@ class _MakeProfileScreenState extends State<MakeProfileScreen> {
         });
         if (err == null) {
           if (mounted) {
+            // print("@@ REROUTING TO SWITCH SCREEN");
             Navigator.of(context)
                 .pushAndRemoveUntil(MaterialPageRoute(builder: (context) => SwitchScreen()), (route) => false);
           }

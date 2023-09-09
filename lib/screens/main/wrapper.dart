@@ -48,8 +48,13 @@ class _WrapperScreenState extends State<WrapperScreen> {
     _profileListener = FirebaseFirestore.instance
         .collection('users')
         .doc(widget.user.uid)
-        .snapshots()
+        .snapshots(includeMetadataChanges: true)
         .listen((DocumentSnapshot snapshot) {
+      // print("@@ WRAPPER PROFILE LISTENER");
+      // print("from cache: ${snapshot.metadata.isFromCache}");
+      // print("exists: ${snapshot.exists}");
+      // print("data:");
+      // print(snapshot.data());
       if (snapshot.exists && snapshot.data() != null) {
         // print("wrapper: User profile exists and is not empty.");
         Map<String, dynamic> data = snapshot.data() as Map<String, dynamic>;
@@ -64,9 +69,11 @@ class _WrapperScreenState extends State<WrapperScreen> {
           );
         });
       } else {
-        // print("wrapper: User profile doesn't exist or is empty.");
-        Navigator.pushAndRemoveUntil(
-            context, MaterialPageRoute(builder: (context) => MakeProfileScreen(user: widget.user)), (route) => false);
+        if (!snapshot.metadata.isFromCache) {
+          // print("@@ REROUTING TO MAKE PROFILE");
+          Navigator.pushAndRemoveUntil(
+              context, MaterialPageRoute(builder: (context) => MakeProfileScreen(user: widget.user)), (route) => false);
+        }
       }
     });
     _supportedLangsListener = FirebaseFirestore.instance

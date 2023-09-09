@@ -153,7 +153,7 @@ class _SignUpScreenState extends State<SignUpScreen> {
         size: Theme.of(context).textTheme.headlineSmall!.fontSize,
         color: Theme.of(context).colorScheme.onPrimary,
       ),
-      backgroundColor: Theme.of(context).colorScheme.primary,
+      backgroundColor: Theme.of(context).colorScheme.secondary,
       onPressed: () {
         _signUp().then((err) {
           String msg = err ?? "✅ Account created!\n📧 Please check your email to verify your account.";

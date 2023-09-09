@@ -115,7 +115,7 @@ class _LoginScreenState extends State<LoginScreen> {
                           color: Theme.of(context).colorScheme.onPrimary,
                           size: Theme.of(context).textTheme.headlineSmall!.fontSize,
                         ),
-                        backgroundColor: Theme.of(context).colorScheme.primary,
+                        backgroundColor: Theme.of(context).colorScheme.secondary,
                         onPressed: () async {
                           // print("login: onPressed");
                           String? err = await loginWithEmailPassword();
@@ -152,6 +152,7 @@ class _LoginScreenState extends State<LoginScreen> {
                           size: Theme.of(context).textTheme.headlineSmall!.fontSize,
                           color: Theme.of(context).colorScheme.onSecondary,
                         ),
+                        backgroundColor: Theme.of(context).colorScheme.primary,
                         onPressed: () {
                           Navigator.of(context).push(
                             MaterialPageRoute(
@@ -172,6 +173,7 @@ class _LoginScreenState extends State<LoginScreen> {
                           size: Theme.of(context).textTheme.headlineSmall!.fontSize,
                           color: Theme.of(context).colorScheme.onSecondary,
                         ),
+                        backgroundColor: Theme.of(context).colorScheme.primary,
                         onPressed: () {
                           Navigator.of(context).push(
                             MaterialPageRoute(
