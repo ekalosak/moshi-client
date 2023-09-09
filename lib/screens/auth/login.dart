@@ -24,14 +24,14 @@ class _LoginScreenState extends State<LoginScreen> {
     String? err;
     String defaultError = '😵 An error occurred. Please try again later.';
     try {
-      UserCredential credentials = await FirebaseAuth.instance.signInWithEmailAndPassword(
+      await FirebaseAuth.instance.signInWithEmailAndPassword(
         email: emailController.text,
         password: passwordController.text,
       );
-      print(credentials.user!.getIdToken());
+      // print(credentials.user!.getIdToken());
     } on FirebaseAuthException catch (e) {
-      print("FirebaseAuthException: $e");
-      print("FirebaseAuthException.code: ${e.code}");
+      // print("FirebaseAuthException: $e");
+      // print("FirebaseAuthException.code: ${e.code}");
       if (e.code == 'user-not-found') {
         err = '🥸 No user found for that email.\n😄 Why not sign up?';
       } else if (e.code == 'wrong-password') {
@@ -44,16 +44,16 @@ class _LoginScreenState extends State<LoginScreen> {
         } else if (e.toString().contains('auth/wrong-password')) {
           err = '🙅 Wrong password.';
         } else {
-          print("Nonspecific FirebaseAuthException: $e");
+          // print("Nonspecific FirebaseAuthException: $e");
           err = defaultError;
         }
       } else {
-        print("Nonspecific Exception: $e");
+        // print("Nonspecific Exception: $e");
         err = defaultError;
       }
     } catch (e) {
-      print("Unknown error");
-      print(e);
+      // print("Unknown error");
+      // print(e);
       err = defaultError;
     }
     return err;
@@ -117,7 +117,7 @@ class _LoginScreenState extends State<LoginScreen> {
                         ),
                         backgroundColor: Theme.of(context).colorScheme.primary,
                         onPressed: () async {
-                          print("login: onPressed");
+                          // print("login: onPressed");
                           String? err = await loginWithEmailPassword();
                           if (err != null) {
                             WidgetsBinding.instance.addPostFrameCallback((_) {

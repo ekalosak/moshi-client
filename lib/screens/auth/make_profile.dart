@@ -38,7 +38,7 @@ class _MakeProfileScreenState extends State<MakeProfileScreen> {
     try {
       return languages[lang]['country']['flag'];
     } catch (e) {
-      print(e);
+      // print(e);
       return '';
     }
   }
@@ -47,8 +47,8 @@ class _MakeProfileScreenState extends State<MakeProfileScreen> {
     try {
       return languages[lang]['language']['full_name'];
     } catch (e) {
-      print(e);
-      return '';
+      // print(e);
+      return lang;
     }
   }
 
@@ -94,8 +94,8 @@ class _MakeProfileScreenState extends State<MakeProfileScreen> {
     List<String> languageCodes = languages.keys.toList();
     // sort the language codes
     languageCodes.sort((a, b) => getLangName(a).compareTo(getLangName(b)));
-    print("make_profile languageCodes.length: ${languageCodes.length}");
-    print("make_profile unique languageCodes.length: ${languageCodes.toSet().toList().length}");
+    // print("make_profile languageCodes.length: ${languageCodes.length}");
+    // print("make_profile unique languageCodes.length: ${languageCodes.toSet().toList().length}");
     // int rand1 = Random().nextInt(languageCodes.length);
     int rand2 = Random().nextInt(languageCodes.length);
     firstLang = firstLang ?? "en-US";
@@ -262,21 +262,21 @@ class _MakeProfileScreenState extends State<MakeProfileScreen> {
 // Create a new profile for the user in Firestore.
 Future<String?> _createUserFirestore(String uid, String name, String lang1, String lang2) async {
   String? err;
-  print("make_profile: CALLING FUNCTION CREATE USER");
+  // print("make_profile: CALLING FUNCTION CREATE USER");
   try {
-    final result = await FirebaseFunctions.instance
+    await FirebaseFunctions.instance
         .httpsCallable('create_user')
         .call({'uid': uid, 'name': name, 'language': lang2, 'native_language': lang1});
-    print("make_profile: CALLED FUNCTION CREATE USER");
-    print("make_profile: FUNCTION RESULT: ${result.data}");
+    // print("make_profile: CALLED FUNCTION CREATE USER");
+    // print("make_profile: FUNCTION RESULT: ${result.data}");
     // This userDoc get updates the local cache of the user's profile. If we don't do this, the user's profile will be empty and the wrapper will redirect to the make_profile page again.
-    DocumentSnapshot userDoc = await FirebaseFirestore.instance.collection('users').doc(uid).get();
-    print("make_profile: userDoc.data(): ${userDoc.data()}");
+    // DocumentSnapshot userDoc = await FirebaseFirestore.instance.collection('users').doc(uid).get();
+    // print("make_profile: userDoc.data(): ${userDoc.data()}");
   } catch (e) {
-    print("ERROR CALLING FUNCTION CREATE USER");
-    print(e);
+    // print("ERROR CALLING FUNCTION CREATE USER");
+    // print(e);
     if (e is FirebaseFunctionsException) {
-      print(e.message);
+      // print(e.message);
       if (e.code != 'already-exists') {
         // Pass because it doesn't matter, the main page will load as long as there's a user.
         err = e.message;

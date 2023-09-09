@@ -14,7 +14,7 @@ class SignUpScreen extends StatefulWidget {
 // Prompt user for email and password, create user in Firebase Auth.
 Future<String?> _signUpWithEmailAndPassword(String email, String password) async {
   String? err;
-  print("_signUpWithEmailAndPassword");
+  // print("_signUpWithEmailAndPassword");
   try {
     UserCredential userCredential = await FirebaseAuth.instance.createUserWithEmailAndPassword(
       email: email,
@@ -23,10 +23,10 @@ Future<String?> _signUpWithEmailAndPassword(String email, String password) async
     final user = userCredential.user;
     await user?.sendEmailVerification();
   } on FirebaseAuthException catch (e) {
-    print("FirebaseAuthException");
-    print(e);
-    print("FirebaseAuthException.code");
-    print(e.code);
+    // print("FirebaseAuthException");
+    // print(e);
+    // print("FirebaseAuthException.code");
+    // print(e.code);
     err = 'An error occurred. Please try again later.';
     if (e.code == 'weak-password') {
       err = 'The password provided is too weak.';
@@ -44,8 +44,8 @@ Future<String?> _signUpWithEmailAndPassword(String email, String password) async
       }
     }
   } catch (e) {
-    print("Unknown error");
-    print(e);
+    // print("Unknown error");
+    // print(e);
     err = 'An error occurred. Please try again later.';
   }
   return err;

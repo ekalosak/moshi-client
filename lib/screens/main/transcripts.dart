@@ -40,7 +40,6 @@ class _TranscriptScreenState extends State<TranscriptScreen> {
         final List<Transcript> ts = [];
         for (var doc in event.docs) {
           print("TranscriptScreen._transcriptListener: doc.id: ${doc.id}");
-          print(doc.data());
           final Transcript t;
           try {
             t = Transcript.fromDocumentSnapshot(doc);

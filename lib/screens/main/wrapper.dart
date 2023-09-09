@@ -36,7 +36,7 @@ const int PROG_TRANSCRIPTS_INDEX = 2;
 class _WrapperScreenState extends State<WrapperScreen> {
   Profile? profile;
   String? _title;
-  int _index = PROGRESS_INDEX;
+  int _index = HOME_INDEX;
   int _progressIndex = PROG_TRANSCRIPTS_INDEX;
   Map<String, dynamic> languages = {};
   late StreamSubscription _profileListener;

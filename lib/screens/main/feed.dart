@@ -27,7 +27,7 @@ class Item {
 
   factory Item.fromDocumentSnapshot(DocumentSnapshot doc) {
     Map<String, dynamic> data = doc.data() as Map<String, dynamic>;
-    print("feed: Item.fromDocumentSnapshot: data: ${data.keys}");
+    // print("feed: Item.fromDocumentSnapshot: data: ${data.keys}");
     return Item(
       title: data.containsKey('title') ? data['title'] : '',
       subtitle: data.containsKey('subtitle') ? data['subtitle'] : '',
@@ -58,9 +58,12 @@ class _FeedScreenState extends State<FeedScreen> {
   void initState() {
     super.initState();
     _globalFeedListener = FirebaseFirestore.instance.collection('feed').snapshots().listen((event) {
-      print("feed: _globalFeedListener: ${event.docs.length} docs");
+      // print("feed: _globalFeedListener: ${event.docs.length} docs");
       final Map<String, Item> globalFeed = {};
       for (var doc in event.docs) {
+        print('HERE');
+        print(doc.id);
+        print(doc.data());
         globalFeed[doc.id] = Item.fromDocumentSnapshot(doc);
       }
       if (globalFeed.isNotEmpty) {
@@ -73,16 +76,19 @@ class _FeedScreenState extends State<FeedScreen> {
         .collection('feed')
         .snapshots()
         .listen((event) {
-      print("feed: feedListener: ${event.docs.length} docs");
+      // print("feed: feedListener: ${event.docs.length} docs");
       final Map<String, Item> userFeed = {};
       final Map<String, bool> globalRead = {};
       for (var doc in event.docs) {
         Map<String, dynamic> data = doc.data();
+        // print(data);
         if (data.containsKey('global')) {
+          // print("GLOBAL");
           globalRead[doc.id] = data['read'];
         } else {
+          // print("USER");
           final Item item = Item.fromDocumentSnapshot(doc);
-          print("feed: feedListener: item: ${item.id} ${item.read}");
+          // print("feed: feedListener: item: ${item.id} ${item.read}");
           userFeed[item.id] = item;
         }
       }
@@ -103,16 +109,16 @@ class _FeedScreenState extends State<FeedScreen> {
   }
 
   void _addToUserFeed(Map<String, Item> userFeed, Map<String, bool> globalRead) {
-    print("feed: _addToUserFeed: ${userFeed.length} user feed items");
-    print("feed: _addToUserFeed: ${globalRead.length} global read items");
+    // print("feed: _addToUserFeed: ${userFeed.length} user feed items");
+    // print("feed: _addToUserFeed: ${globalRead.length} global read items");
     Map<String, Item> feed = _userFeed;
     Map<String, bool> read = _globalRead;
     for (var item in userFeed.entries) {
-      print("feed: _addToUserFeed: user: ${item.key} ${item.value.read}");
+      // print("feed: _addToUserFeed: user: ${item.key} ${item.value.read}");
       feed[item.key] = item.value;
     }
     for (var item in globalRead.entries) {
-      print("feed: _addToUserFeed: global: ${item.key} ${item.value}");
+      // print("feed: _addToUserFeed: global: ${item.key} ${item.value}");
       read[item.key] = item.value;
     }
     setState(() {
@@ -122,8 +128,9 @@ class _FeedScreenState extends State<FeedScreen> {
   }
 
   void _addToGlobalFeed(Map<String, Item> globalFeed) {
-    print("feed: _addToGlobalFeed: ${globalFeed.length} global feed items");
+    // print("feed: _addToGlobalFeed: ${globalFeed.length} global feed items");
     Map<String, Item> feed = _globalFeed;
+    print("Adding to global feed: $globalFeed");
     for (var item in globalFeed.entries) {
       feed[item.key] = item.value;
     }
@@ -133,15 +140,17 @@ class _FeedScreenState extends State<FeedScreen> {
   }
 
   Widget _buildFeedList() {
-    print("feed: _buildFeedList");
+    // print("feed: _buildFeedList");
     Map<String, Item> feedMap = _userFeed;
     for (var item in _globalFeed.entries) {
       if (_globalRead.containsKey(item.key)) {
         item.value.read = _globalRead[item.key] ?? true;
       }
       feedMap[item.key] = item.value;
+      // print("Added item ${item.key} ${item.value.read}");
     }
     List<Item> feed = feedMap.values.toList();
+    print("feed: _buildFeedList: ${feed.length} items");
     feed.sort((a, b) => b.timestamp.compareTo(a.timestamp));
     itemBuilder(BuildContext context, int index) {
       Item i = feed[index];
@@ -186,13 +195,17 @@ class _FeedScreenState extends State<FeedScreen> {
                             actions: [
                               TextButton(
                                 onPressed: () async {
-                                  print("feed: _buildFeedList: onTap: ${i.id}");
-                                  await FirebaseFirestore.instance
-                                      .collection('users')
-                                      .doc(widget.profile.uid)
-                                      .collection('feed')
-                                      .doc(i.id)
-                                      .update({'read': true});
+                                  // print("feed: _buildFeedList: onTap: ${i.id}");
+                                  try {
+                                    await FirebaseFirestore.instance
+                                        .collection('users')
+                                        .doc(widget.profile.uid)
+                                        .collection('feed')
+                                        .doc(i.id)
+                                        .update({'read': true});
+                                  } on FirebaseException {
+                                    print("feed: _buildFeedList: onTap: error updating read status");
+                                  }
                                   if (mounted) {
                                     Navigator.of(context).pop();
                                   }
