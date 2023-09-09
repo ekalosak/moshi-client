@@ -51,7 +51,7 @@ class _WrapperScreenState extends State<WrapperScreen> {
         .snapshots()
         .listen((DocumentSnapshot snapshot) {
       if (snapshot.exists && snapshot.data() != null) {
-        print("wrapper: User profile exists and is not empty.");
+        // print("wrapper: User profile exists and is not empty.");
         Map<String, dynamic> data = snapshot.data() as Map<String, dynamic>;
         int level = data.containsKey('level') ? snapshot['level'] : 1;
         setState(() {
@@ -64,7 +64,7 @@ class _WrapperScreenState extends State<WrapperScreen> {
           );
         });
       } else {
-        print("wrapper: User profile doesn't exist or is empty.");
+        // print("wrapper: User profile doesn't exist or is empty.");
         Navigator.pushAndRemoveUntil(
             context, MaterialPageRoute(builder: (context) => MakeProfileScreen(user: widget.user)), (route) => false);
       }
@@ -75,12 +75,12 @@ class _WrapperScreenState extends State<WrapperScreen> {
         .snapshots()
         .listen((DocumentSnapshot snapshot) {
       if (snapshot.exists && snapshot.data() != null) {
-        print("wrapper: config/languages exists and isn't empty.");
+        // print("wrapper: config/languages exists and isn't empty.");
         setState(() {
           languages = snapshot.data() as Map<String, dynamic>;
         });
       } else {
-        print("wrapper: config/languages doesn't exist or is empty: ${snapshot.exists} ${snapshot.data()}");
+        // print("wrapper: config/languages doesn't exist or is empty: ${snapshot.exists} ${snapshot.data()}");
       }
     });
   }
@@ -100,20 +100,20 @@ class _WrapperScreenState extends State<WrapperScreen> {
 
   @override
   Widget build(BuildContext context) {
-    print("wrapper: WrapperScreen.build");
+    // print("wrapper: WrapperScreen.build");
     if (FirebaseAuth.instance.currentUser == null) {
-      print("wrapper: FirebaseAuth.instance.currentUser == null");
+      // print("wrapper: FirebaseAuth.instance.currentUser == null");
       Navigator.of(context).pop();
     }
     if (profile == null || languages.isEmpty) {
-      print("wrapper: profile == null: ${profile == null}");
-      print("wrapper: languages.isEmpty: ${languages.isEmpty}");
+      // print("wrapper: profile == null: ${profile == null}");
+      // print("wrapper: languages.isEmpty: ${languages.isEmpty}");
       return Center(
         child: CircularProgressIndicator(),
       );
     } else {
-      print("wrapper: profile: ${profile?.name} ${profile?.uid}");
-      print("wrapper: languages: ${languages.keys.toList().sublist(0, 5)}...");
+      // print("wrapper: profile: ${profile?.name} ${profile?.uid}");
+      // print("wrapper: languages: ${languages.keys.toList().sublist(0, 5)}...");
       return _buildScaffold(profile!, languages);
     }
   }
@@ -122,7 +122,7 @@ class _WrapperScreenState extends State<WrapperScreen> {
     try {
       return languages[lang]['country']['flag'];
     } catch (e) {
-      print("ERROR wrapper: getLangEmoji: $e");
+      // print("ERROR wrapper: getLangEmoji: $e");
       return lang;
     }
   }
@@ -228,7 +228,7 @@ class _WrapperScreenState extends State<WrapperScreen> {
                         Navigator.pop(context);
                       }
                     } else {
-                      print("ERROR: $err");
+                      // print("ERROR: $err");
                       WidgetsBinding.instance.addPostFrameCallback((_) {
                         ScaffoldMessenger.of(context).showSnackBar(
                           SnackBar(content: Text("Whoops! Couldn't update your language. Please try again later.")),

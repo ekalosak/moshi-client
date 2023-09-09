@@ -19,16 +19,16 @@ class _SwitchScreenState extends State<SwitchScreen> {
   void initState() {
     super.initState();
     _userListener = FirebaseAuth.instance.authStateChanges().listen((User? user) {
-      print("switch: authStateChanges: $user");
+      // print("switch: authStateChanges: $user");
       if (user == null) {
-        print('switch: User is currently signed out.');
+        // print('switch: User is currently signed out.');
       } else {
         if (user.emailVerified) {
-          print('switch: User is signed in.');
+          // print('switch: User is signed in.');
         } else {
-          print('switch: User is signed in but email is not verified.');
+          // print('switch: User is signed in but email is not verified.');
         }
-        print('switch: User: ${user.uid}');
+        // print('switch: User: ${user.uid}');
       }
       setState(() {
         this.user = user;
@@ -44,7 +44,7 @@ class _SwitchScreenState extends State<SwitchScreen> {
 
   @override
   Widget build(BuildContext context) {
-    print("switch: SwitchScreen.build");
+    // print("switch: SwitchScreen.build");
     return (user == null) ? LoginScreen() : WrapperScreen(user: user!);
   }
 }
