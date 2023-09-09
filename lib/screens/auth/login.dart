@@ -33,7 +33,7 @@ class _LoginScreenState extends State<LoginScreen> {
       // print("FirebaseAuthException: $e");
       // print("FirebaseAuthException.code: ${e.code}");
       if (e.code == 'user-not-found') {
-        err = '🥸 No user found for that email.\n😄 Why not sign up?';
+        err = '🥸 No user found for that email.\n🤗 Why not sign up?';
       } else if (e.code == 'wrong-password') {
         err = '🙅 Wrong password.';
       } else if (e.code == 'too-many-requests') {
@@ -122,7 +122,12 @@ class _LoginScreenState extends State<LoginScreen> {
                           if (err != null) {
                             WidgetsBinding.instance.addPostFrameCallback((_) {
                               ScaffoldMessenger.of(context).showSnackBar(
-                                SnackBar(content: Text(err)),
+                                SnackBar(
+                                    content: Text(err,
+                                        style: Theme.of(context)
+                                            .textTheme
+                                            .bodyMedium
+                                            ?.copyWith(color: Theme.of(context).colorScheme.background))),
                               );
                             });
                           } else if (mounted) {

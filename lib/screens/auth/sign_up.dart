@@ -156,21 +156,15 @@ class _SignUpScreenState extends State<SignUpScreen> {
       backgroundColor: Theme.of(context).colorScheme.primary,
       onPressed: () {
         _signUp().then((err) {
-          if (err == null) {
-            ScaffoldMessenger.of(context).showSnackBar(
-              SnackBar(
-                content: Text("✅ Account created!\n📧 Please check your email to verify your account."),
-                backgroundColor: Theme.of(context).colorScheme.primary,
-              ),
-            );
-            // Once this exits and the user is logged in, they will be redirected to the profile creation page via home -> main -> profile doesn't exist -> profile creation
-          } else {
-            WidgetsBinding.instance.addPostFrameCallback((_) {
-              ScaffoldMessenger.of(context).showSnackBar(
-                SnackBar(content: Text(err)),
-              );
-            });
-          }
+          String msg = err ?? "✅ Account created!\n📧 Please check your email to verify your account.";
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text(msg,
+                  style:
+                      Theme.of(context).textTheme.bodyLarge?.copyWith(color: Theme.of(context).colorScheme.background)),
+            ),
+          );
+          // Once this exits and the user is logged in, they will be redirected to the profile creation page via home -> main -> profile doesn't exist -> profile creation
         });
       });
 }

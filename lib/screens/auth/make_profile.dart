@@ -160,8 +160,13 @@ class _MakeProfileScreenState extends State<MakeProfileScreen> {
         }
         String? err = await _createUser();
         WidgetsBinding.instance.addPostFrameCallback((_) {
-          ScaffoldMessenger.of(context).showSnackBar(
-              (err == null) ? SnackBar(content: Text("✅ Profile created!")) : SnackBar(content: Text("❌ $err")));
+          String msg = (err == null) ? "✅ Profile created!" : "❌ $err";
+          ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+              content: Text(msg,
+                  style: Theme.of(context)
+                      .textTheme
+                      .bodyLarge
+                      ?.copyWith(color: Theme.of(context).colorScheme.background))));
         });
         if (err == null) {
           if (mounted) {
