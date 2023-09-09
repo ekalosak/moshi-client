@@ -8,6 +8,19 @@ enum Role {
   sys,
 }
 
+Role parseRole(String rs) {
+  switch (rs) {
+    case 'user':
+      return Role.usr;
+    case 'assistant':
+      return Role.ast;
+    case 'system':
+      return Role.sys;
+    default:
+      throw Exception("parseRole: unknown role: $rs");
+  }
+}
+
 class NullDataError implements Exception {
   final String message;
   NullDataError(this.message);
@@ -105,6 +118,7 @@ class Message {
   Audio? audio;
   Timestamp? createdAt;
   String? translation;
+  bool played = false;
   // Message(this.role, this.msg, this.audio, this.createdAt, this.translation);
   Message(this.role, this.msg, {this.audio, this.createdAt, this.translation});
 
@@ -113,7 +127,7 @@ class Message {
   /// - an exception if the string is not a valid Message;
   /// - an exception if the keys 'role' or 'content' are missing.
   factory Message.fromMap(Map<String, dynamic> map) {
-    Role role = Role.values.firstWhere((e) => e.toString() == 'Role.${map["role"]}');
+    Role role = parseRole(map['role']);
     String msg = map['body'];
     Audio audio = Audio.fromMap(map['audio']);
     Timestamp createdAt = map['created_at'];

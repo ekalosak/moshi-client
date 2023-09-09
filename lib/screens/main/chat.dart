@@ -143,8 +143,12 @@ class _ChatScreenState extends State<ChatScreen> {
           print("latest message: ${t.messages.first.role} ${t.messages.first.msg}");
         }
         if (t.messages.isNotEmpty && t.messages.first.role == Role.ast) {
-          print("chat: _transcriptListener: playing AST audio");
-          _playAudioFromMessage(t.messages.first);
+          if (!t.messages.first.played) {
+            print("chat: _transcriptListener: playing AST audio");
+            _playAudioFromMessage(t.messages.first);
+          } else {
+            print("chat: _transcriptListener: AST audio already played");
+          }
         }
         setState(() {
           _transcript = t!;
@@ -274,6 +278,7 @@ class _ChatScreenState extends State<ChatScreen> {
     print("chat: _playAstAudio: [START]");
     File astAudio = await _downloadAudio(msg.audio);
     await audioPlayer.play(DeviceFileSource(astAudio.path));
+    msg.played = true;
     setState(() {
       _isLoading = false;
     });
@@ -288,7 +293,7 @@ class _ChatScreenState extends State<ChatScreen> {
     }
     final Directory audioCacheDir = await _audioCacheDir();
     final String audioName = audio.path.split('/').last;
-    final File audioFile = File('${audioCacheDir.path}/$audioName');
+    final File audioFile = File('${audioCacheDir.path}${_transcript.id}/$audioName');
     if (await audioFile.exists()) {
       print("chat: _downloadAudio: audio file already exists: $audioFile");
       return audioFile;
@@ -423,9 +428,6 @@ class _ChatScreenState extends State<ChatScreen> {
 
   /// The bottom row of buttons.
   Row _bottomButtons(BuildContext context) {
-    final Widget holdToChatButton = _holdToChatButton(context);
-    final Widget callButton = _callButton(context);
-    final Widget activitySelector = _activitySelector(context);
     return Row(children: [
       Flexible(
           flex: 3,
@@ -434,7 +436,7 @@ class _ChatScreenState extends State<ChatScreen> {
               child: FractionallySizedBox(
                 widthFactor: 0.8,
                 heightFactor: 0.65,
-                child: callButton,
+                child: _callButton(context),
               ))),
       Flexible(
         flex: 4,
@@ -444,9 +446,9 @@ class _ChatScreenState extends State<ChatScreen> {
               ? FractionallySizedBox(
                   widthFactor: 0.8,
                   heightFactor: 0.65,
-                  child: holdToChatButton,
+                  child: _holdToChatButton(context),
                 )
-              : activitySelector,
+              : _activitySelector(context),
         ),
       ),
     ]);
