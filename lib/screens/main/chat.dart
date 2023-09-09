@@ -103,6 +103,7 @@ class _ChatScreenState extends State<ChatScreen> {
     return [
       // Message(Role.ast,
       //     "Then, hold the walkie-talkie button to speak. Let go when you're done speaking. You should feel your phone vibrate when the recording starts."),
+      // Message(Role.ast, "Don't worry if it's a bit overwhelming at first. As we practice, we'll learn to focus in on vocabulary, grammar, and other language skills that are appropriate for you."),
       Message(Role.ast, "Press that button to get started."),
       Message(Role.ast, "Would you like to practice ${widget.languages[widget.profile.lang]['language']['name']}?"),
       Message(Role.ast, "Hello, ${widget.profile.name}."),
@@ -145,10 +146,12 @@ class _ChatScreenState extends State<ChatScreen> {
           if (callStatus == CallStatus.inCall) {
             _playAudioFromMessage(t.messages.first);
           }
+          setState(() {
+            _isLoading = false;
+          });
         }
         setState(() {
           _transcript = t!;
-          _isLoading = false;
         });
       } else {
         // print("WARNING chat: _transcriptListener: t is null; failed to parse");
