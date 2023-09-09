@@ -12,9 +12,15 @@ Role parseRole(String rs) {
   switch (rs) {
     case 'user':
       return Role.usr;
+    case 'usr':
+      return Role.usr;
     case 'assistant':
       return Role.ast;
+    case 'ast':
+      return Role.ast;
     case 'system':
+      return Role.sys;
+    case 'sys':
       return Role.sys;
     default:
       throw Exception("parseRole: unknown role: $rs");

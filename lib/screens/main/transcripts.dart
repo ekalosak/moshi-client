@@ -31,25 +31,28 @@ class _TranscriptScreenState extends State<TranscriptScreen> {
         .collection('users')
         .doc(widget.profile.uid)
         .collection('transcripts')
-        .orderBy('created_at', descending: true)
+        .orderBy('created_at', descending: false)
         .limitToLast(16)
         .snapshots()
         .listen((event) {
       if (event.size > 0) {
+        print("TranscriptScreen._transcriptListener: event.size: ${event.size}");
         final List<Transcript> ts = [];
         for (var doc in event.docs) {
+          print("TranscriptScreen._transcriptListener: doc.id: ${doc.id}");
+          print(doc.data());
           final Transcript t;
           try {
             t = Transcript.fromDocumentSnapshot(doc);
           } on NullDataError {
+            print("TranscriptScreen._transcriptListener: NullDataError: ${doc.id}");
+            print(doc.data());
             continue;
           }
           ts.add(t);
         }
         if (ts.isNotEmpty) {
-          if (mounted) {
-            _addTranscripts(ts);
-          }
+          _addTranscripts(ts);
         }
       } else {
         setState(() {

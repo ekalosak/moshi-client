@@ -71,7 +71,7 @@ class _ChatScreenState extends State<ChatScreen> {
             _activity = a;
           });
         } catch (e) {
-          print("WARNING chat: _activityListener: failed to parse activity: ${doc.id}");
+          print("WARNING chat: _activityListener: failed to parse activity: ${doc.data()}");
           continue;
         }
       }
