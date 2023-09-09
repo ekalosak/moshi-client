@@ -171,6 +171,7 @@ class MsgBox extends StatelessWidget {
                         context: context,
                         builder: (BuildContext context) {
                           return AlertDialog(
+                            scrollable: true,
                             title: Text("Translation",
                                 style: Theme.of(context).textTheme.headlineSmall?.copyWith(
                                       color: Theme.of(context).colorScheme.primary,

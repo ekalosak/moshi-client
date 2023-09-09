@@ -23,7 +23,7 @@ class _TranscriptScreenState extends State<TranscriptScreen> {
 
   @override
   void initState() {
-    print("TranscriptScreen.initState");
+    // print("TranscriptScreen.initState");
     super.initState();
     // listen for transcript documents with this user's uid in the uid field.
     // the transcript documents have their own unique document id.
@@ -36,16 +36,16 @@ class _TranscriptScreenState extends State<TranscriptScreen> {
         .snapshots()
         .listen((event) {
       if (event.size > 0) {
-        print("TranscriptScreen._transcriptListener: event.size: ${event.size}");
+        // print("TranscriptScreen._transcriptListener: event.size: ${event.size}");
         final List<Transcript> ts = [];
         for (var doc in event.docs) {
-          print("TranscriptScreen._transcriptListener: doc.id: ${doc.id}");
+          // print("TranscriptScreen._transcriptListener: doc.id: ${doc.id}");
           final Transcript t;
           try {
             t = Transcript.fromDocumentSnapshot(doc);
           } on NullDataError {
-            print("TranscriptScreen._transcriptListener: NullDataError: ${doc.id}");
-            print(doc.data());
+            // print("TranscriptScreen._transcriptListener: NullDataError: ${doc.id}");
+            // print(doc.data());
             continue;
           }
           ts.add(t);
@@ -63,14 +63,14 @@ class _TranscriptScreenState extends State<TranscriptScreen> {
 
   @override
   void dispose() {
-    print("TranscriptScreen.dispose");
+    // print("TranscriptScreen.dispose");
     _transcriptListener.cancel();
     _transcripts?.clear();
     super.dispose();
   }
 
   void _addTranscripts(List<Transcript> ts) {
-    print("_addTranscripts");
+    // print("_addTranscripts");
     List<Transcript> transcripts = _transcripts ?? [];
     for (var t in ts) {
       // add transcript only if the tid doesn't match any existing transcript and if it has non-sys messages
@@ -86,7 +86,7 @@ class _TranscriptScreenState extends State<TranscriptScreen> {
 
   /// Build the list of transcripts to display.
   Widget _buildTranscriptList() {
-    print("_buildTranscriptList");
+    // print("_buildTranscriptList");
     List<Transcript> transcripts = _transcripts!;
     itemBuilder(BuildContext context, int index) {
       Transcript t = transcripts[index];
@@ -120,7 +120,7 @@ class _TranscriptScreenState extends State<TranscriptScreen> {
 
   @override
   Widget build(BuildContext context) {
-    print("TranscriptScreen.build");
+    // print("TranscriptScreen.build");
     if (_transcripts == null) {
       return Center(child: CircularProgressIndicator());
     } else {
@@ -130,14 +130,14 @@ class _TranscriptScreenState extends State<TranscriptScreen> {
 
   Scaffold _chatScaffold(Transcript transcript) {
     // print(transcript.id);
-    print("_chatScaffold: transcript.id: ${transcript.id}");
+    // print("_chatScaffold: transcript.id: ${transcript.id}");
     List<Message> msgs = [];
     for (var msg in transcript.messages) {
       if (msg.role != Role.sys) {
         msgs.add(msg);
       }
     }
-    print("_chatScaffold: summary: ${transcript.summary}");
+    // print("_chatScaffold: summary: ${transcript.summary}");
     String title = transcript.summary ?? transcript.createdAt.toDate().toString().substring(0, 16);
     return Scaffold(
       appBar: AppBar(

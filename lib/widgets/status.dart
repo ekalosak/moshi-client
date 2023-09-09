@@ -49,11 +49,14 @@ class ConnectionStatus extends StatelessWidget {
     // print('micStatus: $micStatus');
     // print('serverStatus: $serverStatus');
     // print('callStatus: $callStatus');
-    return Row(
-      // mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+    double padding = 16;
+    Widget mic = _micIcon(micStatus);
+    Widget server = _serverIcon(serverStatus);
+    Widget row = Row(
       mainAxisAlignment: MainAxisAlignment.spaceAround,
-      children: [_micIcon(micStatus), _serverIcon(serverStatus)], //, _callIcon(callStatus)],
+      children: [mic, server].map((e) => Padding(padding: EdgeInsets.only(right: padding), child: e)).toList(),
     );
+    return row;
   }
 }
 

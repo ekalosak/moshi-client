@@ -20,7 +20,6 @@ const int maxRecordingSeconds = 30;
 class ChatScreen extends StatefulWidget {
   final Profile profile;
   final Map<String, dynamic> languages;
-  // function from Str to void to update title of wrapper
   final Function(String) setTitle;
   ChatScreen({required this.profile, required this.languages, required this.setTitle});
   @override
@@ -143,11 +142,8 @@ class _ChatScreenState extends State<ChatScreen> {
           print("latest message: ${t.messages.first.role} ${t.messages.first.msg}");
         }
         if (t.messages.isNotEmpty && t.messages.first.role == Role.ast) {
-          if (!t.messages.first.played) {
-            print("chat: _transcriptListener: playing AST audio");
+          if (callStatus == CallStatus.inCall) {
             _playAudioFromMessage(t.messages.first);
-          } else {
-            print("chat: _transcriptListener: AST audio already played");
           }
         }
         setState(() {
@@ -163,7 +159,12 @@ class _ChatScreenState extends State<ChatScreen> {
   /// Get mic Permissions, check server health, and perform Chat connection establishment.
   /// Returns error string if any.
   Future<String?> startPressed() async {
-    print("chat: startPressed: [START]");
+    // print("chat: startPressed: [START]");
+    if (_activity == null) {
+      return "Please select an activity";
+    } else {
+      widget.setTitle(_activity!.title);
+    }
     setState(() {
       callStatus = CallStatus.ringing;
       serverStatus = ServerStatus.pending;
@@ -175,7 +176,7 @@ class _ChatScreenState extends State<ChatScreen> {
     await _ensureAudioCacheExists();
 
     // Check and request permission
-    print("chat: startPressed: checking permission");
+    // print("chat: startPressed: checking permission");
     if (!(await record.hasPermission())) {
       setState(() {
         micStatus = MicStatus.noPermission;
@@ -187,9 +188,7 @@ class _ChatScreenState extends State<ChatScreen> {
 
     // Negotiate codec
     final isSupported = await record.isEncoderSupported(encoder);
-    if (isSupported) {
-      print("chat: startPressed: ${encoder.name} supported");
-    } else {
+    if (!isSupported) {
       throw ("chat: startPressed: ${encoder.name} not supported");
     }
 
@@ -197,9 +196,9 @@ class _ChatScreenState extends State<ChatScreen> {
     final HttpsCallable startActivity = FirebaseFunctions.instance.httpsCallable('start_activity');
     HttpsCallableResult result;
     try {
-      print("chat: startPressed: calling startActivity");
-      print("chat: startPressed: _activity: $_activity");
-      print("chat: startPressed: language: ${widget.profile.lang}");
+      // print("chat: startPressed: calling startActivity");
+      // print("chat: startPressed: _activity: $_activity");
+      // print("chat: startPressed: language: ${widget.profile.lang}");
       result = await startActivity.call(<String, dynamic>{
         'name': _activity?.name ?? 'unstructured',
         'type': _activity?.type ?? 'unstructured',
@@ -217,8 +216,8 @@ class _ChatScreenState extends State<ChatScreen> {
       }
       return "❌ Server error: ${e.toString()}";
     }
-    print("chat: startPressed: startActivity result: message ${result.data['message']}");
-    print("chat: startPressed: startActivity result: detail ${result.data['detail']}");
+    // print("chat: startPressed: startActivity result: message ${result.data['message']}");
+    // print("chat: startPressed: startActivity result: detail ${result.data['detail']}");
 
     // Listen to the transcript provisioned by the start_activity call
     await _initTranscriptListener(result.data['detail']['transcript_id']);
@@ -229,7 +228,7 @@ class _ChatScreenState extends State<ChatScreen> {
       callStatus = CallStatus.inCall;
       micStatus = MicStatus.muted;
     });
-    print("chat: startPressed: [END]");
+    // print("chat: startPressed: [END]");
     return null;
   }
 
@@ -275,14 +274,10 @@ class _ChatScreenState extends State<ChatScreen> {
 
   /// Download the audio from GCS, if it doesn't exist locally, and play it.
   Future<void> _playAudioFromMessage(Message msg) async {
-    print("chat: _playAstAudio: [START]");
+    // print("chat: _playAstAudio: [START]");
     File astAudio = await _downloadAudio(msg.audio);
     await audioPlayer.play(DeviceFileSource(astAudio.path));
-    msg.played = true;
-    setState(() {
-      _isLoading = false;
-    });
-    print("chat: _playAstAudio: [START]");
+    // print("chat: _playAstAudio: [START]");
   }
 
   // TODO debug this following
@@ -353,6 +348,7 @@ class _ChatScreenState extends State<ChatScreen> {
         _recordingSeconds = _recordingSeconds + 0.1;
       });
       if (_recordingSeconds >= maxRecordingSeconds) {
+        print("Max recording seconds");
         chatReleased();
       }
     });
@@ -594,6 +590,7 @@ class _ChatScreenState extends State<ChatScreen> {
             },
             onLongPressEnd: (_) {
               HapticFeedback.lightImpact();
+              print("Long press end");
               chatReleased();
             },
             child: FloatingActionButton.extended(
