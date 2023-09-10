@@ -56,7 +56,7 @@ class _ChatScreenState extends State<ChatScreen> {
         createdAt: Timestamp.now(),
         activityId: 'dne');
     _activityListener = FirebaseFirestore.instance.collection('activities').snapshots().listen((querySnapshot) {
-      // print("chat: _activityListener: querySnapshot: ${querySnapshot.docs.length} docs");
+      print("chat: _activityListener: querySnapshot: ${querySnapshot.docs.length} docs");
       if (querySnapshot.docs.isEmpty) {
         // print("WARNING chat: _activityListener: querySnapshot.docs.length == 0");
         return;
@@ -64,13 +64,13 @@ class _ChatScreenState extends State<ChatScreen> {
       for (var doc in querySnapshot.docs) {
         try {
           Activity a = Activity.fromDocumentSnapshot(doc);
-          // print("chat: _activityListener: doc -> activity: ${a.name} ${a.title}");
+          print("chat: _activityListener: doc -> activity: ${a.name} ${a.title}");
           setState(() {
             _activities.add(a);
             _activity = a;
           });
         } catch (e) {
-          // print("WARNING chat: _activityListener: failed to parse activity: ${doc.data()}");
+          print("WARNING chat: _activityListener: failed to parse activity: ${doc.data()}");
           continue;
         }
       }
@@ -500,8 +500,8 @@ class _ChatScreenState extends State<ChatScreen> {
 
   Widget _activitySelector(BuildContext context) {
     List<String> activityNames = _activities.map((a) => a.name).toSet().toList();
-    // print("chat: _activitySelector: activityNames: $activityNames");
-    // print("chat: _activitySelector: _activity: ${_activity?.title}");
+    print("chat: _activitySelector: activityNames: $activityNames");
+    print("chat: _activitySelector: _activity: ${_activity?.title}");
     return DropdownButton<String>(
       value: _activity?.name,
       icon: const Icon(Icons.arrow_downward),

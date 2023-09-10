@@ -12,7 +12,7 @@ import 'feed.dart';
 import 'profile.dart';
 import 'transcripts.dart';
 
-const String version = "23.9.1";
+const String version = "23.9.2";
 
 class WrapperScreen extends StatefulWidget {
   // make WrapperScreen take User user as a param
@@ -36,7 +36,7 @@ const int PROG_TRANSCRIPTS_INDEX = 2;
 class _WrapperScreenState extends State<WrapperScreen> {
   Profile? profile;
   String? _title;
-  int _index = HOME_INDEX;
+  int _index = CHAT_INDEX;
   int _progressIndex = PROG_TRANSCRIPTS_INDEX;
   Map<String, dynamic> languages = {};
   late StreamSubscription _profileListener;
