@@ -56,7 +56,7 @@ class _ChatScreenState extends State<ChatScreen> {
         createdAt: Timestamp.now(),
         activityId: 'dne');
     _activityListener = FirebaseFirestore.instance.collection('activities').snapshots().listen((querySnapshot) {
-      print("chat: _activityListener: querySnapshot: ${querySnapshot.docs.length} docs");
+      // print("chat: _activityListener: querySnapshot: ${querySnapshot.docs.length} docs");
       if (querySnapshot.docs.isEmpty) {
         // print("WARNING chat: _activityListener: querySnapshot.docs.length == 0");
         return;
@@ -64,13 +64,13 @@ class _ChatScreenState extends State<ChatScreen> {
       for (var doc in querySnapshot.docs) {
         try {
           Activity a = Activity.fromDocumentSnapshot(doc);
-          print("chat: _activityListener: doc -> activity: ${a.name} ${a.title}");
+          // print("chat: _activityListener: doc -> activity: ${a.name} ${a.title}");
           setState(() {
             _activities.add(a);
             _activity = a;
           });
         } catch (e) {
-          print("WARNING chat: _activityListener: failed to parse activity: ${doc.data()}");
+          // print("WARNING chat: _activityListener: failed to parse activity: ${doc.data()}");
           continue;
         }
       }
@@ -82,6 +82,7 @@ class _ChatScreenState extends State<ChatScreen> {
   @override
   void dispose() async {
     super.dispose();
+    _activities.clear();
     await _transcriptListener?.cancel();
     await _activityListener?.cancel();
     await record.dispose();
@@ -237,7 +238,7 @@ class _ChatScreenState extends State<ChatScreen> {
 
   /// Terminate the Chat session.
   Future<String?> stopPressed() async {
-    print("stopPressed [START]");
+    // print("stopPressed [START]");
     await record.stop();
     await audioPlayer.stop();
     setState(() {
@@ -246,33 +247,33 @@ class _ChatScreenState extends State<ChatScreen> {
       _isRecording = false;
     });
     await feedbackAfterCall();
-    print("stopPressed [END]");
+    // print("stopPressed [END]");
     return null;
   }
 
   Future<void> _ensureAudioCacheExists() async {
     final Directory audioCacheDir = await _audioCacheDir();
-    print("chat: _ensureAudioCacheExists: audioCacheDir: $audioCacheDir");
+    // print("chat: _ensureAudioCacheExists: audioCacheDir: $audioCacheDir");
     if (!await audioCacheDir.exists()) {
-      print("chat: _ensureAudioCacheExists: creating audio cache dir");
+      // print("chat: _ensureAudioCacheExists: creating audio cache dir");
       await audioCacheDir.create(recursive: true);
-      print(
-          "chat: _ensureAudioCacheExists: created audio cache dir: $audioCacheDir exists: ${await audioCacheDir.exists()}");
+      // print(
+      //     "chat: _ensureAudioCacheExists: created audio cache dir: $audioCacheDir exists: ${await audioCacheDir.exists()}");
     } else {
-      print("chat: _ensureAudioCacheExists: audio cache dir: $audioCacheDir already exists");
+      // print("chat: _ensureAudioCacheExists: audio cache dir: $audioCacheDir already exists");
     }
   }
 
   Future<void> _clearCachedAudio() async {
     final Directory audioCacheDir = await _audioCacheDir();
-    print("chat: _clearCachedAudio: audioCacheDir: $audioCacheDir");
+    // print("chat: _clearCachedAudio: audioCacheDir: $audioCacheDir");
     if (!await audioCacheDir.exists()) {
-      print("chat: _clearCachedAudio: audio cache dir does not exist, returning");
+      // print("chat: _clearCachedAudio: audio cache dir does not exist, returning");
       return;
     }
-    print("chat: _clearCachedAudio: clearing audio cache dir");
+    // print("chat: _clearCachedAudio: clearing audio cache dir");
     await audioCacheDir.delete(recursive: true);
-    print("chat: _clearCachedAudio: cleared audio cache dir");
+    // print("chat: _clearCachedAudio: cleared audio cache dir");
   }
 
   /// Download the audio from GCS, if it doesn't exist locally, and play it.
@@ -293,17 +294,17 @@ class _ChatScreenState extends State<ChatScreen> {
     final String audioName = audio.path.split('/').last;
     final File audioFile = File('${audioCacheDir.path}${_transcript.id}/$audioName');
     if (await audioFile.exists()) {
-      print("chat: _downloadAudio: audio file already exists: $audioFile");
+      // print("chat: _downloadAudio: audio file already exists: $audioFile");
       return audioFile;
     }
-    print("chat: _downloadAudio: downloading $audioName to $audioFile");
+    // print("chat: _downloadAudio: downloading $audioName to $audioFile");
     if (storage.bucket != audio.bucket) {
       throw ("chat: _downloadAudio: storage.bucket != audio.bucket: ${storage.bucket} != ${audio.bucket}");
     }
     final Reference audioRef = storage.ref().child(audio.path);
-    print("chat: _downloadAudio: audioRef: $audioRef");
+    // print("chat: _downloadAudio: audioRef: $audioRef");
     await audioRef.writeToFile(audioFile);
-    print("chat: _downloadAudio: downloaded $audioName to $audioFile");
+    // print("chat: _downloadAudio: downloaded $audioName to $audioFile");
     return audioFile;
   }
 
@@ -312,24 +313,24 @@ class _ChatScreenState extends State<ChatScreen> {
     final Directory audioCacheDir = await _audioCacheDir();
     final Directory transcriptCacheDir = Directory('${audioCacheDir.path}/$transcriptId');
     if (!await transcriptCacheDir.exists()) {
-      print("chat: _nextUsrAudio: creating transcript cache dir");
+      // print("chat: _nextUsrAudio: creating transcript cache dir");
       await transcriptCacheDir.create(recursive: true);
     } else {
-      print("chat: _nextUsrAudio: transcript cache dir exists");
+      // print("chat: _nextUsrAudio: transcript cache dir exists");
     }
     final List<FileSystemEntity> files = transcriptCacheDir.listSync(recursive: false, followLinks: false);
     final int nextIndex = files.length;
     final String nextPath = '${transcriptCacheDir.path}/$nextIndex-USR.$extension';
-    print("chat: _nextUsrAudio: nextPath: $nextPath");
+    // print("chat: _nextUsrAudio: nextPath: $nextPath");
     return File(nextPath);
   }
 
   /// Acquire audio permissions and record audio to file.
   Future<String?> chatPressed() async {
-    print("chat: chatPressed: [START]");
+    // print("chat: chatPressed: [START]");
     await audioPlayer.stop();
     final File audioPath = await _nextUsrAudio(_transcript.id);
-    print("chat: audioPath: ${audioPath.path}");
+    // print("chat: audioPath: ${audioPath.path}");
     await record.start(
       path: audioPath.path,
       encoder: encoder,
@@ -352,7 +353,7 @@ class _ChatScreenState extends State<ChatScreen> {
         _recordingSeconds = _recordingSeconds + 0.1;
       });
       if (_recordingSeconds >= maxRecordingSeconds) {
-        print("Max recording seconds");
+        // print("Max recording seconds");
         chatReleased();
       }
     });
@@ -367,7 +368,7 @@ class _ChatScreenState extends State<ChatScreen> {
 
   /// Stop the audio recording and flush to file.
   Future<void> chatReleased() async {
-    print("chat: chatReleased: [START]");
+    // print("chat: chatReleased: [START]");
     _recordingTimer.cancel();
     bool isRecording = await record.isRecording();
     if (!isRecording) {
@@ -401,7 +402,8 @@ class _ChatScreenState extends State<ChatScreen> {
     // print("chat: _uploadAudio: audioRef: $audioRef");
     // print("chat: _uploadAudio: uploading $audioName to $audioRef");
     final UploadTask uploadTask = audioRef.putFile(audioFile);
-    final TaskSnapshot taskSnapshot = await uploadTask.whenComplete(() => null);
+    // final TaskSnapshot taskSnapshot = await uploadTask.whenComplete(() => null);
+    await uploadTask.whenComplete(() => null);
     // print("chat: _uploadAudio: taskSnapshot: $taskSnapshot");
   }
 
@@ -500,8 +502,8 @@ class _ChatScreenState extends State<ChatScreen> {
 
   Widget _activitySelector(BuildContext context) {
     List<String> activityNames = _activities.map((a) => a.name).toSet().toList();
-    print("chat: _activitySelector: activityNames: $activityNames");
-    print("chat: _activitySelector: _activity: ${_activity?.title}");
+    // print("chat: _activitySelector: activityNames: $activityNames");
+    // print("chat: _activitySelector: _activity: ${_activity?.title}");
     return DropdownButton<String>(
       value: _activity?.name,
       icon: const Icon(Icons.arrow_downward),
@@ -594,7 +596,7 @@ class _ChatScreenState extends State<ChatScreen> {
             },
             onLongPressEnd: (_) {
               HapticFeedback.lightImpact();
-              print("Long press end");
+              // print("Long press end");
               chatReleased();
             },
             child: FloatingActionButton.extended(

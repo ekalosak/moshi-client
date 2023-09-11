@@ -45,7 +45,7 @@ class Activity {
     if (data == null) {
       throw NullDataError("Activity.fromDocumentSnapshot: data is null: ${snapshot.id}");
     }
-    print('Activity.data: $data');
+    // print('Activity.data: $data');
     String? name;
     if (data['type'] == 'lesson') {
       name = snapshot['config']['topic'];
@@ -54,13 +54,13 @@ class Activity {
     } else {
       throw Exception("Activity.fromDocumentSnapshot: unknown activity type: ${snapshot.id}");
     }
-    print(name);
+    // print(name);
     String title = snapshot['translations']['en-US']['title'];
-    print(title);
+    // print(title);
     String type = snapshot['type'];
-    print(type);
+    // print(type);
     int level = snapshot['config']['level'];
-    print(level);
+    // print(level);
     final Activity act = Activity(title: title, type: type, name: name!, level: level);
     return act;
   }

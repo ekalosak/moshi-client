@@ -10,7 +10,7 @@ import 'package:moshi/firebase_options.dart';
 import 'theme.dart';
 import 'screens/switch.dart';
 
-const useEmulators = true;
+const useEmulators = false;
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();

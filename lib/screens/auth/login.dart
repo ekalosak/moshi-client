@@ -39,22 +39,29 @@ class _LoginScreenState extends State<LoginScreen> {
         err = '🙅 Wrong password.';
       } else if (e.code == 'too-many-requests') {
         err = '😵‍💫 Please slow down! Too many requests. Try again later.';
+      } else if (e.code == 'network-request-failed') {
+        err = '😮‍💨 Network error. Please check your Internet connection.';
       } else if (e.code == 'unknown') {
         if (e.toString().contains('auth/invalid-email')) {
           err = '😣 Email invalid.';
         } else if (e.toString().contains('auth/wrong-password')) {
           err = '🙅 Wrong password.';
         } else {
-          // print("Nonspecific FirebaseAuthException: $e");
+          print("A new subtype of code=='unknown' FirebaseAuthException: $e");
           err = defaultError;
         }
       } else {
-        // print("Nonspecific Exception: $e");
+        print("Unhandled FirebaseAuthException: $e");
+        try {
+          print("code: ${e.code}");
+        } catch (e) {
+          print("Could not print e.code");
+        }
         err = defaultError;
       }
     } catch (e) {
-      // print("Unknown error");
-      // print(e);
+      print("Unknown error");
+      print(e);
       err = defaultError;
     }
     return err;
@@ -65,7 +72,7 @@ class _LoginScreenState extends State<LoginScreen> {
     return Scaffold(
       appBar: AppBar(
         title: Text(
-          'Log in',
+          'ChatMoshi 💁💬🤖',
           style: Theme.of(context).textTheme.displayMedium,
         ),
       ),
