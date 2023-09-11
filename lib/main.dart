@@ -22,10 +22,10 @@ void main() async {
     String host = defaultTargetPlatform == TargetPlatform.iOS ? 'localhost' : '10.0.2.2';
     try {
       if (useEmulators) {
-        print("USING LOCAL EMULATED FIRESTORE: port 8080");
-        FirebaseFirestore.instance.useFirestoreEmulator(host, 8080);
-        print("USING LOCAL EMULATED FIREBASE AUTH: port 9099");
-        await FirebaseAuth.instance.useAuthEmulator(host, 9099);
+        // print("USING LOCAL EMULATED FIRESTORE: port 8080");
+        // FirebaseFirestore.instance.useFirestoreEmulator(host, 8080);
+        // print("USING LOCAL EMULATED FIREBASE AUTH: port 9099");
+        // await FirebaseAuth.instance.useAuthEmulator(host, 9099);
         print("USING LOCAL EMULATED STORAGE: port 9199");
         await FirebaseStorage.instance.useStorageEmulator(host, 9199);
         print("USING LOCAL EMULATED FUNCTIONS: port 5001");

@@ -16,6 +16,7 @@ import 'package:moshi/widgets/chat.dart';
 import 'package:moshi/widgets/status.dart';
 
 const int maxRecordingSeconds = 30;
+const int waitForResponseTimeout = 15;
 
 class ChatScreen extends StatefulWidget {
   final Profile profile;
@@ -33,7 +34,9 @@ class _ChatScreenState extends State<ChatScreen> {
   bool _isLoading = false; // true when waiting for ast response
   bool _isRecording = false; // true when user is speaking
   late Timer _recordingTimer;
+  late Timer _timeoutTimer;
   double _recordingSeconds = 0.0;
+  double _timeoutSeconds = 0.0;
   late Record record; // NOTE there's no reason why these are public v private right now
   late AudioPlayer audioPlayer;
   final FirebaseStorage storage = FirebaseStorage.instance;
@@ -90,6 +93,7 @@ class _ChatScreenState extends State<ChatScreen> {
     if (_isRecording) {
       _recordingTimer.cancel();
     }
+    _timeoutTimer.cancel();
   }
 
   // Where audio files will be stored on the device.
@@ -147,8 +151,10 @@ class _ChatScreenState extends State<ChatScreen> {
           if (callStatus == CallStatus.inCall) {
             _playAudioFromMessage(t.messages.first);
           }
+          _timeoutTimer.cancel();
           setState(() {
             _isLoading = false;
+            _timeoutSeconds = 0.0;
           });
         }
         setState(() {
@@ -245,7 +251,16 @@ class _ChatScreenState extends State<ChatScreen> {
       callStatus = CallStatus.idle;
       _isLoading = false;
       _isRecording = false;
+      _recordingSeconds = 0.0;
+      _timeoutSeconds = 0.0;
     });
+    try {
+      _recordingTimer.cancel();
+    } catch (e) {
+      print("WARNING chat: stopPressed: _recordingTimer not initialized");
+      print(e);
+    }
+    _timeoutTimer.cancel();
     await feedbackAfterCall();
     // print("stopPressed [END]");
     return null;
@@ -280,11 +295,14 @@ class _ChatScreenState extends State<ChatScreen> {
   Future<void> _playAudioFromMessage(Message msg) async {
     // print("chat: _playAstAudio: [START]");
     File astAudio = await _downloadAudio(msg.audio);
-    await audioPlayer.play(DeviceFileSource(astAudio.path));
+    try {
+      await audioPlayer.play(DeviceFileSource(astAudio.path));
+    } catch (e) {
+      print("Error playing audio: $e");
+    }
     // print("chat: _playAstAudio: [START]");
   }
 
-  // TODO debug this following
   /// Download the audio from GCS and return the file.
   Future<File> _downloadAudio(Audio? audio) async {
     if (audio == null) {
@@ -377,6 +395,24 @@ class _ChatScreenState extends State<ChatScreen> {
     }
     // print("chat: chatReleased: stopping recording...");
     String? path = await record.stop();
+
+    // Timeout if we wait too long for AST audio
+    _timeoutTimer = Timer.periodic(Duration(milliseconds: 100), (Timer t) {
+      setState(() {
+        _timeoutSeconds = _timeoutSeconds + 0.1;
+      });
+      if (_timeoutSeconds >= waitForResponseTimeout) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text("⌛️ Waiting for response timed out.")),
+        );
+        setState(() {
+          _isLoading = false;
+          _timeoutSeconds = 0.0;
+        });
+        stopPressed();
+      }
+    });
+
     // print("chat: chatReleased: stopped recording, path: $path");
     setState(() {
       if (micStatus == MicStatus.on) {
