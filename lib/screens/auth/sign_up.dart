@@ -157,13 +157,17 @@ class _SignUpScreenState extends State<SignUpScreen> {
       onPressed: () {
         _signUp().then((err) {
           String msg = err ?? "✅ Account created!\n📧 Please check your email to verify your account.";
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(
-              content: Text(msg,
-                  style:
-                      Theme.of(context).textTheme.bodyLarge?.copyWith(color: Theme.of(context).colorScheme.background)),
-            ),
-          );
+          if (mounted) {
+            ScaffoldMessenger.of(context).showSnackBar(
+              SnackBar(
+                content: Text(msg,
+                    style: Theme.of(context)
+                        .textTheme
+                        .bodyLarge
+                        ?.copyWith(color: Theme.of(context).colorScheme.background)),
+              ),
+            );
+          }
           // Once this exits and the user is logged in, they will be redirected to the profile creation page via home -> main -> profile doesn't exist -> profile creation
         });
       });

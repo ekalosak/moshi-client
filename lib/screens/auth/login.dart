@@ -24,11 +24,12 @@ class _LoginScreenState extends State<LoginScreen> {
     String? err;
     String defaultError = '😵 An error occurred. Please try again later.';
     try {
+      // final credentials = await FirebaseAuth.instance.signInWithEmailAndPassword(
       await FirebaseAuth.instance.signInWithEmailAndPassword(
         email: emailController.text,
         password: passwordController.text,
       );
-      // print(credentials.user!.getIdToken());
+      // print("ID TOKEN: ${credentials.user!.getIdToken()}");
     } on FirebaseAuthException catch (e) {
       // print("FirebaseAuthException: $e");
       // print("FirebaseAuthException.code: ${e.code}");
