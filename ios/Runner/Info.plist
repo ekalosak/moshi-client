@@ -27,9 +27,9 @@
 	<key>LSRequiresIPhoneOS</key>
 	<true/>
 	<key>NSMicrophoneUsageDescription</key>
-	<string>We need the microphone to hear you speak</string>
-	<!-- <key>NSCameraUsageDescription</key>
-	<string>The camera is never used by this app, but the permission is required by the flutter_webrtc dependency. This app uses only the audio capabilities of WebRTC.</string> -->
+	<string>We need the microphone to hear you speak in your target language.</string>
+	<key>NSCameraUsageDescription</key>
+	<string>The camera is never used by this app, but the permission is required by the flutter_webrtc dependency. This app uses only the audio capabilities of WebRTC. Future releases will remove this dependency.</string>
 	<key>UIApplicationSupportsIndirectInputEvents</key>
 	<true/>
 	<key>UILaunchStoryboardName</key>
