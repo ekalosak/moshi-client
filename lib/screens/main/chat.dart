@@ -93,7 +93,11 @@ class _ChatScreenState extends State<ChatScreen> {
     if (_isRecording) {
       _recordingTimer.cancel();
     }
-    _timeoutTimer.cancel();
+    try {
+      _timeoutTimer.cancel();
+    } catch (e) {
+      print("_timeoutTimer not initialized, indicating the user switched screens before starting a call.");
+    }
   }
 
   // Where audio files will be stored on the device.
@@ -260,7 +264,12 @@ class _ChatScreenState extends State<ChatScreen> {
       print("WARNING chat: stopPressed: _recordingTimer not initialized");
       print(e);
     }
-    _timeoutTimer.cancel();
+    try {
+      _timeoutTimer.cancel();
+    } catch (e) {
+      print("WARNING chat: stopPressed: _timeoutTimer not initialized");
+      print(e);
+    }
     await feedbackAfterCall();
     // print("stopPressed [END]");
     return null;
