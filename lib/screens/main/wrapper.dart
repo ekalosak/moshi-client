@@ -12,7 +12,7 @@ import 'feed.dart';
 import 'profile.dart';
 import 'transcripts.dart';
 
-const String version = "23.9.2";
+const String version = "23.9.3";
 
 class WrapperScreen extends StatefulWidget {
   // make WrapperScreen take User user as a param

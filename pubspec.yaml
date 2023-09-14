@@ -3,7 +3,7 @@ description: ChatMoshi helps you learn a second language by speaking it.
 
 publish_to: 'none' # Remove this line if you wish to publish to pub.dev
 
-version: 23.9.2+2
+version: 23.9.3+3
 
 environment:
   sdk: '>=3.0.0 <4.0.0'
