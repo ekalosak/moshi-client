@@ -45,7 +45,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
 
   String getLangRepr(String lang) {
     String flag = widget.languages[lang]['country']['flag'];
-    String name = widget.languages[lang]['language']['full_name'];
+    String name = widget.languages[lang]['language']['alt_full_name'];
     return "$flag $name";
   }
 

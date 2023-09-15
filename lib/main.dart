@@ -11,7 +11,7 @@ import 'package:firebase_app_check/firebase_app_check.dart';
 import 'theme.dart';
 import 'screens/switch.dart';
 
-const useEmulators = false;
+const useEmulators = true;
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -39,9 +39,9 @@ void main() async {
     } catch (e) {
       print(e);
     }
-    // log out user
-    print("LOGGING OUT USER");
-    await FirebaseAuth.instance.signOut();
+    // // log out user
+    // print("LOGGING OUT USER");
+    // await FirebaseAuth.instance.signOut();
   } else {
     print("RELEASE");
     await FirebaseAppCheck.instance.activate(

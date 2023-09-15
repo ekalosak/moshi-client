@@ -206,7 +206,13 @@ class _WrapperScreenState extends State<WrapperScreen> {
   /// Returns a TextButton that shows the user's language and opens a modal bottom sheet to change it.
   TextButton _flagButton(Profile profile, Map<String, dynamic> languages) {
     List<String> sortedLanguages = languages.keys.toList();
-    sortedLanguages.sort();
+    // sort sortedLanguages by their corresponding language name in languages
+    sortedLanguages.sort((a, b) {
+      String aName = languages[a]['language']['alt_full_name'];
+      String bName = languages[b]['language']['alt_full_name'];
+      return aName.compareTo(bName);
+    });
+    print("sortedLanguages: $sortedLanguages");
     return TextButton(
       child: Text(
         getLangRepr(profile.lang),
@@ -253,7 +259,7 @@ class _WrapperScreenState extends State<WrapperScreen> {
                       borderRadius: BorderRadius.circular(8.0),
                     ),
                     child: Text(
-                      "${languages[lang]['country']['flag']} ${languages[lang]['country']['ISO-3166-1-alpha-2']}\n${languages[lang]['language']['name']}",
+                      "${languages[lang]['country']['flag']} ${languages[lang]['country']['ISO-3166-1-alpha-2']}\n${languages[lang]['language']['alt_full_name']}",
                       style: Theme.of(context).textTheme.bodyMedium,
                       textAlign: TextAlign.left,
                     ),
