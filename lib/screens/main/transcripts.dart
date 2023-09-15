@@ -1,8 +1,11 @@
 import 'dart:async';
-import 'package:flutter/material.dart';
+import 'dart:io';
+import 'package:audioplayers/audioplayers.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:flutter/material.dart';
 
 import 'package:moshi/types.dart';
+import 'package:moshi/utils/audio.dart';
 import 'package:moshi/widgets/chat.dart';
 
 class TranscriptScreen extends StatefulWidget {
@@ -20,11 +23,12 @@ class TranscriptScreen extends StatefulWidget {
 class _TranscriptScreenState extends State<TranscriptScreen> {
   late StreamSubscription _transcriptListener;
   List<Transcript>? _transcripts; // transcripts for this user // TODO filter by date. show only the last 30 days?
+  late AudioPlayer audioPlayer;
 
   @override
   void initState() {
-    // print("TranscriptScreen.initState");
     super.initState();
+    audioPlayer = AudioPlayer();
     // listen for transcript documents with this user's uid in the uid field.
     // the transcript documents have their own unique document id.
     _transcriptListener = FirebaseFirestore.instance
@@ -66,6 +70,7 @@ class _TranscriptScreenState extends State<TranscriptScreen> {
     // print("TranscriptScreen.dispose");
     _transcriptListener.cancel();
     _transcripts?.clear();
+    audioPlayer.dispose();
     super.dispose();
   }
 
@@ -118,6 +123,17 @@ class _TranscriptScreenState extends State<TranscriptScreen> {
         : Text("No transcripts yet. Click 'Chat' in the menu to get started.");
   }
 
+  Future<void> _playAudio(Audio aud) async {
+    File? lap = await localAudioPath(aud);
+    if (lap == null) {
+      print("WARNING chat: _playAudio: localAudioPath returned null");
+      return;
+    }
+    print("chat: _playAudio: playing ${lap.path}");
+    await audioPlayer.play(DeviceFileSource(lap.path));
+    print("played");
+  }
+
   @override
   Widget build(BuildContext context) {
     // print("TranscriptScreen.build");
@@ -145,7 +161,7 @@ class _TranscriptScreenState extends State<TranscriptScreen> {
         title,
         style: Theme.of(context).textTheme.headlineSmall,
       )),
-      body: Chat(messages: msgs),
+      body: Chat(messages: msgs, onLongPress: _playAudio),
     );
   }
 }

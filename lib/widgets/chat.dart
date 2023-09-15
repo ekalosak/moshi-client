@@ -1,9 +1,9 @@
 /// Chat box with messages, looks like an SMS messenger app.
 import 'dart:math';
 import 'package:flutter/material.dart';
-import 'package:moshi/types.dart';
-
 import 'painters.dart';
+
+import 'package:moshi/types.dart';
 
 const int boxIconRatio = 14;
 const double lipOffset = 16;
@@ -34,7 +34,8 @@ String _closeIcon() {
 
 class Chat extends StatefulWidget {
   final List<Message> messages;
-  Chat({required this.messages});
+  final Future<void> Function(Audio)? onLongPress;
+  Chat({required this.messages, this.onLongPress});
   @override
   _ChatState createState() => _ChatState();
 }
@@ -50,7 +51,7 @@ class _ChatState extends State<Chat> {
       padding: const EdgeInsets.only(top: 8, bottom: 32),
       itemCount: widget.messages.length,
       itemBuilder: (BuildContext context, int index) {
-        return MsgBox(widget.messages[index], boxColor, iconColor);
+        return MsgBox(widget.messages[index], boxColor, iconColor, onLongPress: widget.onLongPress);
       },
     );
   }
@@ -122,7 +123,8 @@ class MsgBox extends StatelessWidget {
   final Message msg;
   final Color boxColor;
   final Color iconColor;
-  MsgBox(this.msg, this.boxColor, this.iconColor);
+  final Future<void> Function(Audio)? onLongPress;
+  MsgBox(this.msg, this.boxColor, this.iconColor, {this.onLongPress});
 
   // Build the icon and textbox lip (triangle) for the message box.
   Widget _ico(Role role) {
@@ -200,7 +202,8 @@ class MsgBox extends StatelessWidget {
                   }
                 },
                 onLongPress: () async {
-                  // TODO Play the audio
+                  print("onLongPress: $onLongPress");
+                  msg.audio != null ? await onLongPress?.call(msg.audio!) : print("No audio");
                 },
                 child: RoundedBox(boxColor: boxColor, padding: boxTextPadding, child: msgText),
               ),

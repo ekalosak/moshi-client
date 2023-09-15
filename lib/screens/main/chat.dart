@@ -8,10 +8,10 @@ import 'package:firebase_storage/firebase_storage.dart';
 import 'package:flutter/foundation.dart' show defaultTargetPlatform;
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:path_provider/path_provider.dart';
 import 'package:record/record.dart';
 
 import 'package:moshi/types.dart';
+import 'package:moshi/utils/audio.dart';
 import 'package:moshi/widgets/chat.dart';
 import 'package:moshi/widgets/status.dart';
 
@@ -100,19 +100,9 @@ class _ChatScreenState extends State<ChatScreen> {
     }
   }
 
-  // Where audio files will be stored on the device.
-  Future<Directory> _audioCacheDir() async {
-    Directory cacheDir = await getApplicationCacheDirectory();
-    // print("chat: _audioCacheDir: cacheDir: $cacheDir");
-    return Directory('${cacheDir.path}/audio/');
-  }
-
   /// This gets shown to users on page load.
   List<Message> _initMessages() {
     return [
-      // Message(Role.ast,
-      //     "Then, hold the walkie-talkie button to speak. Let go when you're done speaking. You should feel your phone vibrate when the recording starts."),
-      // Message(Role.ast, "Don't worry if it's a bit overwhelming at first. As we practice, we'll learn to focus in on vocabulary, grammar, and other language skills that are appropriate for you."),
       Message(Role.ast, "Press that button to get started."),
       Message(Role.ast, "Would you like to practice ${widget.languages[widget.profile.lang]['language']['name']}?"),
       Message(Role.ast, "Hello, ${widget.profile.name}."),
@@ -129,13 +119,11 @@ class _ChatScreenState extends State<ChatScreen> {
         .doc(tid)
         .snapshots()
         .listen((doc) {
-      // print("chat: _transcriptListener: doc.data: ${doc.data()}");
       Transcript? t;
       try {
         t = Transcript.fromDocumentSnapshot(doc);
-        // print("chat: _transcriptListener: ${t.messages.length} messages}");
       } on NullDataError {
-        // print("chat: _transcriptListener: NullDataError");
+        // nothing
       }
       if (t != null) {
         // check if the transcript has any new messages
@@ -153,7 +141,7 @@ class _ChatScreenState extends State<ChatScreen> {
         }
         if (t.messages.isNotEmpty && t.messages.first.role == Role.ast) {
           if (callStatus == CallStatus.inCall) {
-            _playAudioFromMessage(t.messages.first);
+            playAudioFromMessage(t.messages.first, t.id, audioPlayer, storage);
           }
           _timeoutTimer.cancel();
           setState(() {
@@ -186,11 +174,10 @@ class _ChatScreenState extends State<ChatScreen> {
     });
 
     // Make sure we have a cached audio directory
-    await _clearCachedAudio();
-    await _ensureAudioCacheExists();
+    await clearCachedAudio();
+    await ensureAudioCacheExists();
 
     // Check and request permission
-    // print("chat: startPressed: checking permission");
     if (!(await record.hasPermission())) {
       setState(() {
         micStatus = MicStatus.noPermission;
@@ -210,9 +197,6 @@ class _ChatScreenState extends State<ChatScreen> {
     final HttpsCallable startActivity = FirebaseFunctions.instance.httpsCallable('start_activity');
     HttpsCallableResult result;
     try {
-      // print("chat: startPressed: calling startActivity");
-      // print("chat: startPressed: _activity: $_activity");
-      // print("chat: startPressed: language: ${widget.profile.lang}");
       result = await startActivity.call(<String, dynamic>{
         'name': _activity?.name ?? 'unstructured',
         'type': _activity?.type ?? 'unstructured',
@@ -230,8 +214,6 @@ class _ChatScreenState extends State<ChatScreen> {
       }
       return "❌ Server error: ${e.toString()}";
     }
-    // print("chat: startPressed: startActivity result: message ${result.data['message']}");
-    // print("chat: startPressed: startActivity result: detail ${result.data['detail']}");
 
     // Listen to the transcript provisioned by the start_activity call
     await _initTranscriptListener(result.data['detail']['transcript_id']);
@@ -242,13 +224,11 @@ class _ChatScreenState extends State<ChatScreen> {
       callStatus = CallStatus.inCall;
       micStatus = MicStatus.muted;
     });
-    // print("chat: startPressed: [END]");
     return null;
   }
 
   /// Terminate the Chat session.
   Future<String?> stopPressed() async {
-    // print("stopPressed [START]");
     await record.stop();
     await audioPlayer.stop();
     setState(() {
@@ -271,93 +251,13 @@ class _ChatScreenState extends State<ChatScreen> {
       print(e);
     }
     await feedbackAfterCall();
-    // print("stopPressed [END]");
     return null;
-  }
-
-  Future<void> _ensureAudioCacheExists() async {
-    final Directory audioCacheDir = await _audioCacheDir();
-    // print("chat: _ensureAudioCacheExists: audioCacheDir: $audioCacheDir");
-    if (!await audioCacheDir.exists()) {
-      // print("chat: _ensureAudioCacheExists: creating audio cache dir");
-      await audioCacheDir.create(recursive: true);
-      // print(
-      //     "chat: _ensureAudioCacheExists: created audio cache dir: $audioCacheDir exists: ${await audioCacheDir.exists()}");
-    } else {
-      // print("chat: _ensureAudioCacheExists: audio cache dir: $audioCacheDir already exists");
-    }
-  }
-
-  Future<void> _clearCachedAudio() async {
-    final Directory audioCacheDir = await _audioCacheDir();
-    // print("chat: _clearCachedAudio: audioCacheDir: $audioCacheDir");
-    if (!await audioCacheDir.exists()) {
-      // print("chat: _clearCachedAudio: audio cache dir does not exist, returning");
-      return;
-    }
-    // print("chat: _clearCachedAudio: clearing audio cache dir");
-    await audioCacheDir.delete(recursive: true);
-    // print("chat: _clearCachedAudio: cleared audio cache dir");
-  }
-
-  /// Download the audio from GCS, if it doesn't exist locally, and play it.
-  Future<void> _playAudioFromMessage(Message msg) async {
-    // print("chat: _playAstAudio: [START]");
-    File astAudio = await _downloadAudio(msg.audio);
-    try {
-      await audioPlayer.play(DeviceFileSource(astAudio.path));
-    } catch (e) {
-      print("Error playing audio: $e");
-    }
-    // print("chat: _playAstAudio: [START]");
-  }
-
-  /// Download the audio from GCS and return the file.
-  Future<File> _downloadAudio(Audio? audio) async {
-    if (audio == null) {
-      throw ("chat: _downloadAudio: audio is null");
-    }
-    final Directory audioCacheDir = await _audioCacheDir();
-    final String audioName = audio.path.split('/').last;
-    final File audioFile = File('${audioCacheDir.path}${_transcript.id}/$audioName');
-    if (await audioFile.exists()) {
-      // print("chat: _downloadAudio: audio file already exists: $audioFile");
-      return audioFile;
-    }
-    // print("chat: _downloadAudio: downloading $audioName to $audioFile");
-    if (storage.bucket != audio.bucket) {
-      throw ("chat: _downloadAudio: storage.bucket != audio.bucket: ${storage.bucket} != ${audio.bucket}");
-    }
-    final Reference audioRef = storage.ref().child(audio.path);
-    // print("chat: _downloadAudio: audioRef: $audioRef");
-    await audioRef.writeToFile(audioFile);
-    // print("chat: _downloadAudio: downloaded $audioName to $audioFile");
-    return audioFile;
-  }
-
-  /// Get the next available audio file path for the user.
-  Future<File> _nextUsrAudio(String transcriptId) async {
-    final Directory audioCacheDir = await _audioCacheDir();
-    final Directory transcriptCacheDir = Directory('${audioCacheDir.path}/$transcriptId');
-    if (!await transcriptCacheDir.exists()) {
-      // print("chat: _nextUsrAudio: creating transcript cache dir");
-      await transcriptCacheDir.create(recursive: true);
-    } else {
-      // print("chat: _nextUsrAudio: transcript cache dir exists");
-    }
-    final List<FileSystemEntity> files = transcriptCacheDir.listSync(recursive: false, followLinks: false);
-    final int nextIndex = files.length;
-    final String nextPath = '${transcriptCacheDir.path}/$nextIndex-USR.$extension';
-    // print("chat: _nextUsrAudio: nextPath: $nextPath");
-    return File(nextPath);
   }
 
   /// Acquire audio permissions and record audio to file.
   Future<String?> chatPressed() async {
-    // print("chat: chatPressed: [START]");
     await audioPlayer.stop();
-    final File audioPath = await _nextUsrAudio(_transcript.id);
-    // print("chat: audioPath: ${audioPath.path}");
+    final File audioPath = await nextUsrAudio(_transcript.id, extension);
     await record.start(
       path: audioPath.path,
       encoder: encoder,
@@ -380,12 +280,10 @@ class _ChatScreenState extends State<ChatScreen> {
         _recordingSeconds = _recordingSeconds + 0.1;
       });
       if (_recordingSeconds >= maxRecordingSeconds) {
-        // print("Max recording seconds");
         chatReleased();
       }
     });
 
-    // print("chat: startMicrophoneRec [END]");
     setState(() {
       micStatus = MicStatus.on;
       _isRecording = true;
@@ -395,14 +293,12 @@ class _ChatScreenState extends State<ChatScreen> {
 
   /// Stop the audio recording and flush to file.
   Future<void> chatReleased() async {
-    // print("chat: chatReleased: [START]");
     _recordingTimer.cancel();
     bool isRecording = await record.isRecording();
     if (!isRecording) {
       print("WARNING chat: chatReleased: Is not recording, returning...");
       return;
     }
-    // print("chat: chatReleased: stopping recording...");
     String? path = await record.stop();
 
     // Timeout if we wait too long for AST audio
@@ -422,7 +318,6 @@ class _ChatScreenState extends State<ChatScreen> {
       }
     });
 
-    // print("chat: chatReleased: stopped recording, path: $path");
     setState(() {
       if (micStatus == MicStatus.on) {
         micStatus = MicStatus.muted;
@@ -435,27 +330,24 @@ class _ChatScreenState extends State<ChatScreen> {
     if (!await audioFile.exists()) {
       throw ("chat: chatReleased: audio file does not exist: $path");
     }
-    await _uploadAudio(_transcript.id, audioFile.path);
-    // print("chat: chatReleased: [END]");
+    await uploadAudio(_transcript.id, audioFile.path, widget.profile.uid, storage);
   }
 
-  Future<void> _uploadAudio(String transcriptId, String path) async {
-    final File audioFile = File(path);
-    final String audioName = audioFile.path.split('/').last;
-    // print("chat: _uploadAudio: audioName: $audioName");
-    final Reference audioRef = storage.ref().child('audio/${widget.profile.uid}/$transcriptId/$audioName');
-    // print("chat: _uploadAudio: audioRef: $audioRef");
-    // print("chat: _uploadAudio: uploading $audioName to $audioRef");
-    final UploadTask uploadTask = audioRef.putFile(audioFile);
-    // final TaskSnapshot taskSnapshot = await uploadTask.whenComplete(() => null);
-    await uploadTask.whenComplete(() => null);
-    // print("chat: _uploadAudio: taskSnapshot: $taskSnapshot");
+  Future<void> _playAudio(Audio aud) async {
+    File? lap = await localAudioPath(aud);
+    if (lap == null) {
+      print("WARNING chat: _playAudio: localAudioPath returned null");
+      return;
+    }
+    print("chat: _playAudio: playing ${lap.path}");
+    await audioPlayer.play(DeviceFileSource(lap.path));
+    print("played");
   }
 
   @override
   Widget build(BuildContext context) {
     final Widget topStatusBar = _topStatusBar(context);
-    final Chat middleChatBox = Chat(messages: _transcript.messages);
+    final Chat middleChatBox = Chat(messages: _transcript.messages, onLongPress: _playAudio);
     final Widget bottomButtons = _bottomButtons(context);
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,

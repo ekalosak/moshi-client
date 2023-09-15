@@ -10,7 +10,7 @@ import 'package:moshi/firebase_options.dart';
 import 'theme.dart';
 import 'screens/switch.dart';
 
-const useEmulators = false;
+const useEmulators = true;
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -22,10 +22,10 @@ void main() async {
     String host = defaultTargetPlatform == TargetPlatform.iOS ? 'localhost' : '10.0.2.2';
     try {
       if (useEmulators) {
-        // print("USING LOCAL EMULATED FIRESTORE: port 8080");
-        // FirebaseFirestore.instance.useFirestoreEmulator(host, 8080);
-        // print("USING LOCAL EMULATED FIREBASE AUTH: port 9099");
-        // await FirebaseAuth.instance.useAuthEmulator(host, 9099);
+        print("USING LOCAL EMULATED FIRESTORE: port 8080");
+        FirebaseFirestore.instance.useFirestoreEmulator(host, 8080);
+        print("USING LOCAL EMULATED FIREBASE AUTH: port 9099");
+        await FirebaseAuth.instance.useAuthEmulator(host, 9099);
         print("USING LOCAL EMULATED STORAGE: port 9199");
         await FirebaseStorage.instance.useStorageEmulator(host, 9199);
         print("USING LOCAL EMULATED FUNCTIONS: port 5001");
@@ -53,7 +53,7 @@ class MyApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-      title: 'Moshi',
+      title: 'ChatMoshi',
       theme: moshiTheme,
       home: SwitchScreen(),
     );
