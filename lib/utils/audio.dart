@@ -23,6 +23,39 @@ Future<Directory> ensureAudioCacheExists() async {
   return acd;
 }
 
+/// Deletes audio in the directory (.wav, .flac, .m4a)
+/// until the directory contains less than [maxAudioCacheSize] bytes.
+/// Returns the number of bytes deleted.
+/// If [maxAudioCacheSize] is null or 0, then it will delete all audio.
+Future<int> trimAudioCache({int maxAudioCacheSize = 0}) async {
+  final Directory acd = await audioCacheDir();
+  if (!await acd.exists()) {
+    return 0;
+  }
+  final List<FileSystemEntity> files = acd.listSync(recursive: true, followLinks: false);
+  int totalSize = 0;
+  for (FileSystemEntity file in files) {
+    if (file is File) {
+      totalSize += await file.length();
+    }
+  }
+  if (maxAudioCacheSize == 0 || totalSize < maxAudioCacheSize) {
+    return 0;
+  }
+  files.sort((a, b) => a.statSync().modified.compareTo(b.statSync().modified));
+  int deletedSize = 0;
+  for (FileSystemEntity file in files) {
+    if (file is File) {
+      deletedSize += await file.length();
+      await file.delete();
+      if (totalSize - deletedSize < maxAudioCacheSize) {
+        break;
+      }
+    }
+  }
+  return deletedSize;
+}
+
 /// Deletes the audio cache directory if it exists.
 Future<void> clearCachedAudio() async {
   final Directory acd = await audioCacheDir();

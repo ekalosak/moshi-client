@@ -174,8 +174,9 @@ class _ChatScreenState extends State<ChatScreen> {
     });
 
     // Make sure we have a cached audio directory
-    await clearCachedAudio();
     await ensureAudioCacheExists();
+    // If it's 5MB or less, then don't bother deleting it. Otherwise, trim to 5MB.
+    await trimAudioCache(maxAudioCacheSize: 5 * 1024 * 1024);
 
     // Check and request permission
     if (!(await record.hasPermission())) {
