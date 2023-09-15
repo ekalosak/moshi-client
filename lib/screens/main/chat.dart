@@ -158,9 +158,22 @@ class _ChatScreenState extends State<ChatScreen> {
     });
   }
 
+  /// TODO DUMMY TEST FUNCTION
+  Future<void> _testAppCheck() async {
+    try {
+      print("START test_app_check");
+      await FirebaseFunctions.instance.httpsCallable('test_app_check').call();
+      print("SUCCEEDED test_app_check");
+    } catch (e) {
+      print("FAILED test_app_check");
+    }
+  }
+
   /// Get mic Permissions, check server health, and perform Chat connection establishment.
   /// Returns error string if any.
   Future<String?> startPressed() async {
+    await _testAppCheck();
+
     // print("chat: startPressed: [START]");
     if (_activity == null) {
       return "Please select an activity";

@@ -1,3 +1,4 @@
+import 'package:cloud_functions/cloud_functions.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:moshi/screens/main/wrapper.dart';
@@ -129,14 +130,16 @@ class _LoginScreenState extends State<LoginScreen> {
                           String? err = await loginWithEmailPassword();
                           if (err != null) {
                             WidgetsBinding.instance.addPostFrameCallback((_) {
-                              ScaffoldMessenger.of(context).showSnackBar(
-                                SnackBar(
-                                    content: Text(err,
-                                        style: Theme.of(context)
-                                            .textTheme
-                                            .bodyMedium
-                                            ?.copyWith(color: Theme.of(context).colorScheme.background))),
-                              );
+                              if (mounted) {
+                                ScaffoldMessenger.of(context).showSnackBar(
+                                  SnackBar(
+                                      content: Text(err,
+                                          style: Theme.of(context)
+                                              .textTheme
+                                              .bodyMedium
+                                              ?.copyWith(color: Theme.of(context).colorScheme.background))),
+                                );
+                              }
                             });
                           } else if (mounted) {
                             Navigator.of(context).pushAndRemoveUntil(

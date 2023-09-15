@@ -1,25 +1,21 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
-import 'package:firebase_app_check/firebase_app_check.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:firebase_storage/firebase_storage.dart';
 import 'package:cloud_functions/cloud_functions.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
-import 'package:moshi/firebase_options.dart';
+
+import 'package:firebase_app_check/firebase_app_check.dart';
 
 import 'theme.dart';
 import 'screens/switch.dart';
 
-const useEmulators = true;
+const useEmulators = false;
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
-  await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
-  await FirebaseAppCheck.instance.activate(
-    androidProvider: AndroidProvider.debug,
-    appleProvider: AppleProvider.debug,
-  );
+  await Firebase.initializeApp();
   if (kDebugMode) {
     print("DEBUG");
     String host = defaultTargetPlatform == TargetPlatform.iOS ? 'localhost' : '10.0.2.2';
@@ -48,6 +44,11 @@ void main() async {
     await FirebaseAuth.instance.signOut();
   } else {
     print("RELEASE");
+    await FirebaseAppCheck.instance.activate(
+      webRecaptchaSiteKey: 'recaptcha-v3-site-key',
+      androidProvider: AndroidProvider.playIntegrity,
+      appleProvider: AppleProvider.deviceCheck,
+    );
   }
   runApp(MyApp());
 }
