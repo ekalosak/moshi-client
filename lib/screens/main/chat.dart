@@ -86,6 +86,7 @@ class _ChatScreenState extends State<ChatScreen> {
   @override
   void dispose() async {
     super.dispose();
+    await stopPressed();
     _activities.clear();
     await _transcriptListener?.cancel();
     await _activityListener?.cancel();
@@ -141,18 +142,22 @@ class _ChatScreenState extends State<ChatScreen> {
           // print("latest message: ${t.messages.first.role} ${t.messages.first.msg}");
         }
         if (t.messages.isNotEmpty && t.messages.first.role == Role.ast) {
-          if (callStatus == CallStatus.inCall) {
-            playAudioFromMessage(t.messages.first, t.id, audioPlayer, storage);
+          if (mounted) {
+            if (callStatus == CallStatus.inCall) {
+              playAudioFromMessage(t.messages.first, t.id, audioPlayer, storage);
+            }
+            _timeoutTimer.cancel();
+            setState(() {
+              _isLoading = false;
+              _timeoutSeconds = 0.0;
+            });
           }
-          _timeoutTimer.cancel();
+        }
+        if (mounted) {
           setState(() {
-            _isLoading = false;
-            _timeoutSeconds = 0.0;
+            _transcript = t!;
           });
         }
-        setState(() {
-          _transcript = t!;
-        });
       } else {
         // print("WARNING chat: _transcriptListener: t is null; failed to parse");
       }
@@ -246,13 +251,15 @@ class _ChatScreenState extends State<ChatScreen> {
   Future<String?> stopPressed() async {
     await record.stop();
     await audioPlayer.stop();
-    setState(() {
-      callStatus = CallStatus.idle;
-      _isLoading = false;
-      _isRecording = false;
-      _recordingSeconds = 0.0;
-      _timeoutSeconds = 0.0;
-    });
+    if (mounted) {
+      setState(() {
+        callStatus = CallStatus.idle;
+        _isLoading = false;
+        _isRecording = false;
+        _recordingSeconds = 0.0;
+        _timeoutSeconds = 0.0;
+      });
+    }
     try {
       _recordingTimer.cancel();
     } catch (e) {
@@ -265,7 +272,11 @@ class _ChatScreenState extends State<ChatScreen> {
       print("WARNING chat: stopPressed: _timeoutTimer not initialized");
       print(e);
     }
-    await feedbackAfterCall();
+    if (mounted) {
+      await feedbackAfterCall();
+    } else {
+      await _sendFeedback("none");
+    }
     return null;
   }
 
@@ -318,9 +329,11 @@ class _ChatScreenState extends State<ChatScreen> {
 
     // Timeout if we wait too long for AST audio
     _timeoutTimer = Timer.periodic(Duration(milliseconds: 100), (Timer t) {
-      setState(() {
-        _timeoutSeconds = _timeoutSeconds + 0.1;
-      });
+      if (mounted) {
+        setState(() {
+          _timeoutSeconds = _timeoutSeconds + 0.1;
+        });
+      }
       if (_timeoutSeconds >= waitForResponseTimeout) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(content: Text("⌛️ Waiting for response timed out.")),
@@ -613,9 +626,21 @@ class _ChatScreenState extends State<ChatScreen> {
         .doc(widget.profile.uid)
         .collection('transcripts')
         .doc(_transcript.id);
-    await transcriptRef.update({
-      'feedback': body,
-    });
+    try {
+      await transcriptRef.update({
+        'feedback': body,
+      });
+    } on FirebaseException catch (e) {
+      if (e.code == 'not-found') {
+        if (_transcript.id == 'dne') {
+          // print("WARNING chat: _sendFeedback: transcript not found");
+        } else {
+          print("WARNING chat: _sendFeedback: failed to update transcript: ${e.message}");
+        }
+      } else {
+        print("WARNING chat: _sendFeedback: failed to update transcript: ${e.message}");
+      }
+    }
   }
 
   void _afterFeedbackMessage() {
