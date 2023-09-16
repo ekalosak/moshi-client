@@ -22,6 +22,7 @@ void main() async {
     try {
       if (useEmulators) {
         print("USING LOCAL EMULATED FIRESTORE: port 8080");
+        FirebaseFirestore.instance.settings = Settings(persistenceEnabled: false);
         FirebaseFirestore.instance.useFirestoreEmulator(host, 8080);
         print("USING LOCAL EMULATED FIREBASE AUTH: port 9099");
         await FirebaseAuth.instance.useAuthEmulator(host, 9099);

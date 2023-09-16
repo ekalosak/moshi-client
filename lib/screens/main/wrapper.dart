@@ -212,7 +212,7 @@ class _WrapperScreenState extends State<WrapperScreen> {
       String bName = languages[b]['language']['alt_full_name'];
       return aName.compareTo(bName);
     });
-    print("sortedLanguages: $sortedLanguages");
+    // print("sortedLanguages: $sortedLanguages");
     return TextButton(
       child: Text(
         getLangRepr(profile.lang),

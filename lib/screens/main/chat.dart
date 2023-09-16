@@ -68,6 +68,7 @@ class _ChatScreenState extends State<ChatScreen> {
         try {
           Activity a = Activity.fromDocumentSnapshot(doc);
           // print("chat: _activityListener: doc -> activity: ${a.name} ${a.title}");
+          // print("chat: _activityListener: doc.metadata.isFromCache: ${doc.metadata.isFromCache}");
           setState(() {
             _activities.add(a);
             _activity = a;
