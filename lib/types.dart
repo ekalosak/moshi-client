@@ -73,6 +73,7 @@ class Transcript {
   Timestamp createdAt;
   String activityId;
   String? summary;
+  String? tag;
 
   Transcript(
       {required this.id,
@@ -80,7 +81,8 @@ class Transcript {
       required this.language,
       required this.createdAt,
       required this.activityId,
-      this.summary});
+      this.summary,
+      this.tag});
 
   factory Transcript.fromDocumentSnapshot(DocumentSnapshot snapshot) {
     Map<String, dynamic>? data = snapshot.data() as Map<String, dynamic>?;
@@ -88,9 +90,22 @@ class Transcript {
       throw NullDataError("Transcript.fromDocumentSnapshot: data is null: ${snapshot.id}");
     }
     List<Message> msgs = [];
-    for (var msg in snapshot['messages'].reversed) {
-      Message message = Message.fromMap(msg);
-      msgs.add(message);
+    // data['messages'] may be [{message 1}, {message 2}, ...] or {"AST-0": {message 1}, "USR-1": {message 2}, ...}
+    print("HERE");
+    print(snapshot.id);
+    print(data);
+    if (data.containsKey('messages')) {
+      try {
+        // data['messages'] is a map like {"USR0": Message, "AST0": Message, ...}
+        for (var msg in data['messages'].values) {
+          print("msg: $msg");
+          msgs.add(Message.fromMap(msg));
+        }
+      } catch (e) {
+        print(e);
+        msgs.addAll(data['messages']);
+      }
+      msgs.sort((a, b) => a.createdAt!.compareTo(b.createdAt!));
     }
     String? summary = data.containsKey('summary') ? snapshot['summary'] : null;
     return Transcript(
