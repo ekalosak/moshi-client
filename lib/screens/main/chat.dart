@@ -16,7 +16,7 @@ import 'package:moshi/widgets/chat.dart';
 import 'package:moshi/widgets/status.dart';
 
 const int maxRecordingSeconds = 30;
-const int waitForResponseTimeout = 15;
+const int waitForResponseTimeout = 25;
 
 class ChatScreen extends StatefulWidget {
   final Profile profile;
