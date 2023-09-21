@@ -91,9 +91,9 @@ class Transcript {
     }
     List<Message> msgs = [];
     // data['messages'] may be [{message 1}, {message 2}, ...] or {"AST-0": {message 1}, "USR-1": {message 2}, ...}
-    print("HERE");
-    print(snapshot.id);
-    print(data);
+    // print("HERE");
+    // print(snapshot.id);
+    // print(data);
     if (data.containsKey('messages')) {
       try {
         // data['messages'] is a map like {"USR0": Message, "AST0": Message, ...}
@@ -102,8 +102,12 @@ class Transcript {
           msgs.add(Message.fromMap(msg));
         }
       } catch (e) {
-        print(e);
-        msgs.addAll(data['messages']);
+        // print("caught exception");
+        // print(e);
+        // print("data['messages'] is not a map");
+        // print(data['messages']);
+        // data['messages'] is a list like [{message 1}, {message 2}, ...]
+        msgs.addAll(data['messages'].map<Message>((msg) => Message.fromMap(msg)).toList());
       }
       msgs.sort((a, b) => a.createdAt!.compareTo(b.createdAt!));
     }

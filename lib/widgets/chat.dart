@@ -45,6 +45,12 @@ class _ChatState extends State<Chat> {
   Widget build(BuildContext context) {
     final Color boxColor = Theme.of(context).colorScheme.surface;
     final Color iconColor = Theme.of(context).colorScheme.secondary;
+    try {
+      widget.messages.sort((a, b) => b.createdAt!.compareTo(a.createdAt!));
+    } catch (e) {
+      print("chat widget caught exception sorting messages");
+      print(e);
+    }
     return ListView.builder(
       reverse: true,
       shrinkWrap: true,

@@ -141,10 +141,10 @@ class _ChatScreenState extends State<ChatScreen> {
         if (t.messages.isNotEmpty) {
           // print("latest message: ${t.messages.first.role} ${t.messages.first.msg}");
         }
-        if (t.messages.isNotEmpty && t.messages.first.role == Role.ast) {
+        if (t.messages.isNotEmpty && t.messages.last.role == Role.ast) {
           if (mounted) {
             if (callStatus == CallStatus.inCall) {
-              playAudioFromMessage(t.messages.first, t.id, audioPlayer, storage);
+              playAudioFromMessage(t.messages.last, t.id, audioPlayer, storage);
             }
             _timeoutTimer.cancel();
             setState(() {
