@@ -25,6 +25,7 @@ dependencies:
   record: ^4.4.4
   shared_preferences: ^2.2.0
   firebase_app_check: ^0.1.5+2
+  firebase_crashlytics: ^3.3.6
 
 dev_dependencies:
   flutter_test:
