@@ -15,8 +15,10 @@ dependencies:
   audioplayers: ^5.1.0
   cloud_firestore: ^4.8.3
   cloud_functions: ^4.4.0
+  firebase_app_check: ^0.1.5+2
   firebase_auth: ^4.6.3
   firebase_core: ^2.15.0
+  firebase_crashlytics: ^3.3.6
   firebase_storage: ^11.2.5
   flutter_cache_manager: ^3.3.1
   google_sign_in: ^6.1.4
@@ -24,8 +26,6 @@ dependencies:
   path_provider: ^2.1.1
   record: ^4.4.4
   shared_preferences: ^2.2.0
-  firebase_app_check: ^0.1.5+2
-  firebase_crashlytics: ^3.3.6
 
 dev_dependencies:
   flutter_test:
