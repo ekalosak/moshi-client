@@ -102,3 +102,14 @@ flutter clean
 
 ## iPhone
 `SKU: 1BB43674-A8CF-40DF-8EF0-2732C514EBD4`
+
+
+# Crashlytics
+- https://firebase.google.com/docs/crashlytics/get-started?platform=flutter
+- https://pub.dev/documentation/firebase_crashlytics/latest/
+- git branch name is `feature/crashlytics`
+```sh
+firebase crashlytics:symbols:upload \ 
+    --app=1:638882664430:android:ecae935915cf5f24ea88ff \
+    PATH/TO/symbols
+```
