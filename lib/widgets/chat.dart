@@ -181,7 +181,7 @@ class MsgBox extends StatelessWidget {
                           return AlertDialog(
                             scrollable: true,
                             title: Text("Details",
-                                style: Theme.of(context).textTheme.headlineSmall?.copyWith(
+                                style: Theme.of(context).textTheme.headlineMedium?.copyWith(
                                       color: Theme.of(context).colorScheme.primary,
                                     )),
                             content: MsgDetail(msg),
@@ -205,8 +205,10 @@ class MsgBox extends StatelessWidget {
                   }
                 },
                 onLongPress: () async {
-                  print("onLongPress: $onLongPress");
-                  msg.audio != null ? await onLongPress?.call(msg.audio!) : print("No audio");
+                  // print("onLongPress: $onLongPress");
+                  if (msg.audio != null) {
+                    await onLongPress?.call(msg.audio!);
+                  }
                 },
                 child: RoundedBox(boxColor: boxColor, padding: boxTextPadding, child: msgText),
               ),
@@ -245,8 +247,18 @@ class MsgDetail extends StatefulWidget {
 
 class _MsgDetailState extends State<MsgDetail> {
   bool _showTranslation = false;
+  bool _showMsg = true;
   @override
   Widget build(BuildContext context) {
+    final Widget msgButton = ElevatedButton.icon(
+      icon: Icon(Icons.message),
+      label: Text(_showMsg ? "Hide message" : "Show message"),
+      onPressed: () {
+        setState(() {
+          _showMsg = !_showMsg;
+        });
+      },
+    );
     final Widget translation = Padding(
         padding: EdgeInsets.only(bottom: 4),
         child: Text(
@@ -259,19 +271,48 @@ class _MsgDetailState extends State<MsgDetail> {
         ));
     final Widget translationButton = ElevatedButton.icon(
       icon: Icon(Icons.translate),
-      label: Text("Show translation"),
+      label: Text(_showTranslation ? "Hide translation" : "Show translation"),
       onPressed: () {
         setState(() {
-          _showTranslation = true;
+          _showTranslation = !_showTranslation;
         });
       },
     );
     Widget vocabulary = Vocabulary(widget.msg.vocab);
     return Column(
-        crossAxisAlignment: CrossAxisAlignment.center,
+        crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Row(children: [(_showTranslation) ? translation : translationButton]),
-          Row(children: [vocabulary]),
+          Text(
+            "Message",
+            style: Theme.of(context).textTheme.headlineSmall?.copyWith(
+                  color: Theme.of(context).colorScheme.secondary,
+                ),
+          ),
+          _showMsg
+              ? Text(
+                  widget.msg.msg,
+                  style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                        color: Theme.of(context).colorScheme.onSurface,
+                      ),
+                )
+              : SizedBox(),
+          Center(child: msgButton),
+          Text(
+            "Translation",
+            style: Theme.of(context).textTheme.headlineSmall?.copyWith(
+                  color: Theme.of(context).colorScheme.secondary,
+                ),
+          ),
+          _showTranslation ? translation : SizedBox(),
+          Center(child: translationButton),
+          SizedBox(height: 4),
+          Text(
+            "Vocabulary",
+            style: Theme.of(context).textTheme.headlineSmall?.copyWith(
+                  color: Theme.of(context).colorScheme.secondary,
+                ),
+          ),
+          vocabulary,
         ].map((e) => Padding(padding: EdgeInsets.only(bottom: 4), child: e)).toList());
   }
 }
@@ -311,7 +352,7 @@ class Vocabulary extends StatefulWidget {
 class _VocabularyState extends State<Vocabulary> {
   @override
   Widget build(BuildContext context) {
-    print("vocab: ${widget.vocab}");
+    // print("vocab: ${widget.vocab}");
     if (widget.vocab == null) {
       return SizedBox();
     }
@@ -325,7 +366,11 @@ class _VocabularyState extends State<Vocabulary> {
         return VocTile(voc);
       },
     );
-    return Container(width: 200, height: 300, child: vocab);
+    return Container(
+      height: 200,
+      width: 200,
+      child: Center(child: vocab),
+    );
   }
 }
 
@@ -352,7 +397,7 @@ class VocTile extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    print("voc: $voc");
+    // print("voc: $voc");
     final Widget term = Text(
       voc.term,
       style: TextStyle(
@@ -362,7 +407,7 @@ class VocTile extends StatelessWidget {
       ),
     );
     final Widget definition = Text(
-      voc.definition ?? "⏳ No definition available just yet",
+      voc.definition ?? "whoops 🫣",
       style: TextStyle(
         color: Theme.of(context).colorScheme.onSurface,
         fontFamily: Theme.of(context).textTheme.bodyMedium?.fontFamily,

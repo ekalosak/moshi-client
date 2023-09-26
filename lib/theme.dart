@@ -44,19 +44,19 @@ final moshiTextTheme = TextTheme(
     color: moshiColorScheme.primary,
   ),
   headlineLarge: TextStyle(
-    fontSize: 36,
-    fontWeight: FontWeight.bold,
-    fontFamily: 'Rubik',
-    color: moshiColorScheme.secondary,
-  ),
-  headlineMedium: TextStyle(
     fontSize: 32,
     fontWeight: FontWeight.bold,
     fontFamily: 'Rubik',
     color: moshiColorScheme.secondary,
   ),
-  headlineSmall: TextStyle(
+  headlineMedium: TextStyle(
     fontSize: 28,
+    fontWeight: FontWeight.bold,
+    fontFamily: 'Rubik',
+    color: moshiColorScheme.secondary,
+  ),
+  headlineSmall: TextStyle(
+    fontSize: 24,
     fontFamily: 'Rubik',
     color: moshiColorScheme.onSurface,
   ),
