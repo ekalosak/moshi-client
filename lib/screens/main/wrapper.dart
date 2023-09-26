@@ -11,6 +11,7 @@ import 'chat.dart';
 import 'feed.dart';
 import 'profile.dart';
 import 'transcripts.dart';
+import 'vocab.dart';
 
 const String version = "23.9.4";
 
@@ -24,21 +25,15 @@ class WrapperScreen extends StatefulWidget {
 
 // Sidebar indices
 const int CHAT_INDEX = 0;
-const int HOME_INDEX = 1;
+const int FEED_INDEX = 1;
 const int PROFILE_INDEX = 2;
-const int PROGRESS_INDEX = 3;
-
-// Progress page bottom navbar indices
-const int PROG_VOCAB_INDEX = 0;
-const int PROG_REPORT_INDEX = 1;
-const int PROG_TRANSCRIPTS_INDEX = 2;
+const int TRANSCRIPT_INDEX = 3;
+const int VOCAB_INDEX = 4;
 
 class _WrapperScreenState extends State<WrapperScreen> {
   Profile? profile;
   String? _title;
-  // int _index = CHAT_INDEX;
-  int _index = PROGRESS_INDEX;
-  int _progressIndex = PROG_TRANSCRIPTS_INDEX;
+  int _index = VOCAB_INDEX;
   Map<String, dynamic> languages = {};
   late StreamSubscription _profileListener;
   late StreamSubscription _supportedLangsListener;
@@ -51,13 +46,7 @@ class _WrapperScreenState extends State<WrapperScreen> {
         .doc(widget.user.uid)
         .snapshots(includeMetadataChanges: true)
         .listen((DocumentSnapshot snapshot) {
-      // print("@@ WRAPPER PROFILE LISTENER");
-      // print("from cache: ${snapshot.metadata.isFromCache}");
-      // print("exists: ${snapshot.exists}");
-      // print("data:");
-      // print(snapshot.data());
       if (snapshot.exists && snapshot.data() != null) {
-        // print("wrapper: User profile exists and is not empty.");
         Map<String, dynamic> data = snapshot.data() as Map<String, dynamic>;
         int level = data.containsKey('level') ? snapshot['level'] : 1;
         setState(() {
@@ -140,10 +129,9 @@ class _WrapperScreenState extends State<WrapperScreen> {
     IconButton profileButton = _profileButton(pro);
     Drawer menuDrawer = _drawer();
     Widget body = _body(pro, languages, _index);
-    Widget? bottomNavigationBar = _bottomNavigationBar(_index);
     Text title = Text(
       _titleForIndex(_index),
-      style: Theme.of(context).textTheme.headlineSmall,
+      style: Theme.of(context).textTheme.displaySmall,
     );
     return Scaffold(
       appBar: AppBar(
@@ -162,7 +150,6 @@ class _WrapperScreenState extends State<WrapperScreen> {
       ),
       drawer: menuDrawer,
       body: body,
-      bottomNavigationBar: bottomNavigationBar,
       backgroundColor: Theme.of(context).colorScheme.background,
     );
   }
@@ -171,13 +158,15 @@ class _WrapperScreenState extends State<WrapperScreen> {
     switch (index) {
       case CHAT_INDEX:
         return ChatScreen(profile: pro, languages: languages, setTitle: updateTitle);
-      case HOME_INDEX:
+      case FEED_INDEX:
         return FeedScreen(profile: pro);
       case PROFILE_INDEX:
         return ProfileScreen(profile: pro, languages: languages);
-      case PROGRESS_INDEX:
+      case TRANSCRIPT_INDEX:
         // return ProgressScreen(profile: pro, languages: languages, index: _progressIndex);
         return TranscriptScreen(profile: pro, languages: languages);
+      case VOCAB_INDEX:
+        return VocabScreen(profile: pro);
       default:
         throw ("ERROR: invalid index");
     }
@@ -280,12 +269,6 @@ class _WrapperScreenState extends State<WrapperScreen> {
     });
   }
 
-  void _changeProgressIndex(int index) {
-    setState(() {
-      _progressIndex = index;
-    });
-  }
-
   ListTile _listTile(String text, int index) {
     return ListTile(
       title: Text(text,
@@ -333,8 +316,9 @@ class _WrapperScreenState extends State<WrapperScreen> {
                     ),
                   ),
                   _listTile('Chat', CHAT_INDEX),
-                  _listTile('Feed', HOME_INDEX),
-                  _listTile('Transcripts', PROGRESS_INDEX),
+                  _listTile('Feed', FEED_INDEX),
+                  _listTile('Transcripts', TRANSCRIPT_INDEX),
+                  _listTile('Vocabulary', VOCAB_INDEX),
                 ],
               )),
           Expanded(flex: 1, child: Container()),
@@ -385,55 +369,16 @@ class _WrapperScreenState extends State<WrapperScreen> {
     switch (index) {
       case CHAT_INDEX:
         return _title ?? "";
-      case HOME_INDEX:
-        return "";
+      case FEED_INDEX:
+        return "Feed";
       case PROFILE_INDEX:
-        return "";
-      case PROGRESS_INDEX:
-        switch (_progressIndex) {
-          case PROG_VOCAB_INDEX:
-            return "Vocabulary";
-          case PROG_REPORT_INDEX:
-            return "Stats";
-          case PROG_TRANSCRIPTS_INDEX:
-            return "Transcripts";
-          default:
-            throw ("ERROR: invalid progress index");
-        }
+        return "Profile";
+      case TRANSCRIPT_INDEX:
+        return "Transcripts";
+      case VOCAB_INDEX:
+        return "Vocabulary";
       default:
         throw ("ERROR: invalid index");
     }
-  }
-
-  Widget? _bottomNavigationBar(int index) {
-    // NOTE DEBUG
-    return null;
-    if (_index != PROGRESS_INDEX) {
-      return null;
-    }
-    return BottomNavigationBar(
-      currentIndex: _progressIndex,
-      onTap: _changeProgressIndex,
-      iconSize: 32.0,
-      showSelectedLabels: false,
-      showUnselectedLabels: false,
-      items: [
-        BottomNavigationBarItem(
-          icon: Icon(Icons.book),
-          label: "",
-          // label: 'Vocabulary',
-        ),
-        BottomNavigationBarItem(
-          icon: Icon(Icons.bar_chart),
-          label: "",
-          // label: 'Report Card',
-        ),
-        BottomNavigationBarItem(
-          icon: Icon(Icons.chat_rounded),
-          label: "",
-          // label: 'Transcripts',
-        ),
-      ],
-    );
   }
 }
