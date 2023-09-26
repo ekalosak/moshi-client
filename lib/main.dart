@@ -30,9 +30,8 @@ void main() async {
         await FirebaseAuth.instance.useAuthEmulator(host, 9099);
         print("USING LOCAL EMULATED STORAGE: port 9199");
         await FirebaseStorage.instance.useStorageEmulator(host, 9199);
-        print("USING LOCAL EMULATED FUNCTIONS: ports 5001, 5011");
-        FirebaseFunctions.instance.useFunctionsEmulator(host, 5001); // main functions workspace emulator
-        FirebaseFunctions.instance.useFunctionsEmulator(host, 5011); // user functions (create, get)
+        print("USING LOCAL EMULATED FUNCTIONS: port 5001");
+        FirebaseFunctions.instance.useFunctionsEmulator(host, 5001);
         print("EMULATOR HOST: $host");
       } else {
         print("USING REMOTE FIREBASE AUTH");
