@@ -245,7 +245,6 @@ class MsgDetail extends StatefulWidget {
   _MsgDetailState createState() => _MsgDetailState();
 }
 
-// FIRST do a simplified version of the _MsgDetailState that only has the translation or "no translation available" text.
 class _MsgDetailState extends State<MsgDetail> {
   bool _showTranslation = false;
   @override
@@ -267,14 +266,74 @@ class _MsgDetailState extends State<MsgDetail> {
         });
       },
     );
+    Widget vocabulary = Vocabulary(widget.msg.vocab);
     return Column(
-      children: [
-        // translation
-        (_showTranslation) ? translation : translationButton,
-      ],
-    );
+        // Add padding 4pt on the bottom of each element
+        children: [
+      (_showTranslation) ? translation : translationButton,
+      vocabulary,
+    ].map((e) => Padding(padding: EdgeInsets.only(bottom: 4), child: e)).toList());
   }
 }
+
+class Vocabulary extends StatefulWidget {
+  final Map<String, dynamic>? vocab;
+  Vocabulary(this.vocab);
+  @override
+  _VocabularyState createState() => _VocabularyState();
+}
+
+// FIRST do a simplified version of the vocab list, just the terms and definitions, no colors or anything.
+class _VocabularyState extends State<Vocabulary> {
+  @override
+  Widget build(BuildContext context) {
+    (widget.vocab == null) ? print("vocab is null") : print("vocab is not null");
+    return Text(widget.vocab.toString());
+  }
+}
+
+// class _VocabularyState extends State<Vocabulary> {
+//   @override
+//   Widget build(BuildContext context) {
+//     final Widget vocab = ListView.builder(
+//       // shrinkWrap: true,
+//       itemCount: widget.vocab?.length ?? 0,
+//       itemBuilder: (BuildContext context, int index) {
+//         String key = widget.vocab!.keys.elementAt(index);
+//         String def = widget.vocab![key] ?? "⏳ No definition available just yet";
+//         return Padding(
+//           padding: EdgeInsets.only(top: 4),
+//           child: Row(
+//             children: [
+//               Flexible(
+//                 child: Text(
+//                   key,
+//                   style: TextStyle(
+//                     color: Theme.of(context).colorScheme.onSurface,
+//                     fontFamily: Theme.of(context).textTheme.bodyMedium?.fontFamily,
+//                     fontSize: Theme.of(context).textTheme.bodyMedium?.fontSize,
+//                     fontWeight: FontWeight.bold,
+//                   ),
+//                 ),
+//               ),
+//               Flexible(
+//                 child: Text(
+//                   def,
+//                   style: TextStyle(
+//                     color: Theme.of(context).colorScheme.onSurface,
+//                     fontFamily: Theme.of(context).textTheme.bodyMedium?.fontFamily,
+//                     fontSize: Theme.of(context).textTheme.bodyMedium?.fontSize,
+//                   ),
+//                 ),
+//               ),
+//             ],
+//           ),
+//         );
+//       },
+//     );
+//     return vocab;
+//   }
+// }
 
 // class _MsgDetailState extends State<MsgDetail> {
 //   bool _showTranslation = false;
