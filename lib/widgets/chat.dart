@@ -283,6 +283,22 @@ class Vocab {
   final String? definitionTranslation;
   final String? partOfSpeech;
   Vocab(this.term, {this.termTranslation, this.definition, this.definitionTranslation, this.partOfSpeech});
+  // to string method
+  @override
+  String toString() {
+    return "Vocab(term: $term, termTranslation: $termTranslation, definition: $definition, definitionTranslation: $definitionTranslation, partOfSpeech: $partOfSpeech)";
+  }
+
+  // from map<str, str>; all but term are optional
+  factory Vocab.fromMap(Map<String, dynamic> map) {
+    return Vocab(
+      map['term'],
+      termTranslation: map['term_translation']?.toString(),
+      definition: map['definition']?.toString(),
+      definitionTranslation: map['definition_translation']?.toString(),
+      partOfSpeech: map['part_of_speech']?.toString(),
+    );
+  }
 }
 
 class Vocabulary extends StatefulWidget {
@@ -295,6 +311,7 @@ class Vocabulary extends StatefulWidget {
 class _VocabularyState extends State<Vocabulary> {
   @override
   Widget build(BuildContext context) {
+    print("vocab: ${widget.vocab}");
     if (widget.vocab == null) {
       return SizedBox();
     }
@@ -304,13 +321,76 @@ class _VocabularyState extends State<Vocabulary> {
       itemCount: vocKeys.length,
       itemBuilder: (BuildContext context, int index) {
         String key = vocKeys[index];
-        Vocab voc = Vocab(widget.vocab![key]['term']);
-        return Container(
-          height: 50,
-          child: Text(voc.term),
-        );
+        Vocab voc = Vocab.fromMap(widget.vocab![key]);
+        return VocTile(voc);
       },
     );
     return Container(width: 200, height: 300, child: vocab);
+  }
+}
+
+/// A tile for a vocab word.
+/// The tile is one horizontal row with 2 elements.
+/// 1. The term, on top of a colored rectangle.
+/// 2. The definition.
+class VocTile extends StatelessWidget {
+  final Vocab voc;
+  VocTile(this.voc);
+
+  Color _partOfSpeechColor(String? partOfSpeech) {
+    switch (partOfSpeech) {
+      case 'verb':
+        return Colors.green;
+      case 'noun':
+        return Colors.blue;
+      case 'adjective':
+        return Colors.purple;
+      default:
+        return Colors.grey;
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    print("voc: $voc");
+    final Widget term = Text(
+      voc.term,
+      style: TextStyle(
+        color: Theme.of(context).colorScheme.onSurface,
+        fontFamily: Theme.of(context).textTheme.bodyMedium?.fontFamily,
+        fontSize: Theme.of(context).textTheme.bodyMedium?.fontSize,
+      ),
+    );
+    final Widget definition = Text(
+      voc.definition ?? "⏳ No definition available just yet",
+      style: TextStyle(
+        color: Theme.of(context).colorScheme.onSurface,
+        fontFamily: Theme.of(context).textTheme.bodyMedium?.fontFamily,
+        fontSize: Theme.of(context).textTheme.bodyMedium?.fontSize,
+      ),
+    );
+    final Widget tile = Row(
+      children: [
+        Flexible(
+          flex: 1,
+          child: Container(
+            padding: EdgeInsets.all(4),
+            decoration: BoxDecoration(
+              color: _partOfSpeechColor(voc.partOfSpeech),
+              borderRadius: BorderRadius.circular(4),
+            ),
+            child: term,
+          ),
+        ),
+        Flexible(
+          flex: 3,
+          child: Padding(
+            padding: EdgeInsets.only(left: 4),
+            child: definition,
+          ),
+        ),
+      ],
+    );
+    return tile;
   }
 }
