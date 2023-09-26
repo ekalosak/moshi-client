@@ -252,7 +252,10 @@ class _MsgDetailState extends State<MsgDetail> {
   Widget build(BuildContext context) {
     final Widget msgButton = ElevatedButton.icon(
       icon: Icon(Icons.message),
-      label: Text(_showMsg ? "Hide message" : "Show message"),
+      label: Text(_showMsg ? "Hide" : "Show",
+          style: Theme.of(context).textTheme.headlineSmall?.copyWith(
+                color: Theme.of(context).colorScheme.onPrimary,
+              )),
       onPressed: () {
         setState(() {
           _showMsg = !_showMsg;
@@ -271,7 +274,10 @@ class _MsgDetailState extends State<MsgDetail> {
         ));
     final Widget translationButton = ElevatedButton.icon(
       icon: Icon(Icons.translate),
-      label: Text(_showTranslation ? "Hide translation" : "Show translation"),
+      label: Text(_showTranslation ? "Hide" : "Show",
+          style: Theme.of(context).textTheme.headlineSmall?.copyWith(
+                color: Theme.of(context).colorScheme.onPrimary,
+              )),
       onPressed: () {
         setState(() {
           _showTranslation = !_showTranslation;
@@ -391,7 +397,7 @@ class VocTile extends StatelessWidget {
       case 'adjective':
         return Colors.purple;
       default:
-        return Colors.grey;
+        return Colors.grey[600]!;
     }
   }
 
@@ -428,7 +434,7 @@ class VocTile extends StatelessWidget {
           ),
         ),
         Flexible(
-          flex: 3,
+          flex: 1,
           child: Padding(
             padding: EdgeInsets.only(left: 4),
             child: definition,
