@@ -384,9 +384,15 @@ class _VocabularyState extends State<Vocabulary> {
 /// The tile is one horizontal row with 2 elements.
 /// 1. The term, on top of a colored rectangle.
 /// 2. The definition.
-class VocTile extends StatelessWidget {
+class VocTile extends StatefulWidget {
   final Vocab voc;
   VocTile(this.voc);
+  @override
+  _VocTile createState() => _VocTile();
+}
+
+class _VocTile extends State<VocTile> {
+  bool _showTranslation = false;
 
   Color _partOfSpeechColor(String? partOfSpeech) {
     switch (partOfSpeech) {
@@ -405,43 +411,51 @@ class VocTile extends StatelessWidget {
   Widget build(BuildContext context) {
     // print("voc: $voc");
     final Widget term = Text(
-      voc.term,
+      widget.voc.term,
       style: TextStyle(
         color: Theme.of(context).colorScheme.onSurface,
         fontFamily: Theme.of(context).textTheme.bodyMedium?.fontFamily,
         fontSize: Theme.of(context).textTheme.bodyMedium?.fontSize,
       ),
     );
+    String defStr = widget.voc.definitionTranslation ?? "failed to extract 🫣";
+    String defTrans = widget.voc.definition ?? "failed to extract 🫣";
     final Widget definition = Text(
-      voc.definition ?? "whoops 🫣",
-      style: TextStyle(
-        color: Theme.of(context).colorScheme.onSurface,
-        fontFamily: Theme.of(context).textTheme.bodyMedium?.fontFamily,
-        fontSize: Theme.of(context).textTheme.bodyMedium?.fontSize,
-      ),
+      _showTranslation ? defTrans : defStr,
+      style: Theme.of(context).textTheme.bodySmall?.copyWith(
+            color: Theme.of(context).colorScheme.onSurface,
+          ),
     );
-    final Widget tile = Row(
-      children: [
-        Flexible(
-          flex: 1,
-          child: Container(
-            padding: EdgeInsets.all(4),
-            decoration: BoxDecoration(
-              color: _partOfSpeechColor(voc.partOfSpeech),
-              borderRadius: BorderRadius.circular(4),
+    final Widget tile = Column(children: [
+      Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          GestureDetector(
+            child: Flexible(
+              child: Container(
+                padding: EdgeInsets.all(4),
+                decoration: BoxDecoration(
+                  color: _partOfSpeechColor(widget.voc.partOfSpeech),
+                  borderRadius: BorderRadius.circular(4),
+                ),
+                child: term,
+              ),
             ),
-            child: term,
+            onTap: () => setState(() {
+              _showTranslation = !_showTranslation;
+            }),
           ),
-        ),
-        Flexible(
-          flex: 1,
-          child: Padding(
-            padding: EdgeInsets.only(left: 4),
-            child: definition,
+          Flexible(
+            flex: 2,
+            child: Padding(
+              padding: EdgeInsets.only(left: 4),
+              child: definition,
+            ),
           ),
-        ),
-      ],
-    );
+        ],
+      ),
+      SizedBox(height: 8),
+    ]);
     return tile;
   }
 }
