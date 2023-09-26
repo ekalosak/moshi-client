@@ -235,9 +235,7 @@ class MsgBox extends StatelessWidget {
 ///  2. the scrollable vocab list
 /// The translation should be hidden under a button until the user taps it.
 /// The vocab should be in a list view, 1 row for each element sorted by its place in the msg. Each element should have the term (key) in bold, backround of the key term in a rectangle colored by the part_of_speech (green for verb, blue for noun, purple for adjective, grey for everything else). The definition should occur to the right of the term.
-///
 
-/// FIRST make the stateful "reveal translation" button; disabled showing "no translation available" if there is no translation.
 class MsgDetail extends StatefulWidget {
   final Message msg;
   MsgDetail(this.msg);
@@ -249,14 +247,16 @@ class _MsgDetailState extends State<MsgDetail> {
   bool _showTranslation = false;
   @override
   Widget build(BuildContext context) {
-    final Widget translation = Text(
-      widget.msg.translation ?? "⏳ No translation available just yet",
-      style: TextStyle(
-        color: Theme.of(context).colorScheme.onSurface,
-        fontFamily: Theme.of(context).textTheme.bodyMedium?.fontFamily,
-        fontSize: Theme.of(context).textTheme.bodyMedium?.fontSize,
-      ),
-    );
+    final Widget translation = Padding(
+        padding: EdgeInsets.only(bottom: 4),
+        child: Text(
+          widget.msg.translation ?? "⏳ No translation available just yet",
+          style: TextStyle(
+            color: Theme.of(context).colorScheme.onSurface,
+            fontFamily: Theme.of(context).textTheme.bodyMedium?.fontFamily,
+            fontSize: Theme.of(context).textTheme.bodyMedium?.fontSize,
+          ),
+        ));
     final Widget translationButton = ElevatedButton.icon(
       icon: Icon(Icons.translate),
       label: Text("Show translation"),
@@ -268,12 +268,21 @@ class _MsgDetailState extends State<MsgDetail> {
     );
     Widget vocabulary = Vocabulary(widget.msg.vocab);
     return Column(
-        // Add padding 4pt on the bottom of each element
+        crossAxisAlignment: CrossAxisAlignment.center,
         children: [
-      (_showTranslation) ? translation : translationButton,
-      vocabulary,
-    ].map((e) => Padding(padding: EdgeInsets.only(bottom: 4), child: e)).toList());
+          Row(children: [(_showTranslation) ? translation : translationButton]),
+          Row(children: [vocabulary]),
+        ].map((e) => Padding(padding: EdgeInsets.only(bottom: 4), child: e)).toList());
   }
+}
+
+class Vocab {
+  final String term;
+  final String? termTranslation;
+  final String? definition;
+  final String? definitionTranslation;
+  final String? partOfSpeech;
+  Vocab(this.term, {this.termTranslation, this.definition, this.definitionTranslation, this.partOfSpeech});
 }
 
 class Vocabulary extends StatefulWidget {
@@ -283,119 +292,25 @@ class Vocabulary extends StatefulWidget {
   _VocabularyState createState() => _VocabularyState();
 }
 
-// FIRST do a simplified version of the vocab list, just the terms and definitions, no colors or anything.
 class _VocabularyState extends State<Vocabulary> {
   @override
   Widget build(BuildContext context) {
-    (widget.vocab == null) ? print("vocab is null") : print("vocab is not null");
-    return Text(widget.vocab.toString());
+    if (widget.vocab == null) {
+      return SizedBox();
+    }
+    List<String> vocKeys = widget.vocab!.keys.toList();
+    final Widget vocab = ListView.builder(
+      padding: EdgeInsets.only(bottom: 4),
+      itemCount: vocKeys.length,
+      itemBuilder: (BuildContext context, int index) {
+        String key = vocKeys[index];
+        Vocab voc = Vocab(widget.vocab![key]['term']);
+        return Container(
+          height: 50,
+          child: Text(voc.term),
+        );
+      },
+    );
+    return Container(width: 200, height: 300, child: vocab);
   }
 }
-
-// class _VocabularyState extends State<Vocabulary> {
-//   @override
-//   Widget build(BuildContext context) {
-//     final Widget vocab = ListView.builder(
-//       // shrinkWrap: true,
-//       itemCount: widget.vocab?.length ?? 0,
-//       itemBuilder: (BuildContext context, int index) {
-//         String key = widget.vocab!.keys.elementAt(index);
-//         String def = widget.vocab![key] ?? "⏳ No definition available just yet";
-//         return Padding(
-//           padding: EdgeInsets.only(top: 4),
-//           child: Row(
-//             children: [
-//               Flexible(
-//                 child: Text(
-//                   key,
-//                   style: TextStyle(
-//                     color: Theme.of(context).colorScheme.onSurface,
-//                     fontFamily: Theme.of(context).textTheme.bodyMedium?.fontFamily,
-//                     fontSize: Theme.of(context).textTheme.bodyMedium?.fontSize,
-//                     fontWeight: FontWeight.bold,
-//                   ),
-//                 ),
-//               ),
-//               Flexible(
-//                 child: Text(
-//                   def,
-//                   style: TextStyle(
-//                     color: Theme.of(context).colorScheme.onSurface,
-//                     fontFamily: Theme.of(context).textTheme.bodyMedium?.fontFamily,
-//                     fontSize: Theme.of(context).textTheme.bodyMedium?.fontSize,
-//                   ),
-//                 ),
-//               ),
-//             ],
-//           ),
-//         );
-//       },
-//     );
-//     return vocab;
-//   }
-// }
-
-// class _MsgDetailState extends State<MsgDetail> {
-//   bool _showTranslation = false;
-//   @override
-//   Widget build(BuildContext context) {
-//     final Widget translation = Text(
-//       widget.msg.translation ?? "⏳ No translation available just yet",
-//       style: TextStyle(
-//         color: Theme.of(context).colorScheme.onSurface,
-//         fontFamily: Theme.of(context).textTheme.bodyMedium?.fontFamily,
-//         fontSize: Theme.of(context).textTheme.bodyMedium?.fontSize,
-//       ),
-//     );
-//     final Widget translationButton = TextButton(
-//       child: Text("Show translation"),
-//       onPressed: () {
-//         setState(() {
-//           _showTranslation = true;
-//         });
-//       },
-//     );
-//     final Widget vocab = ListView.builder(
-//       // shrinkWrap: true,
-//       itemCount: widget.msg.vocab?.length ?? 0,
-//       itemBuilder: (BuildContext context, int index) {
-//         String key = widget.msg.vocab!.keys.elementAt(index);
-//         String def = widget.msg.vocab![key] ?? "⏳ No definition available just yet";
-//         return Padding(
-//           padding: EdgeInsets.only(top: 4),
-//           child: Row(
-//             children: [
-//               Flexible(
-//                 child: Text(
-//                   key,
-//                   style: TextStyle(
-//                     color: Theme.of(context).colorScheme.onSurface,
-//                     fontFamily: Theme.of(context).textTheme.bodyMedium?.fontFamily,
-//                     fontSize: Theme.of(context).textTheme.bodyMedium?.fontSize,
-//                     fontWeight: FontWeight.bold,
-//                   ),
-//                 ),
-//               ),
-//               Flexible(
-//                 child: Text(
-//                   def,
-//                   style: TextStyle(
-//                     color: Theme.of(context).colorScheme.onSurface,
-//                     fontFamily: Theme.of(context).textTheme.bodyMedium?.fontFamily,
-//                     fontSize: Theme.of(context).textTheme.bodyMedium?.fontSize,
-//                   ),
-//                 ),
-//               ),
-//             ],
-//           ),
-//         );
-//       },
-//     );
-//     return Column(
-//       children: [
-//         (_showTranslation) ? translation : translationButton,
-//         vocab,
-//       ],
-//     );
-//   }
-// }
