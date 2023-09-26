@@ -180,14 +180,11 @@ class MsgBox extends StatelessWidget {
                         builder: (BuildContext context) {
                           return AlertDialog(
                             scrollable: true,
-                            title: Text("Translation",
+                            title: Text("Details",
                                 style: Theme.of(context).textTheme.headlineSmall?.copyWith(
                                       color: Theme.of(context).colorScheme.primary,
                                     )),
-                            content: Text(msg.translation!,
-                                style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                                      color: Theme.of(context).colorScheme.onSurface,
-                                    )),
+                            content: MsgDetail(msg),
                             actions: [
                               TextButton(
                                 child: Text(_closeIcon()),
@@ -201,7 +198,7 @@ class MsgBox extends StatelessWidget {
                   } else {
                     ScaffoldMessenger.of(context).showSnackBar(
                       SnackBar(
-                        content: Text('⏳ No translation available yet.'),
+                        content: Text('⏳ No details available just yet'),
                         duration: Duration(seconds: 1),
                       ),
                     );
@@ -231,3 +228,115 @@ class MsgBox extends StatelessWidget {
     return row;
   }
 }
+
+/// Display the extra payload from the message object if it exists, including translation and vocab.
+/// The widget should have 2 rows:
+///  1. the translation
+///  2. the scrollable vocab list
+/// The translation should be hidden under a button until the user taps it.
+/// The vocab should be in a list view, 1 row for each element sorted by its place in the msg. Each element should have the term (key) in bold, backround of the key term in a rectangle colored by the part_of_speech (green for verb, blue for noun, purple for adjective, grey for everything else). The definition should occur to the right of the term.
+///
+
+/// FIRST make the stateful "reveal translation" button; disabled showing "no translation available" if there is no translation.
+class MsgDetail extends StatefulWidget {
+  final Message msg;
+  MsgDetail(this.msg);
+  @override
+  _MsgDetailState createState() => _MsgDetailState();
+}
+
+// FIRST do a simplified version of the _MsgDetailState that only has the translation or "no translation available" text.
+class _MsgDetailState extends State<MsgDetail> {
+  bool _showTranslation = false;
+  @override
+  Widget build(BuildContext context) {
+    final Widget translation = Text(
+      widget.msg.translation ?? "⏳ No translation available just yet",
+      style: TextStyle(
+        color: Theme.of(context).colorScheme.onSurface,
+        fontFamily: Theme.of(context).textTheme.bodyMedium?.fontFamily,
+        fontSize: Theme.of(context).textTheme.bodyMedium?.fontSize,
+      ),
+    );
+    final Widget translationButton = ElevatedButton.icon(
+      icon: Icon(Icons.translate),
+      label: Text("Show translation"),
+      onPressed: () {
+        setState(() {
+          _showTranslation = true;
+        });
+      },
+    );
+    return Column(
+      children: [
+        // translation
+        (_showTranslation) ? translation : translationButton,
+      ],
+    );
+  }
+}
+
+// class _MsgDetailState extends State<MsgDetail> {
+//   bool _showTranslation = false;
+//   @override
+//   Widget build(BuildContext context) {
+//     final Widget translation = Text(
+//       widget.msg.translation ?? "⏳ No translation available just yet",
+//       style: TextStyle(
+//         color: Theme.of(context).colorScheme.onSurface,
+//         fontFamily: Theme.of(context).textTheme.bodyMedium?.fontFamily,
+//         fontSize: Theme.of(context).textTheme.bodyMedium?.fontSize,
+//       ),
+//     );
+//     final Widget translationButton = TextButton(
+//       child: Text("Show translation"),
+//       onPressed: () {
+//         setState(() {
+//           _showTranslation = true;
+//         });
+//       },
+//     );
+//     final Widget vocab = ListView.builder(
+//       // shrinkWrap: true,
+//       itemCount: widget.msg.vocab?.length ?? 0,
+//       itemBuilder: (BuildContext context, int index) {
+//         String key = widget.msg.vocab!.keys.elementAt(index);
+//         String def = widget.msg.vocab![key] ?? "⏳ No definition available just yet";
+//         return Padding(
+//           padding: EdgeInsets.only(top: 4),
+//           child: Row(
+//             children: [
+//               Flexible(
+//                 child: Text(
+//                   key,
+//                   style: TextStyle(
+//                     color: Theme.of(context).colorScheme.onSurface,
+//                     fontFamily: Theme.of(context).textTheme.bodyMedium?.fontFamily,
+//                     fontSize: Theme.of(context).textTheme.bodyMedium?.fontSize,
+//                     fontWeight: FontWeight.bold,
+//                   ),
+//                 ),
+//               ),
+//               Flexible(
+//                 child: Text(
+//                   def,
+//                   style: TextStyle(
+//                     color: Theme.of(context).colorScheme.onSurface,
+//                     fontFamily: Theme.of(context).textTheme.bodyMedium?.fontFamily,
+//                     fontSize: Theme.of(context).textTheme.bodyMedium?.fontSize,
+//                   ),
+//                 ),
+//               ),
+//             ],
+//           ),
+//         );
+//       },
+//     );
+//     return Column(
+//       children: [
+//         (_showTranslation) ? translation : translationButton,
+//         vocab,
+//       ],
+//     );
+//   }
+// }

@@ -40,9 +40,6 @@ class _ChatScreenState extends State<ChatScreen> {
   late Record record; // NOTE there's no reason why these are public v private right now
   late AudioPlayer audioPlayer;
   final FirebaseStorage storage = FirebaseStorage.instance;
-  List<Activity> _activities = [];
-  StreamSubscription<QuerySnapshot<Map<String, dynamic>>?>? _activityListener;
-  Activity? _activity;
   StreamSubscription<DocumentSnapshot<Map<String, dynamic>>?>? _transcriptListener;
   late Transcript _transcript; // must be late to get profile.name and lang from widget
   /// For supported codecs, see: https://pub.dev/packages/record
@@ -58,27 +55,6 @@ class _ChatScreenState extends State<ChatScreen> {
         language: widget.profile.lang,
         createdAt: Timestamp.now(),
         activityId: 'dne');
-    _activityListener = FirebaseFirestore.instance.collection('activities').snapshots().listen((querySnapshot) {
-      // print("chat: _activityListener: querySnapshot: ${querySnapshot.docs.length} docs");
-      if (querySnapshot.docs.isEmpty) {
-        // print("WARNING chat: _activityListener: querySnapshot.docs.length == 0");
-        return;
-      }
-      for (var doc in querySnapshot.docs) {
-        try {
-          Activity a = Activity.fromDocumentSnapshot(doc);
-          // print("chat: _activityListener: doc -> activity: ${a.name} ${a.title}");
-          // print("chat: _activityListener: doc.metadata.isFromCache: ${doc.metadata.isFromCache}");
-          setState(() {
-            _activities.add(a);
-            _activity = a;
-          });
-        } catch (e) {
-          // print("WARNING chat: _activityListener: failed to parse activity: ${doc.data()}");
-          continue;
-        }
-      }
-    });
     record = Record();
     audioPlayer = AudioPlayer();
   }
@@ -87,9 +63,7 @@ class _ChatScreenState extends State<ChatScreen> {
   void dispose() async {
     super.dispose();
     await stopPressed();
-    _activities.clear();
     await _transcriptListener?.cancel();
-    await _activityListener?.cancel();
     await record.dispose();
     await audioPlayer.dispose();
     if (_isRecording) {
@@ -126,22 +100,24 @@ class _ChatScreenState extends State<ChatScreen> {
         t = Transcript.fromDocumentSnapshot(doc);
       } on NullDataError {
         // nothing
+        print("NULLDATATERROR");
       }
       if (t != null) {
         // check if the transcript has any new messages
         // if so, play the audio
         if (_transcript.id == 'dne') {
-          // print("chat: _transcriptListener: _transcript is startup instructions, setting it to received value.");
+          print("chat: _transcriptListener: _transcript is startup instructions, setting it to received value.");
         } else if (t.messages.length > _transcript.messages.length) {
-          // print("chat: _transcriptListener: new messages, playing audio if it's AST");
+          print("chat: _transcriptListener: new messages, playing audio if it's AST");
         } else {
-          // print("chat: _transcriptListener: no new messages");
+          print("chat: _transcriptListener: no new messages");
         }
-        // print("chat: _transcriptListener: messages: ${t.messages}");
+        print("chat: _transcriptListener: messages: ${t.messages}");
         if (t.messages.isNotEmpty) {
-          // print("latest message: ${t.messages.first.role} ${t.messages.first.msg}");
+          print("latest message: ${t.messages.first.role} ${t.messages.first.msg}");
         }
         if (t.messages.isNotEmpty && t.messages.last.role == Role.ast) {
+          print("chat: _transcriptListener: playing audio from message ${t.messages.last.msg}");
           if (mounted) {
             if (callStatus == CallStatus.inCall) {
               playAudioFromMessage(t.messages.last, t.id, audioPlayer, storage);
@@ -159,7 +135,7 @@ class _ChatScreenState extends State<ChatScreen> {
           });
         }
       } else {
-        // print("WARNING chat: _transcriptListener: t is null; failed to parse");
+        print("WARNING chat: _transcriptListener: t is null; failed to parse");
       }
     });
   }
@@ -179,13 +155,6 @@ class _ChatScreenState extends State<ChatScreen> {
   /// Returns error string if any.
   Future<String?> startPressed() async {
     await _testAppCheck();
-
-    // print("chat: startPressed: [START]");
-    if (_activity == null) {
-      return "Please select an activity";
-    } else {
-      widget.setTitle(_activity!.title);
-    }
     setState(() {
       callStatus = CallStatus.ringing;
       serverStatus = ServerStatus.pending;
@@ -218,8 +187,8 @@ class _ChatScreenState extends State<ChatScreen> {
     HttpsCallableResult result;
     try {
       result = await startActivity.call(<String, dynamic>{
-        'name': _activity?.name ?? 'unstructured',
-        'type': _activity?.type ?? 'unstructured',
+        'name': 'unstructured',
+        'type': 'unstructured',
         'language': widget.profile.lang,
         'level': widget.profile.level,
       });
@@ -415,7 +384,6 @@ class _ChatScreenState extends State<ChatScreen> {
                   heightFactor: 0.65,
                   child: _holdToChatButton(context),
                 )
-              // : _activitySelector(context),
               : SizedBox(),
         ),
       ),

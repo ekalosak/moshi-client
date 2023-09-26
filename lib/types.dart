@@ -145,10 +145,10 @@ class Message {
   String msg;
   Audio? audio;
   Timestamp? createdAt;
+  Map<String, dynamic>? vocab;
   String? translation;
   bool played = false;
-  // Message(this.role, this.msg, this.audio, this.createdAt, this.translation);
-  Message(this.role, this.msg, {this.audio, this.createdAt, this.translation});
+  Message(this.role, this.msg, {this.audio, this.createdAt, this.translation, this.vocab});
 
   /// Raises:
   /// - an exception if the string is not a valid Role;
@@ -160,7 +160,15 @@ class Message {
     Audio audio = Audio.fromMap(map['audio']);
     Timestamp createdAt = map['created_at'];
     String? translation = (map['translation'] == '') ? null : map['translation'];
-    return Message(role, msg, audio: audio, createdAt: createdAt, translation: translation);
+    Map<String, dynamic>? vocab = map['vocab'];
+    return Message(
+      role,
+      msg,
+      audio: audio,
+      createdAt: createdAt,
+      translation: translation,
+      vocab: vocab,
+    );
   }
 }
 
