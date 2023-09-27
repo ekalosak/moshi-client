@@ -2,33 +2,10 @@
 // You feed it a map of vocab words e.g. {'word': {'definition': 'meaning'}}.
 import 'package:flutter/material.dart';
 
-class Vocab {
-  final String term;
-  final String? termTranslation;
-  final String? definition;
-  final String? definitionTranslation;
-  final String? partOfSpeech;
-  Vocab(this.term, {this.termTranslation, this.definition, this.definitionTranslation, this.partOfSpeech});
-  // to string method
-  @override
-  String toString() {
-    return "Vocab(term: $term, termTranslation: $termTranslation, definition: $definition, definitionTranslation: $definitionTranslation, partOfSpeech: $partOfSpeech)";
-  }
-
-  // from map<str, str>; all but term are optional
-  factory Vocab.fromMap(Map<String, dynamic> map) {
-    return Vocab(
-      map['term'],
-      termTranslation: map['term_translation']?.toString(),
-      definition: map['definition']?.toString(),
-      definitionTranslation: map['definition_translation']?.toString(),
-      partOfSpeech: map['part_of_speech']?.toString(),
-    );
-  }
-}
+import 'package:moshi/types.dart';
 
 class Vocabulary extends StatefulWidget {
-  final Map<String, dynamic>? vocab;
+  final Map<String, Vocab>? vocab;
   Vocabulary(this.vocab);
   @override
   _VocabularyState createState() => _VocabularyState();
@@ -47,15 +24,10 @@ class _VocabularyState extends State<Vocabulary> {
       itemCount: vocKeys.length,
       itemBuilder: (BuildContext context, int index) {
         String key = vocKeys[index];
-        Vocab voc = Vocab.fromMap(widget.vocab![key]);
-        return VocTile(voc);
+        return VocTile(widget.vocab![key]!);
       },
     );
-    return Container(
-      height: 200,
-      width: 200,
-      child: Center(child: vocab),
-    );
+    return vocab;
   }
 }
 

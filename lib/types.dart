@@ -32,6 +32,31 @@ class NullDataError implements Exception {
   NullDataError(this.message);
 }
 
+class Vocab {
+  final String term;
+  final String? termTranslation;
+  final String? definition;
+  final String? definitionTranslation;
+  final String? partOfSpeech;
+  Vocab(this.term, {this.termTranslation, this.definition, this.definitionTranslation, this.partOfSpeech});
+  // to string method
+  @override
+  String toString() {
+    return "Vocab(term: $term, termTranslation: $termTranslation, definition: $definition, definitionTranslation: $definitionTranslation, partOfSpeech: $partOfSpeech)";
+  }
+
+  // from map<str, str>; all but term are optional
+  factory Vocab.fromMap(Map<String, dynamic> map) {
+    return Vocab(
+      map['term'],
+      termTranslation: map['term_translation']?.toString(),
+      definition: map['definition']?.toString(),
+      definitionTranslation: map['definition_translation']?.toString(),
+      partOfSpeech: map['part_of_speech']?.toString(),
+    );
+  }
+}
+
 class Activity {
   String title;
   String type;
@@ -145,7 +170,7 @@ class Message {
   String msg;
   Audio? audio;
   Timestamp? createdAt;
-  Map<String, dynamic>? vocab;
+  Map<String, Vocab>? vocab;
   String? translation;
   bool played = false;
   Message(this.role, this.msg, {this.audio, this.createdAt, this.translation, this.vocab});
@@ -160,7 +185,13 @@ class Message {
     Audio audio = Audio.fromMap(map['audio']);
     Timestamp createdAt = map['created_at'];
     String? translation = (map['translation'] == '') ? null : map['translation'];
-    Map<String, dynamic>? vocab = map['vocab'];
+    Map<String, Vocab> vocab = {};
+    if (map.containsKey('vocab')) {
+      for (var v in map['vocab'].values) {
+        Vocab voc = Vocab.fromMap(v);
+        vocab[voc.term] = voc;
+      }
+    }
     return Message(
       role,
       msg,

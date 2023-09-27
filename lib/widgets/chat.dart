@@ -285,7 +285,7 @@ class _MsgDetailState extends State<MsgDetail> {
         });
       },
     );
-    Widget vocabulary = Vocabulary(widget.msg.vocab);
+    Widget vocabulary = SizedBox(height: 200, width: 200, child: Center(child: Vocabulary(widget.msg.vocab)));
     return Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
