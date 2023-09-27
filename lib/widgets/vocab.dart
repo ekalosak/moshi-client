@@ -81,8 +81,8 @@ class _VocTile extends State<VocTile> {
       Row(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          GestureDetector(
-            child: Flexible(
+          Flexible(
+            child: GestureDetector(
               child: Container(
                 padding: EdgeInsets.all(4),
                 decoration: BoxDecoration(
@@ -91,10 +91,10 @@ class _VocTile extends State<VocTile> {
                 ),
                 child: term,
               ),
+              onTap: () => setState(() {
+                _showTranslation = !_showTranslation;
+              }),
             ),
-            onTap: () => setState(() {
-              _showTranslation = !_showTranslation;
-            }),
           ),
           Flexible(
             flex: 2,
