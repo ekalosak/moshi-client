@@ -69,6 +69,7 @@ class _VocabScreenState extends State<VocabScreen> {
     super.dispose();
     _transcriptListener.cancel();
     _transcripts.clear();
+    _vocab.clear();
   }
 
   @override

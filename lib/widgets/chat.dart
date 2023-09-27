@@ -46,6 +46,11 @@ class _ChatState extends State<Chat> {
   Widget build(BuildContext context) {
     final Color boxColor = Theme.of(context).colorScheme.surface;
     final Color iconColor = Theme.of(context).colorScheme.secondary;
+    // for (var msg in widget.messages) {
+    //   print(msg.role);
+    //   print(msg.createdAt);
+    //   print(msg.msg);
+    // }
     try {
       widget.messages.sort((a, b) => b.createdAt!.compareTo(a.createdAt!));
     } catch (e) {
