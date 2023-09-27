@@ -12,7 +12,7 @@ import 'package:firebase_app_check/firebase_app_check.dart';
 import 'theme.dart';
 import 'screens/switch.dart';
 
-const useEmulators = true;
+const useEmulators = false;
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();

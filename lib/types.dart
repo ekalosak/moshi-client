@@ -234,8 +234,10 @@ class Profile {
     String primaryLang = snapshot['native_language'];
     int level = (data.containsKey('level')) ? snapshot['level'] : 1;
     Map<String, int> streak = {};
-    if (snapshot['streak'] != null) {
-      streak = Map<String, int>.from(snapshot['streak']);
+    if (data.containsKey('streak')) {
+      if (snapshot['streak'] != null) {
+        streak = Map<String, int>.from(snapshot['streak']);
+      }
     }
     return Profile(uid: uid, lang: lang, name: name, primaryLang: primaryLang, level: level, streak: streak);
   }
