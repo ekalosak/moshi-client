@@ -63,7 +63,7 @@ class _FeedbackScreenState extends State<FeedbackScreen> {
         .where('timestamp', isGreaterThan: DateTime.now().subtract(Duration(days: 1)))
         .snapshots()
         .listen((QuerySnapshot snapshot) {
-      print("snapshot.docs.length = ${snapshot.docs.length}");
+      // print("snapshot.docs.length = ${snapshot.docs.length}");
       setState(() {
         _numFeedbacks = snapshot.docs.length;
       });
@@ -100,9 +100,9 @@ class _FeedbackScreenState extends State<FeedbackScreen> {
   }
 
   Future<void> _submitFeedback(String fbk, String typ) async {
-    print("Submitting feedback...");
-    print("uid: ${widget.profile.uid}");
-    print("body: $fbk");
+    // print("Submitting feedback...");
+    // print("uid: ${widget.profile.uid}");
+    // print("body: $fbk");
     try {
       await FirebaseFirestore.instance.collection('feedback').add({
         'uid': widget.profile.uid,
@@ -122,7 +122,7 @@ class _FeedbackScreenState extends State<FeedbackScreen> {
         });
       }
     } catch (e) {
-      print("Error submitting feedback: $e");
+      // print("Error submitting feedback: $e");
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
@@ -143,7 +143,7 @@ class _FeedbackScreenState extends State<FeedbackScreen> {
             onPressed: (_feedbackType != null && _feedbackController.text != "" && _feedbackType != null)
                 ? () async {
                     await _submitFeedback(_feedbackController.text, _feedbackType!);
-                    print("Feedback submitted!");
+                    // print("Feedback submitted!");
                   }
                 : null,
             child: Text("Submit"),

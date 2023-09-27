@@ -146,7 +146,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
 // Require string uid; optional string lang, name, primaryLang.
 Future<String?> updateProfile({required String uid, String? targetLang, String? name, String? nativeLang}) async {
   String? err;
-  print("updateProfile: uid: $uid, targetLanguage: $targetLang, name: $name, nativeLanguage: $nativeLang");
+  // print("updateProfile: uid: $uid, targetLanguage: $targetLang, name: $name, nativeLanguage: $nativeLang");
   DocumentReference<Map<String, dynamic>> documentReference = FirebaseFirestore.instance.collection('users').doc(uid);
   try {
     // construct a map of the fields to update
@@ -162,9 +162,9 @@ Future<String?> updateProfile({required String uid, String? targetLang, String? 
     }
     await documentReference.update(data);
   } catch (e) {
-    print("Unknown error");
-    print(e);
-    err = 'An error occurred. Please try again later.';
+    // print("Unknown error");
+    // print(e);
+    err = 'An error occurred: $e';
   }
   return err;
 }

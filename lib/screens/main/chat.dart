@@ -72,7 +72,7 @@ class _ChatScreenState extends State<ChatScreen> {
     try {
       _timeoutTimer.cancel();
     } catch (e) {
-      print("_timeoutTimer not initialized, indicating the user switched screens before starting a call.");
+      // print("_timeoutTimer not initialized, indicating the user switched screens before starting a call.");
     }
   }
 
@@ -100,24 +100,24 @@ class _ChatScreenState extends State<ChatScreen> {
         t = Transcript.fromDocumentSnapshot(doc);
       } on NullDataError {
         // nothing
-        print("NULLDATATERROR");
+        // print("NULLDATATERROR");
       }
       if (t != null) {
         // check if the transcript has any new messages
         // if so, play the audio
         if (_transcript.id == 'dne') {
-          print("chat: _transcriptListener: _transcript is startup instructions, setting it to received value.");
+          // print("chat: _transcriptListener: _transcript is startup instructions, setting it to received value.");
         } else if (t.messages.length > _transcript.messages.length) {
-          print("chat: _transcriptListener: new messages, playing audio if it's AST");
+          // print("chat: _transcriptListener: new messages, playing audio if it's AST");
         } else {
-          print("chat: _transcriptListener: no new messages");
+          // print("chat: _transcriptListener: no new messages");
         }
-        print("chat: _transcriptListener: messages: ${t.messages}");
+        // print("chat: _transcriptListener: messages: ${t.messages}");
         if (t.messages.isNotEmpty) {
-          print("latest message: ${t.messages.first.role} ${t.messages.first.msg}");
+          // print("latest message: ${t.messages.first.role} ${t.messages.first.msg}");
         }
         if (t.messages.isNotEmpty && t.messages.last.role == Role.ast) {
-          print("chat: _transcriptListener: playing audio from message ${t.messages.last.msg}");
+          // print("chat: _transcriptListener: playing audio from message ${t.messages.last.msg}");
           if (mounted) {
             if (callStatus == CallStatus.inCall) {
               playAudioFromMessage(t.messages.last, t.id, audioPlayer, storage);
@@ -135,7 +135,7 @@ class _ChatScreenState extends State<ChatScreen> {
           });
         }
       } else {
-        print("WARNING chat: _transcriptListener: t is null; failed to parse");
+        // print("WARNING chat: _transcriptListener: t is null; failed to parse");
       }
     });
   }
@@ -143,7 +143,7 @@ class _ChatScreenState extends State<ChatScreen> {
   /// TODO DUMMY TEST FUNCTION
   Future<void> _testAppCheck() async {
     try {
-      print("START test_app_check");
+      // print("START test_app_check");
       await FirebaseFunctions.instance.httpsCallable('test_app_check').call();
       print("SUCCEEDED test_app_check");
     } catch (e) {
@@ -573,10 +573,10 @@ class _ChatScreenState extends State<ChatScreen> {
         if (_transcript.id == 'dne') {
           // print("WARNING chat: _sendFeedback: transcript not found");
         } else {
-          print("WARNING chat: _sendFeedback: failed to update transcript: ${e.message}");
+          // print("WARNING chat: _sendFeedback: failed to update transcript: ${e.message}");
         }
       } else {
-        print("WARNING chat: _sendFeedback: failed to update transcript: ${e.message}");
+        // print("WARNING chat: _sendFeedback: failed to update transcript: ${e.message}");
       }
     }
   }
@@ -584,7 +584,7 @@ class _ChatScreenState extends State<ChatScreen> {
   void _afterFeedbackMessage() {
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
-        content: Text("🙇 Thank you very much for helping us improve."),
+        content: Text("🙇 Thank you very much."),
         duration: Duration(seconds: 2),
       ),
     );

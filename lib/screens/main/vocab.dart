@@ -28,7 +28,7 @@ class _VocabScreenState extends State<VocabScreen> {
             continue;
           }
           for (Vocab v in m.vocab!.values) {
-            print("vocab: $v");
+            // print("vocab: $v");
             if (!_vocab.containsKey(v.term)) {
               _vocab[v.term] = v;
             }
@@ -73,8 +73,8 @@ class _VocabScreenState extends State<VocabScreen> {
 
   @override
   Widget build(BuildContext context) {
-    print("BUILDING VOCAB SCREEN");
-    print("vocab: $_vocab");
+    // print("BUILDING VOCAB SCREEN");
+    // print("vocab: $_vocab");
     Vocabulary vocab = Vocabulary(_vocab);
     return Padding(
       padding: EdgeInsets.all(16),
