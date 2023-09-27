@@ -33,7 +33,7 @@ const int VOCAB_INDEX = 4;
 class _WrapperScreenState extends State<WrapperScreen> {
   Profile? profile;
   String? _title;
-  int _index = VOCAB_INDEX;
+  int _index = CHAT_INDEX;
   Map<String, dynamic> languages = {};
   late StreamSubscription _profileListener;
   late StreamSubscription _supportedLangsListener;
@@ -46,21 +46,14 @@ class _WrapperScreenState extends State<WrapperScreen> {
         .doc(widget.user.uid)
         .snapshots(includeMetadataChanges: true)
         .listen((DocumentSnapshot snapshot) {
+      // print("GOT PROFILE UPDATE: $snapshot");
       if (snapshot.exists && snapshot.data() != null) {
-        Map<String, dynamic> data = snapshot.data() as Map<String, dynamic>;
-        int level = data.containsKey('level') ? snapshot['level'] : 1;
         setState(() {
-          profile = Profile(
-            uid: snapshot.id,
-            lang: snapshot['language'],
-            name: snapshot['name'],
-            primaryLang: snapshot['native_language'],
-            level: level,
-          );
+          profile = Profile.fromDocumentSnapshot(snapshot);
         });
       } else {
         if (!snapshot.metadata.isFromCache) {
-          // print("@@ REROUTING TO MAKE PROFILE");
+          // it can happen that the snapshot can be from cache if just after the user creates their profile.
           Navigator.pushAndRemoveUntil(
               context, MaterialPageRoute(builder: (context) => MakeProfileScreen(user: widget.user)), (route) => false);
         }

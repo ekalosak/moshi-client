@@ -212,7 +212,38 @@ class Profile {
   String name;
   String uid;
   int level;
-  Profile({required this.uid, required this.lang, required this.name, this.primaryLang = 'en-US', this.level = 1});
+  Map<String, int> streak;
+  Profile(
+      {required this.uid,
+      required this.lang,
+      required this.name,
+      this.primaryLang = 'en-US',
+      this.level = 1,
+      this.streak = const {}});
+
+  factory Profile.fromDocumentSnapshot(DocumentSnapshot snapshot) {
+    Map<String, dynamic>? data = snapshot.data() as Map<String, dynamic>?;
+    // print("CREATING PROFILE FROM DOC SNAP");
+    // print("data: $data");
+    if (data == null) {
+      throw NullDataError("Profile.fromDocumentSnapshot: data is null: ${snapshot.id}");
+    }
+    String uid = snapshot.id;
+    String name = snapshot['name'];
+    String lang = snapshot['language'];
+    String primaryLang = snapshot['native_language'];
+    int level = (data.containsKey('level')) ? snapshot['level'] : 1;
+    Map<String, int> streak = {};
+    if (snapshot['streak'] != null) {
+      streak = Map<String, int>.from(snapshot['streak']);
+    }
+    return Profile(uid: uid, lang: lang, name: name, primaryLang: primaryLang, level: level, streak: streak);
+  }
+
+  @override
+  String toString() {
+    return "Profile(uid: $uid, name: $name, lang: $lang, primaryLang: $primaryLang, level: $level, streak: $streak)";
+  }
 }
 
 class Config {

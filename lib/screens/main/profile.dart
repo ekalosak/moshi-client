@@ -1,5 +1,8 @@
+// import datetime
+import 'dart:core';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_heatmap_calendar/flutter_heatmap_calendar.dart';
 
 import 'package:moshi/types.dart';
 
@@ -30,17 +33,38 @@ class _ProfileScreenState extends State<ProfileScreen> {
 
   @override
   Widget build(BuildContext context) {
-    return Padding(
+    Widget profileEdit = Padding(
         padding: EdgeInsets.all(48.0),
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            _nameField(),
-            _languageDropdown(),
-            SizedBox(height: 48.0),
-            _saveButton(),
-          ],
-        ));
+        child: Column(children: [
+          Text(
+            "Profile info",
+            style: Theme.of(context).textTheme.headlineMedium,
+          ),
+          _nameField(),
+          _languageDropdown(),
+          SizedBox(height: 16.0),
+          _saveButton(),
+        ]));
+    Widget streakWidget = Column(children: [
+      SizedBox(
+        height: 8,
+      ),
+      Text(
+        "Streak",
+        style: Theme.of(context).textTheme.headlineMedium,
+      ),
+      _streak(),
+    ]);
+    return Column(
+      mainAxisAlignment: MainAxisAlignment.center,
+      children: [
+        streakWidget,
+        Expanded(
+          child: SizedBox(),
+        ),
+        profileEdit
+      ],
+    );
   }
 
   String getLangRepr(String lang) {
@@ -138,6 +162,39 @@ class _ProfileScreenState extends State<ProfileScreen> {
         fontSize: Theme.of(context).textTheme.bodyLarge?.fontSize,
         fontFamily: Theme.of(context).textTheme.headlineMedium?.fontFamily,
       ),
+    );
+  }
+
+  Widget _streak() {
+    // First, from the profile.streak (map<string, int>) get the datetimes corresponding to the keys (firestore only allows string keys). The keys of the streak map are e.g. "230927" -> 2023-09-27. Convert these to DateTime objects.
+    Map<DateTime, int> streak = {};
+    // print("BUILDING STREAK WIDGET");
+    // print("streak: ${widget.profile.streak}");
+    // print("profile: ${widget.profile}");
+    for (var key in widget.profile.streak.keys) {
+      // print("key: $key, value: ${widget.profile.streak[key]}");
+      streak[DateTime.parse(key)] = widget.profile.streak[key]!;
+    }
+    // Second, create the heatmap of the last month's activity.
+    return HeatMap(
+      startDate: DateTime.now().subtract(Duration(days: 30)),
+      colorsets: {0: Theme.of(context).colorScheme.primary},
+      defaultColor: Theme.of(context).colorScheme.surface,
+      size: 24,
+      showColorTip: false,
+      datasets: streak,
+      onClick: (p0) => {
+        (streak[p0] != null)
+            ? ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+                content: Text(
+                  "${streak[p0]} conversations on ${p0.toString().substring(0, 10)}",
+                  style: Theme.of(context).textTheme.bodyMedium?.copyWith(color: Theme.of(context).colorScheme.primary),
+                ),
+                backgroundColor: Theme.of(context).colorScheme.onPrimary,
+                duration: Duration(seconds: 2),
+              ))
+            : null
+      },
     );
   }
 }
