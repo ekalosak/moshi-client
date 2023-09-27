@@ -333,12 +333,12 @@ class _ChatScreenState extends State<ChatScreen> {
   Future<void> _playAudio(Audio aud) async {
     File? lap = await localAudioPath(aud);
     if (lap == null) {
-      print("WARNING chat: _playAudio: localAudioPath returned null");
+      // print("WARNING chat: _playAudio: localAudioPath returned null");
       return;
     }
-    print("chat: _playAudio: playing ${lap.path}");
+    // print("chat: _playAudio: playing ${lap.path}");
     await audioPlayer.play(DeviceFileSource(lap.path));
-    print("played");
+    // print("played");
   }
 
   @override
