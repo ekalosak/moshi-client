@@ -4,6 +4,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 
+import 'package:moshi/fbauth_mixin.dart';
 import 'package:moshi/types.dart';
 import 'package:moshi/screens/auth/make_profile.dart';
 import 'package:moshi/screens/switch.dart';
@@ -16,11 +17,13 @@ import 'vocab.dart';
 const String version = "23.9.4";
 
 class WrapperScreen extends StatefulWidget {
-  // make WrapperScreen take User user as a param
   final User user;
+
   WrapperScreen({required this.user});
+
   @override
   _WrapperScreenState createState() => _WrapperScreenState();
+
 }
 
 // Sidebar indices
@@ -30,18 +33,17 @@ const int PROFILE_INDEX = 2;
 const int TRANSCRIPT_INDEX = 3;
 const int VOCAB_INDEX = 4;
 
-class _WrapperScreenState extends State<WrapperScreen> {
+class _WrapperScreenState extends State<WrapperScreen> with FirebaseListenerMixin {
   Profile? profile;
   String? _title;
   int _index = CHAT_INDEX;
   Map<String, dynamic> languages = {};
-  late StreamSubscription _profileListener;
-  late StreamSubscription _supportedLangsListener;
+  // late StreamSubscription _profileListener;
+  // late StreamSubscription _supportedLangsListener;
 
   @override
-  void initState() {
-    super.initState();
-    _profileListener = FirebaseFirestore.instance
+  void initFirebaseListeners() {
+    profileListener = FirebaseFirestore.instance
         .collection('users')
         .doc(widget.user.uid)
         .snapshots(includeMetadataChanges: true)
@@ -59,7 +61,7 @@ class _WrapperScreenState extends State<WrapperScreen> {
         }
       }
     });
-    _supportedLangsListener = FirebaseFirestore.instance
+    supportedLangsListener = FirebaseFirestore.instance
         .collection('config')
         .doc('languages')
         .snapshots()
@@ -76,10 +78,19 @@ class _WrapperScreenState extends State<WrapperScreen> {
   }
 
   @override
+  void initState() {
+    super.initState();
+  }
+
+  @override
   void dispose() {
+    _clearListeners();
+    super.dispose();
+  }
+
+  void _clearListeners() {
     _profileListener.cancel();
     _supportedLangsListener.cancel();
-    super.dispose();
   }
 
   void updateTitle(String title) {
@@ -323,10 +334,10 @@ class _WrapperScreenState extends State<WrapperScreen> {
                 padding: const EdgeInsets.only(left: 8.0),
                 child: ElevatedButton.icon(
                     onPressed: () async {
+                      _clearListeners();
                       await FirebaseAuth.instance.signOut();
                       if (mounted) {
-                        Navigator.of(context).pushAndRemoveUntil(
-                            MaterialPageRoute(builder: (context) => SwitchScreen()), (route) => false);
+                        Navigator.of(context).pushReplacement(MaterialPageRoute(builder: (context) => SwitchScreen()));
                       }
                     },
                     icon: Icon(

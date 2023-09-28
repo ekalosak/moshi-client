@@ -3,6 +3,7 @@ import 'dart:async';
 
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 
 import 'package:moshi/types.dart';
 
@@ -27,7 +28,6 @@ class Item {
 
   factory Item.fromDocumentSnapshot(DocumentSnapshot doc) {
     Map<String, dynamic> data = doc.data() as Map<String, dynamic>;
-    // print("feed: Item.fromDocumentSnapshot: data: ${data.keys}");
     return Item(
       title: data.containsKey('title') ? data['title'] : '',
       subtitle: data.containsKey('subtitle') ? data['subtitle'] : '',
@@ -50,6 +50,7 @@ class FeedScreen extends StatefulWidget {
 class _FeedScreenState extends State<FeedScreen> {
   late StreamSubscription _globalFeedListener;
   late StreamSubscription _feedListener;
+  final FirebaseAuth _auth = FirebaseAuth.instance;
   Map<String, Item> _userFeed = {}; // feed for this user
   Map<String, Item> _globalFeed = {}; // global feed records
   Map<String, bool> _globalRead = {}; // whether the user has read the global feed item
@@ -57,13 +58,28 @@ class _FeedScreenState extends State<FeedScreen> {
   @override
   void initState() {
     super.initState();
+    _initListeners();
+    _auth.authStateChanges().listen((User? usr) {
+      if (usr == null) {
+        _cancelListeners();
+      }
+    });
+  }
+
+  @override
+  void dispose() {
+    _cancelListeners();
+    _userFeed.clear();
+    _globalFeed.clear();
+    _globalRead.clear();
+    super.dispose();
+  }
+
+  /// Setup the global feed and user feed listeners
+  void _initListeners() {
     _globalFeedListener = FirebaseFirestore.instance.collection('feed').snapshots().listen((event) {
-      // print("feed: _globalFeedListener: ${event.docs.length} docs");
       final Map<String, Item> globalFeed = {};
       for (var doc in event.docs) {
-        // print('HERE');
-        // print(doc.id);
-        // print(doc.data());
         globalFeed[doc.id] = Item.fromDocumentSnapshot(doc);
       }
       if (globalFeed.isNotEmpty) {
@@ -76,19 +92,14 @@ class _FeedScreenState extends State<FeedScreen> {
         .collection('feed')
         .snapshots()
         .listen((event) {
-      // print("feed: feedListener: ${event.docs.length} docs");
       final Map<String, Item> userFeed = {};
       final Map<String, bool> globalRead = {};
       for (var doc in event.docs) {
         Map<String, dynamic> data = doc.data();
-        // print(data);
         if (data.containsKey('global')) {
-          // print("GLOBAL");
           globalRead[doc.id] = data['read'];
         } else {
-          // print("USER");
           final Item item = Item.fromDocumentSnapshot(doc);
-          // print("feed: feedListener: item: ${item.id} ${item.read}");
           userFeed[item.id] = item;
         }
       }
@@ -98,14 +109,9 @@ class _FeedScreenState extends State<FeedScreen> {
     });
   }
 
-  @override
-  void dispose() {
-    super.dispose();
+  void _cancelListeners() {
     _globalFeedListener.cancel();
     _feedListener.cancel();
-    _userFeed.clear();
-    _globalFeed.clear();
-    _globalRead.clear();
   }
 
   void _addToUserFeed(Map<String, Item> userFeed, Map<String, bool> globalRead) {

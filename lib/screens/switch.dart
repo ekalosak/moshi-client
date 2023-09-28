@@ -7,6 +7,7 @@ import 'main/wrapper.dart';
 import 'auth/login.dart';
 
 class SwitchScreen extends StatefulWidget {
+  SwitchScreen();
   @override
   State<StatefulWidget> createState() => _SwitchScreenState();
 }

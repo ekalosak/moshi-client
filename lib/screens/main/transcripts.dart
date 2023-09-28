@@ -2,6 +2,7 @@ import 'dart:async';
 import 'dart:io';
 import 'package:audioplayers/audioplayers.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 
 import 'package:moshi/types.dart';
@@ -21,6 +22,7 @@ class TranscriptScreen extends StatefulWidget {
 }
 
 class _TranscriptScreenState extends State<TranscriptScreen> {
+  final FirebaseAuth _auth = FirebaseAuth.instance;
   late StreamSubscription _transcriptListener;
   List<Transcript>? _transcripts; // transcripts for this user // TODO filter by date. show only the last 30 days?
   late AudioPlayer audioPlayer;
@@ -29,8 +31,25 @@ class _TranscriptScreenState extends State<TranscriptScreen> {
   void initState() {
     super.initState();
     audioPlayer = AudioPlayer();
-    // listen for transcript documents with this user's uid in the uid field.
-    // the transcript documents have their own unique document id.
+    _initListeners();
+    _auth.authStateChanges().listen((User? usr) {
+      if (usr == null) {
+        _cancelListeners();
+      }
+    });
+  }
+
+  @override
+  void dispose() {
+    _cancelListeners();
+    _transcripts?.clear();
+    audioPlayer.dispose();
+    super.dispose();
+  }
+
+  /// listen for transcript documents with this user's uid in the uid field.
+  /// the transcript documents have their own unique document id.
+  void _initListeners() {
     _transcriptListener = FirebaseFirestore.instance
         .collection('users')
         .doc(widget.profile.uid)
@@ -40,16 +59,12 @@ class _TranscriptScreenState extends State<TranscriptScreen> {
         .snapshots()
         .listen((event) {
       if (event.size > 0) {
-        // print("TranscriptScreen._transcriptListener: event.size: ${event.size}");
         final List<Transcript> ts = [];
         for (var doc in event.docs) {
-          // print("TranscriptScreen._transcriptListener: doc.id: ${doc.id}");
           final Transcript t;
           try {
             t = Transcript.fromDocumentSnapshot(doc);
           } on NullDataError {
-            // print("TranscriptScreen._transcriptListener: NullDataError: ${doc.id}");
-            // print(doc.data());
             continue;
           }
           ts.add(t);
@@ -65,13 +80,8 @@ class _TranscriptScreenState extends State<TranscriptScreen> {
     });
   }
 
-  @override
-  void dispose() {
-    // print("TranscriptScreen.dispose");
+  void _cancelListeners() {
     _transcriptListener.cancel();
-    _transcripts?.clear();
-    audioPlayer.dispose();
-    super.dispose();
   }
 
   void _addTranscripts(List<Transcript> ts) {
