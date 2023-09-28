@@ -14,9 +14,7 @@ mixin FirebaseListenerMixin<T extends StatefulWidget> on State<T> {
   void initState() {
     super.initState();
     _authStateSubscription = _auth.authStateChanges().listen((user) {
-      // print("AUTH STATE CHANGE: $user");
       if (user == null) {
-        // print("CANCELLING LISTENERS");
         _cancelListeners();
       } else {
         setState(() {
@@ -35,7 +33,6 @@ mixin FirebaseListenerMixin<T extends StatefulWidget> on State<T> {
 
   void _cancelListeners() {
     for (var subscription in _firebaseListeners) {
-      // print("CANCELLING LISTENER: $subscription");
       subscription.cancel();
     }
     _firebaseListeners.clear();

@@ -78,22 +78,6 @@ class _WrapperScreenState extends State<WrapperScreen> with FirebaseListenerMixi
     return [profileListener, supportedLangsListener];
   }
 
-  // @override
-  // void initState() {
-  //   super.initState();
-  // }
-
-  // @override
-  // void dispose() {
-  //   _clearListeners();
-  //   super.dispose();
-  // }
-
-  // void _clearListeners() {
-  //   _profileListener.cancel();
-  //   _supportedLangsListener.cancel();
-  // }
-
   void updateTitle(String title) {
     setState(() {
       _title = title;
@@ -102,10 +86,6 @@ class _WrapperScreenState extends State<WrapperScreen> with FirebaseListenerMixi
 
   @override
   Widget build(BuildContext context) {
-    // if (FirebaseAuth.instance.currentUser == null) {
-    //   // print("wrapper: FirebaseAuth.instance.currentUser == null");
-    //   Navigator.of(context).pop();
-    // }
     if (profile == null || languages.isEmpty) {
       return Center(
         child: CircularProgressIndicator(),
