@@ -7,17 +7,21 @@ mixin FirebaseListenerMixin<T extends StatefulWidget> on State<T> {
   StreamSubscription<User?>? _authStateSubscription;
   List<StreamSubscription> _firebaseListeners = [];
 
-  // Implement this method in your widget to set up Firebase listeners.
-  void initFirebaseListeners();
+  /// Implement this method in your widget to set up Firebase listeners.
+  List<StreamSubscription> initFirebaseListeners();
 
   @override
   void initState() {
     super.initState();
     _authStateSubscription = _auth.authStateChanges().listen((user) {
+      // print("AUTH STATE CHANGE: $user");
       if (user == null) {
+        // print("CANCELLING LISTENERS");
         _cancelListeners();
       } else {
-        initFirebaseListeners();
+        setState(() {
+          _firebaseListeners = initFirebaseListeners();
+        });
       }
     });
   }
@@ -29,32 +33,11 @@ mixin FirebaseListenerMixin<T extends StatefulWidget> on State<T> {
     super.dispose();
   }
 
-  // Method to cancel Firebase listeners.
   void _cancelListeners() {
     for (var subscription in _firebaseListeners) {
+      // print("CANCELLING LISTENER: $subscription");
       subscription.cancel();
     }
     _firebaseListeners.clear();
-  }
-}
-
-class ExampleFBAuthWidget extends StatefulWidget {
-  @override
-  _ExampleFBAuthWidgetState createState() => _ExampleFBAuthWidgetState();
-}
-
-class _ExampleFBAuthWidgetState extends State<ExampleFBAuthWidget> with FirebaseListenerMixin {
-  @override
-  void initFirebaseListeners() {
-    // Initialize your Firebase listeners here.
-    // Example:
-    // _firebaseListeners.add(someFirestoreStream.listen((data) {
-    //   // Handle data from Firestore.
-    // }));
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    return Text("Demo");
   }
 }

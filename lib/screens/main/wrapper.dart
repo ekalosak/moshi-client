@@ -23,7 +23,6 @@ class WrapperScreen extends StatefulWidget {
 
   @override
   _WrapperScreenState createState() => _WrapperScreenState();
-
 }
 
 // Sidebar indices
@@ -42,56 +41,58 @@ class _WrapperScreenState extends State<WrapperScreen> with FirebaseListenerMixi
   // late StreamSubscription _supportedLangsListener;
 
   @override
-  void initFirebaseListeners() {
-    profileListener = FirebaseFirestore.instance
+  List<StreamSubscription> initFirebaseListeners() {
+    StreamSubscription profileListener = FirebaseFirestore.instance
         .collection('users')
         .doc(widget.user.uid)
         .snapshots(includeMetadataChanges: true)
         .listen((DocumentSnapshot snapshot) {
-      // print("GOT PROFILE UPDATE: $snapshot");
       if (snapshot.exists && snapshot.data() != null) {
-        setState(() {
-          profile = Profile.fromDocumentSnapshot(snapshot);
-        });
+        if (mounted) {
+          setState(() {
+            profile = Profile.fromDocumentSnapshot(snapshot);
+          });
+        }
       } else {
         if (!snapshot.metadata.isFromCache) {
           // it can happen that the snapshot can be from cache if just after the user creates their profile.
+          // so we want to pass if it is from cache, only redirect if it's the live version and is null.
           Navigator.pushAndRemoveUntil(
               context, MaterialPageRoute(builder: (context) => MakeProfileScreen(user: widget.user)), (route) => false);
         }
       }
     });
-    supportedLangsListener = FirebaseFirestore.instance
+    StreamSubscription supportedLangsListener = FirebaseFirestore.instance
         .collection('config')
         .doc('languages')
         .snapshots()
         .listen((DocumentSnapshot snapshot) {
       if (snapshot.exists && snapshot.data() != null) {
-        // print("wrapper: config/languages exists and isn't empty.");
-        setState(() {
-          languages = snapshot.data() as Map<String, dynamic>;
-        });
-      } else {
-        // print("wrapper: config/languages doesn't exist or is empty: ${snapshot.exists} ${snapshot.data()}");
+        if (mounted) {
+          setState(() {
+            languages = snapshot.data() as Map<String, dynamic>;
+          });
+        }
       }
     });
+    return [profileListener, supportedLangsListener];
   }
 
-  @override
-  void initState() {
-    super.initState();
-  }
+  // @override
+  // void initState() {
+  //   super.initState();
+  // }
 
-  @override
-  void dispose() {
-    _clearListeners();
-    super.dispose();
-  }
+  // @override
+  // void dispose() {
+  //   _clearListeners();
+  //   super.dispose();
+  // }
 
-  void _clearListeners() {
-    _profileListener.cancel();
-    _supportedLangsListener.cancel();
-  }
+  // void _clearListeners() {
+  //   _profileListener.cancel();
+  //   _supportedLangsListener.cancel();
+  // }
 
   void updateTitle(String title) {
     setState(() {
@@ -101,20 +102,15 @@ class _WrapperScreenState extends State<WrapperScreen> with FirebaseListenerMixi
 
   @override
   Widget build(BuildContext context) {
-    // print("wrapper: WrapperScreen.build");
-    if (FirebaseAuth.instance.currentUser == null) {
-      // print("wrapper: FirebaseAuth.instance.currentUser == null");
-      Navigator.of(context).pop();
-    }
+    // if (FirebaseAuth.instance.currentUser == null) {
+    //   // print("wrapper: FirebaseAuth.instance.currentUser == null");
+    //   Navigator.of(context).pop();
+    // }
     if (profile == null || languages.isEmpty) {
-      // print("wrapper: profile == null: ${profile == null}");
-      // print("wrapper: languages.isEmpty: ${languages.isEmpty}");
       return Center(
         child: CircularProgressIndicator(),
       );
     } else {
-      // print("wrapper: profile: ${profile?.name} ${profile?.uid}");
-      // print("wrapper: languages: ${languages.keys.toList().sublist(0, 5)}...");
       return _buildScaffold(profile!, languages);
     }
   }
@@ -123,7 +119,6 @@ class _WrapperScreenState extends State<WrapperScreen> with FirebaseListenerMixi
     try {
       return languages[lang]['country']['flag'];
     } catch (e) {
-      // print("ERROR wrapper: getLangEmoji: $e");
       return lang;
     }
   }
@@ -334,7 +329,6 @@ class _WrapperScreenState extends State<WrapperScreen> with FirebaseListenerMixi
                 padding: const EdgeInsets.only(left: 8.0),
                 child: ElevatedButton.icon(
                     onPressed: () async {
-                      _clearListeners();
                       await FirebaseAuth.instance.signOut();
                       if (mounted) {
                         Navigator.of(context).pushReplacement(MaterialPageRoute(builder: (context) => SwitchScreen()));
